@@ -387,15 +387,11 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 .intro-skip:hover { border-color: var(--cream); }
 .intro :focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Replay, pinned bottom right; hidden until intro.js unhides it. The footer's extra bottom
-   padding keeps its last line clear of the pill on phones. */
+/* Replay, inline at the end of the footer line; hidden until intro.js unhides it. */
 .intro-replay {
-  position: fixed;
-  right: .75rem;
-  bottom: .75rem;
-  z-index: 1;
-  min-height: 44px;
-  padding: 0 1rem;
+  min-height: 32px;
+  padding: 0 .85rem;
+  vertical-align: middle;
   background: var(--ink);
   color: var(--cream);
   border: var(--border) solid var(--ink);
@@ -404,13 +400,13 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   text-transform: uppercase;
   letter-spacing: .06em;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 6px 18px rgb(0 0 0 / .18);
 }
 .intro-replay:hover { background: var(--red); border-color: var(--red); }
 
 /* ---------- footer ---------- */
-footer { padding-block: var(--gap-section) 4.5rem; color: var(--muted); font-size: var(--text-small); }
+footer { padding-block: var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
+footer .nowrap { white-space: nowrap; }
 
 /* ---------- 404 ---------- */
 .notfound { padding-block: var(--gap-section); }
