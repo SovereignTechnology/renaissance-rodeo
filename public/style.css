@@ -295,11 +295,10 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 body:has(dialog[open]) { overflow: hidden; }
 
 /* ---------- intro: the black opening sequence ---------- */
-/* /intro.js, loaded synchronously in <head>, puts .intro on <html> before first paint when the
-   sequence should play (motion allowed, not yet seen this session, no #fragment), so the page
-   never flashes cream first. Without that class — no JS, reduced motion, second page of the
-   session — the overlay is display:none and nothing below applies. The frames are cloned from
-   the About copy and the partner marks at runtime; only the closing card is static markup. */
+/* The sequence never plays on arrival. /intro.js puts .has-intro on <html> only when the
+   "View intro" button starts it; without that class — no JS, or nobody has asked — the overlay
+   is display:none and nothing below applies. The text frames and the closing card are static
+   markup in each page; only the partner marks are cloned in at runtime. */
 html:not(.has-intro) .intro:not(.is-leaving) { display: none; }
 html.has-intro { background: #000; overflow: hidden; }
 html.has-intro body > :not(.intro) { opacity: 0; }

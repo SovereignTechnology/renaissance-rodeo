@@ -332,20 +332,20 @@ unless the URL changes.
 
 ## The opening sequence
 
-`/` and `/es/` open on a black screen: five short text frames fade in front and centre, then the
-three partner marks, then a quick cut to the bull-and-rider with **Join the waitlist** (lands on
-the form with the email field focused) and **Continue to the site**. That last card holds until
-the visitor acts. Skip (top right) or Esc ends it; a tap, a horizontal swipe or the ← → keys step
-through the frames, forward and back. A **View
-intro** pill at the bottom right of the page replays it on request (motion preference or not —
-that is an explicit ask); it is `hidden` until `intro.js` unhides it.
+**It never plays on arrival.** `/` and `/es/` open on the cream site; the sequence sits behind the
+**View intro** pill at the bottom right of the page, which is `hidden` until `intro.js` unhides it
+(it only works with JS, so it only shows with JS). Click it and the screen goes black: five short
+text frames fade in front and centre, then the three partner marks, then a quick cut to the
+bull-and-rider with **Join the waitlist** (lands on the form with the email field focused) and
+**Continue to the site**. That last card holds until the visitor acts. Skip (top right) or Esc ends
+it; a tap, a horizontal swipe or the ← → keys step through the frames, forward and back.
 
-- `public/intro.js` is loaded **synchronously in `<head>`** so it can put `.has-intro` on `<html>`
-  before first paint — deferred, the cream page would flash before the black. It plays only when
-  motion is allowed (`prefers-reduced-motion: no-preference`), **once per browser session**
-  (`sessionStorage` key `rr-intro`, set at start so a reload mid-sequence skips it; storage that
-  throws means play-and-forget) and never on a URL with a fragment (`#signup` from a mail goes
-  straight to the form). Without JS the overlay is `display:none`.
+- `public/intro.js` is **deferred** — with no autoplay there is nothing to land before first paint,
+  so it costs the page nothing. (It was synchronous in `<head>` while it autoplayed, to put
+  `.has-intro` on `<html>` before the cream could flash; that is gone.) The button plays it
+  whatever the motion preference — an explicit ask — and there is no once-per-session memory and
+  no fragment carve-out, because nothing starts by itself. Without JS the overlay is
+  `display:none` and the pill stays hidden.
 - The text frames are static markup in `section.intro` (right after the skip link in each page):
   copy written for the screen, shorter than the About section, one `.intro-slide` per frame with
   `<br>` for the line breaks. Then the `.partners` marks are cloned in, then the closing card.
@@ -353,14 +353,14 @@ that is an explicit ask); it is `hidden` until `intro.js` unhides it.
   0.9 s fade-in and a 0.6 s fade-out, the marks hold 4 s, the cut to the closing card is 0.25 s.
   The CSS durations in `style.css` ("intro" block and the motion query) mirror those constants.
 - While it plays, everything else in `<body>` is `inert` and `theme-color` is black; both are
-  restored as it leaves. A replay hands focus back to the View intro button when it ends.
+  restored as it leaves, and focus goes back to the View intro button when it ends.
 
 ## Fonts and licences
 
 | Font | Use | Licence |
 |---|---|---|
 | Bevan 400 | date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
-| Cormorant Garamond 400 / 600 | body and the intro frames / button, label, language switch, `<strong>` | OFL 1.1 — `public/fonts/LICENSE-cormorant-garamond.txt` |
+| Cormorant Garamond 400 / 600 | the body font — copy, buttons, labels, language switch, `<strong>`, and the intro frames | OFL 1.1 — `public/fonts/LICENSE-cormorant-garamond.txt` |
 | Dust West | the wordmark, **inside the logo images only** | personal-use only; forbids conversion — never installed, shipped or embedded as a font |
 
 The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Cormorant Garamond 400 22,876 B;

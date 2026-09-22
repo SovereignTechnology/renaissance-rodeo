@@ -30,8 +30,8 @@
   <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
-  <!-- Synchronous on purpose: it must put .has-intro on <html> before first paint. A few KB, same origin. -->
-  <script src="/intro.js"></script>
+  <!-- Deferred: the sequence never plays on arrival, so it costs the first paint nothing. -->
+  <script src="/intro.js" defer></script>
   <!-- Both deferred, so they run in document order: signup.js first, because the
        Turnstile loader resolves the data-*-callback names below against window when
        it renders the widget and silently drops any it cannot find. -->
@@ -44,8 +44,8 @@
 
   <!-- The opening sequence (style.css "intro", driven by /intro.js). The text frames are this
        copy, written for the screen — shorter than the About section, which stays as it is. The
-       partner marks are cloned from the partner row at runtime. display:none unless intro.js
-       shows it; the "View intro" button at the foot of the page replays it. -->
+       partner marks are cloned from the partner row at runtime. It never plays on arrival:
+       display:none until the "View intro" button at the foot of the page starts it. -->
   <section class="intro" aria-label="Introduction">
     <button type="button" class="intro-skip">Skip intro</button>
     <div class="intro-stage" aria-hidden="true">

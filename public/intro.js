@@ -1,12 +1,7 @@
-// The black opening sequence. Loaded synchronously in <head> (no defer) so the first thing
-// it does — putting .has-intro on <html> — lands before first paint and the page never
-// flashes cream before the black. Everything else waits for DOMContentLoaded.
-//
-// Autoplays only when motion is allowed, once per browser session (sessionStorage
-// 'rr-intro', set at start so a reload mid-sequence skips it) and never on a deep link
-// (#signup from a mail or a share goes straight to the form). No JS, or any of those, and
-// the overlay stays display:none. The "View intro" button in the footer replays it
-// on request, motion preference or not — an explicit ask.
+// The black opening sequence. It never plays on arrival — the page always opens on the cream
+// site. The "View intro" button in the footer is the only way in, and it plays motion
+// preference or not (an explicit ask). Deferred, so it costs the first paint nothing; the
+// overlay is display:none until start() puts .has-intro on <html>.
 //
 // The frames are static markup in each page (section.intro): the text slides, then the
 // partner marks (cloned from the partner row), then the closing card, which holds until the
@@ -21,32 +16,19 @@
   const HOLD_PER_WORD = 210;// …plus this per word
   const HOLD_MARKS = 4000;  // ms for the partner marks
   const LEAVE = 800;        // ms — .intro.is-leaving
-  const KEY = 'rr-intro';
 
   const root = document.documentElement;
   const theme = document.querySelector('meta[name="theme-color"]');
   const themeWas = theme ? theme.content : '';
 
-  let seen = false;
-  try { seen = sessionStorage.getItem(KEY) === '1'; } catch { /* storage blocked: play, do not remember */ }
-  const autoplay = !seen && !location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (autoplay) {
-    try { sessionStorage.setItem(KEY, '1'); } catch { /* same */ }
-    root.classList.add('has-intro');
-    if (theme) theme.content = '#000';
-  }
-
-  // Once the flag is on <html> the page is black; anything that throws below must take it off
-  // again, or the visitor is left with no page at all.
-  const abort = () => { root.classList.remove('has-intro'); if (theme) theme.content = themeWas; };
-  document.addEventListener('DOMContentLoaded', () => { try { setup(); } catch (e) { abort(); throw e; } });
+  document.addEventListener('DOMContentLoaded', setup);
 
   function setup() {
     const intro = document.querySelector('body > .intro');   // not '.intro': <html> carries has-intro, keep the names apart
     const stage = intro && intro.querySelector('.intro-stage');
     const cta = intro && intro.querySelector('.intro-cta');
     const replay = document.querySelector('.intro-replay');
-    if (!intro || !stage || !cta) { abort(); return; }
+    if (!intro || !stage || !cta) return;
 
     const el = (tag, cls) => { const n = document.createElement(tag); n.className = cls; return n; };
     // textContent, not innerText: the slides are visibility:hidden here and innerText reads as "".
@@ -163,7 +145,5 @@
       replay.hidden = false;                    // it only works with JS, so it only shows with JS
       replay.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'instant' }); start(replay); });
     }
-
-    if (autoplay) start(); else abort();
   }
 })();

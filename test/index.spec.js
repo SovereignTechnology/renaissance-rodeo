@@ -854,17 +854,20 @@ describe('static pages', () => {
     expect(await res.text()).toContain('<html lang="es">');
   });
 
-  it('ships the opening sequence: intro.js, the overlay in both pages, the bull', async () => {
+  it('ships the opening sequence on request, never on load', async () => {
     const js = await call(new Request(`${ORIGIN}/intro.js`));
     expect(js.status).toBe(200);
     expect(js.headers.get('content-type')).toMatch(/javascript/);
-    expect(await js.text()).toContain("const KEY = 'rr-intro';");
+    const src = await js.text();
+    // No once-per-session memory and no autoplay gate left: the only way in is the button.
+    expect(src).not.toContain('sessionStorage');
+    expect(src).toContain('.intro-replay');
 
     for (const path of ['/', '/es/']) {
       const html = await (await call(new Request(`${ORIGIN}${path}`))).text();
-      // Synchronous in <head>: a deferred intro.js would let the cream page paint first.
-      expect(html).toContain('<script src="/intro.js"></script>');
-      expect(html).not.toContain('<script src="/intro.js" defer>');
+      // Deferred on purpose now: nothing plays before first paint, so nothing may block it.
+      expect(html).toContain('<script src="/intro.js" defer></script>');
+      expect(html).not.toContain('<script src="/intro.js"></script>');
       expect(html).toContain('<section class="intro"');
       // Five text frames written for the screen, and the replay button (README, "The opening sequence").
       expect(html.match(/class="intro-text"/g)?.length).toBe(5);
