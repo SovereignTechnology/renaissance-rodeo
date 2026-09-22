@@ -1,93 +1,465 @@
-# renaissance-rodeo
+# Renaissance Rodeo
 
+One-page bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador,
+the day after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador). Venue, times
+and tickets are announced to the mailing list first, so the page exists to collect email addresses:
+a form gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
+no database, no build step and no server beyond one Cloudflare Worker that serves the static files
+and answers a single API route. Live at <https://renaissance.rodeo>, source in GitLab
+`sovtech/renaissance-rodeo`.
 
+## Requests
 
-## Getting started
+| Request | Answered by |
+|---|---|
+| `GET /` | `public/index.html` (English) |
+| `GET /es/` | `public/es/index.html` (Spanish); `/es` is a 307 to `/es/` from the assets layer |
+| `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → MailerLite `POST /api/subscribers` → `{ok:true}` |
+| everything else | `public/*` via the Worker's `ASSETS` binding (`style.css`, `signup.js`, `img/`, `fonts/`, `robots.txt`, `sitemap.xml`); unknown paths get `public/404.html` |
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Static files never reach the Worker code, so their headers come from `public/_headers`; API and
+404 responses get `SECURITY_HEADERS` from `src/index.js`. The two must stay byte-identical (tested).
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+The Worker answers the same `{ok:true}` for a new address, an address already on the list, an
+address MailerLite refuses (422) and a honeypot hit — it is not a membership oracle. It never logs
+the address and never echoes MailerLite's response body. When a secret is missing, the group id is
+missing or malformed, or `DEV_MODE` is set on a production hostname, it returns `503 unavailable`
+and logs, rather than silently accepting signups it cannot deliver or did not verify. MailerLite is
+the only copy of the list; unsubscribes are MailerLite's own links in each campaign.
 
-## Add your files
+The honeypot input is `name="rr_ref"` — a name no browser autofill heuristic recognises. It used to
+be `company`, which Chromium and Firefox map to *organization* and fill from a saved address profile
+even with `autocomplete="off"`; an off-screen field is still fillable, so a visitor who autofilled
+the email field could stuff the honeypot without knowing and be told they were on the list. A hit
+is logged as `honeypot hit` (no address) so a spike from real people is visible, and still answered
+with the plain success so a bot has nothing to learn.
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Local development
+
+```sh
+cp .dev.vars.example .dev.vars && chmod 600 .dev.vars   # first run only; see below
+npm run dev                      # wrangler dev --ip 0.0.0.0 --port 8788
+```
+
+`npm run dev` binds all interfaces so the preview is reachable over the tailnet at
+<http://100.64.0.3:8788> (this laptop is `latitude-5420`; the LAN address is firewalled).
+
+### Local secrets and DEV_MODE
+
+`.dev.vars` (gitignored, never deployed) holds:
 
 ```
-cd existing_repo
-git remote add origin https://sovit.xyz/gitlab/sovtech/renaissance-rodeo.git
-git branch -M main
-git push -uf origin main
+DEV_MODE=true
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+MAILERLITE_API_KEY=...          # a throwaway key, NOT the production one
 ```
 
-## Integrate with your tools
+**Never put the production `MAILERLITE_API_KEY` in `.dev.vars`.** `npm run dev` binds all
+interfaces and `DEV_MODE=true` disables the test-secret refusal, so anyone who can reach the dev
+port could push auto-passing signups straight into the live MailerLite list. Leave the key unset to
+exercise the form up to the `503 unavailable` the Worker returns without it.
 
-* [Set up project integrations](https://sovit.xyz/gitlab/sovtech/renaissance-rodeo/-/settings/integrations)
+`DEV_MODE` relaxes exactly two production checks, both of which would otherwise make local testing
+impossible:
 
-## Collaborate with your team
+- the hostname Turnstile reports in its siteverify response must match the request host;
+- a Cloudflare **test** secret (`1x…`, `2x…`, `3x…`) is refused outright.
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+In production `DEV_MODE` is unset, so both apply. That second check is the important one: a test
+secret accepts *every* token, and deployed unnoticed it would leave the form completely unprotected
+while still looking healthy. The Worker returns `503 unavailable` and logs instead.
 
-## Test and Deploy
+Two guards keep `DEV_MODE` out of production, because a stray `"DEV_MODE": "true"` under `vars`
+(or a `wrangler deploy --var`) would switch both checks off with no log line and no failing test:
 
-Use the built-in continuous integration in GitLab.
+- **Runtime.** `handleSubscribe` refuses signups — `503 unavailable`, and
+  `DEV_MODE is set on a production hostname; refusing signups` in the logs — whenever `DEV_MODE` is
+  set and the request host is `renaissance.rodeo`, any subdomain of it, or any `*.workers.dev`
+  hostname. `wrangler dev` answers on `localhost` or a LAN/tailnet address, so local runs are
+  untouched; the smoke deploy on `workers.dev` is production for this purpose.
+- **Tests.** `vitest.config.mjs` reads `wrangler.jsonc` and the suite fails if `vars` contains
+  `DEV_MODE` or any secret name (see *Tests*). A poisoned config cannot pass CI.
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## MailerLite
 
-***
+Two things come from MailerLite, and they live in different places:
 
-# Editing this README
+| What | Where | Why |
+|---|---|---|
+| API key | Cloudflare secret `MAILERLITE_API_KEY` (see *Secrets*) | credential |
+| group id(s) | `wrangler.jsonc` → `vars` | public configuration, inert without the key |
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+**API key.** MailerLite → Integrations → API → generate a token. Store and set it as described under
+*Secrets*. The Worker sends it as `Authorization: Bearer` to `connect.mailerlite.com`.
 
-## Suggestions for a good README
+**Group ids.** Create the group (or two) in MailerLite, then uncomment the `vars` block in
+`wrangler.jsonc` and replace the placeholders:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```jsonc
+"vars": {
+  "MAILERLITE_GROUP_ID": "REPLACE_WITH_18_DIGIT_GROUP_ID",     // required — the Worker answers 503 without it
+  "MAILERLITE_GROUP_ID_ES": "REPLACE_WITH_18_DIGIT_GROUP_ID"   // optional — Spanish-page signups join it too
+}
+```
 
-## Name
-Choose a self-explaining name for your project.
+A group id is an 18-digit number and must reach the Worker as a **quoted string** matching
+`GROUP_ID_RE = /^[1-9][0-9]{5,19}$/` (`src/index.js`). A JSON number loses precision above 2^53,
+so a bare number is refused rather than rounded; so are a leading zero, whitespace, and the
+placeholder. `MAILERLITE_GROUP_ID` failing the check → `503 unavailable` and a log line naming the
+variable (never its value). `MAILERLITE_GROUP_ID_ES` failing it → a log line and the variable is
+ignored, so a typo in the optional group never blocks signups. The placeholder fails on purpose: a
+block that was uncommented but not edited is refused loudly instead of sending every signup to a
+group of zeros and blaming the visitor's address.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Every signup joins `MAILERLITE_GROUP_ID`; a signup from `/es/` additionally joins
+`MAILERLITE_GROUP_ID_ES` when it is set, so Spanish campaigns can be targeted without custom fields.
+`scripts/mailerlite-groups.sh` lists the account's groups with their ids; it reads the API key from
+a `0600` file (made as shown under *Secrets*) and never prints it. Ids are public and committed;
+commit the `vars` change with the sitekey swap (below).
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+**`vars` live only in `wrangler.jsonc`.** `wrangler deploy` replaces the Worker's plain-text
+bindings with the file's (`keep_vars` defaults to false), so a group id typed into the dashboard's
+Variables UI is deleted by the next deploy — loudly, as a 503 with a log line, but deleted. Nothing
+about this Worker is configured in the dashboard.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+**Double opt-in.** MailerLite has a separate account toggle for API signups: *Account settings →
+Subscribe settings → "Double opt-in for API and integrations"*. The Worker never sends a `status`
+field, so the toggle alone decides what happens to a new address — and the page's success message
+must match it. The message is a page string (`#signup-ok`) in both HTML files:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+| Toggle | Subscriber | English success string | Spanish success string |
+|---|---|---|---|
+| **ON** (recommended) | gets MailerLite's confirmation email; an existing active subscriber is left alone | Almost there — check your inbox and confirm your email address. | Ya casi: revise su bandeja de entrada y confirme su correo electrónico. |
+| OFF | active immediately | You're on the list. We'll write when there's news. | ¡Ya está en la lista! Le escribiremos en cuanto haya novedades. |
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+`status` must stay absent from the request: sending `status:"unconfirmed"` would demote existing
+active subscribers on every repeat signup. The Worker's JSON is identical for new and existing
+addresses in either mode; only the page copy changes.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+The request does carry `resubscribe: true`: typing your address into the form is consent, so an
+address that unsubscribed earlier comes back on the list instead of getting our success while
+staying off it. MailerLite may still refuse such an address (its abuse prevention) — that is a
+422, which the visitor sees as success, below.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+**Response mapping** (`src/index.js`): 200, 201 **and 422** → `{ok:true}`; 401/403 → `503` and
+`the API key was rejected` in the logs; 429 (MailerLite allows 120 requests/min) and anything
+else → `503 unavailable`. The MailerLite call is awaited, so a failure is shown to the person as a
+real error to retry, never swallowed.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+422 is a success on purpose. MailerLite documents 422 as "invalid data" but does not promise it is
+state-independent — an address the account has blocked or marked as junk may draw a 422 too — so
+answering `400 invalid` would let a submitter learn that an address has history with this list, at
+one Turnstile solve per probe. Rule 3 (no membership oracle) wins: the visitor loses only a message
+the client-side email check already gives. The trade-off is that a bad group id also produces a 422
+and is now invisible to visitors, which is why the shape check above exists: a malformed id is
+caught before deploy by the test and at runtime by the 503, not reported by visitors as "my email
+was rejected". The Worker logs
+`mailerlite: HTTP 422 (upstream refused the address); error keys: …` listing only the **key names**
+of MailerLite's `errors` object (`email`, `groups.0`, …, each filtered to `[a-z0-9_.]{1,40}`), never a
+value — the values quote the address. A well-formed id that belongs to no group in the account
+shows up there as `groups.0`, and as a group whose subscriber count stays at zero after the cutover
+signup (checklist step 3).
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+**Sender domain (browser-only).** Sending from `@renaissance.rodeo` needs the domain authenticated
+in MailerLite: a DKIM CNAME, an SPF TXT and a verification TXT on the `renaissance.rodeo` zone, added
+in the Cloudflare dashboard (wrangler's token is zone-read only). MailerLite's own unsubscribe and
+tracking links stay on MailerLite's domain unless their paid domain alignment is bought.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Turnstile
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+The form ships with Cloudflare's **test sitekey** `1x00000000000000000000AA` (always passes) so it
+works locally against the test secret in `.dev.vars`. Before launch:
 
-## License
-For open source projects, say how it is licensed.
+1. **Create the widget** in the Cloudflare dashboard (Turnstile → Add widget): type *Managed*,
+   hostnames `renaissance.rodeo` and `www.renaissance.rodeo`. The widget is embedded with
+   `data-appearance="interaction-only"`, so it stays invisible unless a challenge is needed. (The
+   API route needs a token with *Turnstile Sites Write*, which wrangler's OAuth token lacks — the
+   dashboard is quicker.) Add the `workers.dev` hostname too if you want the smoke deploy to accept
+   signups; otherwise the hostname check rejects them there and signups are proven on the real
+   domain after cutover.
+2. **Replace the sitekey in exactly two files**: `public/index.html` and `public/es/index.html`.
+   Replacing only one is the failure that hides — Turnstile renders a widget with a wrong sitekey
+   without complaint, so that page looks normal while every submission from it is rejected as
+   `challenge_failed`. The launch check:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+   ```sh
+   grep -rl 'data-sitekey="1x0' public/ | wc -l   # must be 0
+   grep -rl data-sitekey public/ | wc -l          # must be 2
+   ```
+
+3. **Set the secret** `TURNSTILE_SECRET` with `scripts/set-secret.sh TURNSTILE_SECRET` (see
+   *Secrets*). Without it, or with a test secret, the Worker answers `503 unavailable` in
+   production.
+
+Every rejected siteverify is logged, address-free: a non-200 answer logs its HTTP status, a
+`success:false` answer logs the `error-codes` Cloudflare returned (`invalid-input-secret`,
+`invalid-input-response`, `timeout-or-duplicate`, …), and a hostname mismatch logs as such. So a
+wrong sitekey on one page, a secret that belongs to another widget, and a Turnstile outage each
+show up in Workers Logs as a run of named rejections rather than as unexplained 403s and visitors
+giving up.
+
+`3x00000000000000000000FF` is a second test sitekey that forces a visible challenge; use it locally
+to see the widget render (and for the CSP proof below). Test secret and test sitekeys are documented
+public values, not credentials.
+
+## Secrets
+
+Exactly two: `TURNSTILE_SECRET` and `MAILERLITE_API_KEY`. Neither is in this repo, `.dev.vars` is
+gitignored, and none may ever be added to `vars` in `wrangler.jsonc` — **a `vars` entry shadows the
+secret binding of the same name on deploy**, silently substituting the configured string. The test
+suite refuses a `wrangler.jsonc` that puts either name (or `DEV_MODE`) under `vars`, so the mistake
+cannot reach `main` green.
+
+`npx wrangler secret put` **fails if the Worker does not exist yet**, so run `npm run deploy` once
+(the smoke configuration, no routes) before setting anything.
+
+**Never type a secret into a command line.** `printf %s 'the-value' > file`, `echo`, `export X=…`,
+`wrangler secret put --value …` — every one of them is recorded verbatim in `~/.bash_history` (or
+zsh's), in terminal loggers and in tmux scrollback: the same permanence as an agent transcript, one
+layer down. Earlier revisions of this README recommended exactly that `printf` recipe. If it has
+already happened, delete the line from the running shell's history (`history -d <n>`) *and* from
+the history file, then **rotate the key** — a deleted history line is not a rotated secret.
+
+The recipe is one script, run in your own terminal, never inside an agent session:
+
+```sh
+scripts/set-secret.sh TURNSTILE_SECRET
+scripts/set-secret.sh MAILERLITE_API_KEY
+```
+
+It accepts only those two names. Without `--from-file` it prompts `value: ` and reads with
+`IFS= read -rs` — nothing is echoed, nothing is on a command line, and an empty or
+whitespace-containing value is refused. The value goes into a `0600` temp file under `$HOME`
+(`mktemp "$HOME/.rr-secret.XXXXXX"`) and from there through three steps, each run only if the one
+before it succeeded:
+
+1. `sudo -n /usr/local/bin/secret-store renaissance-rodeo-<name> <file>` — a copy into the
+   Bitwarden `sovtech/shared` collection, item **`renaissance-rodeo-turnstile-secret`** or
+   **`renaissance-rodeo-mailerlite-api-key`**, so the value survives the laptop. Cloudflare is
+   write-only (`wrangler secret list` prints names, nothing prints values), which is why this step
+   comes first: a value that exists only in Cloudflare can never be read back, only replaced.
+2. `npx wrangler secret put <NAME> < <file>` — the Worker must already exist (above). `read` strips
+   the newline, so the trailing-newline trap of older wrangler versions (Turnstile answering
+   `invalid-input-secret` on every signup) does not arise; the siteverify log line would show it if
+   it did.
+3. `rm -f` the temp file — and, with `--from-file`, the source file too. Plain `rm`: `shred` is
+   pointless on ZFS and btrfs (copy-on-write keeps the old blocks), so the script does not pretend.
+
+On any failure the script prints which step failed, **keeps the `0600` temp file**, prints its path
+and exits non-zero. Nothing is removed until both the store and the put have succeeded, so the
+value is never lost between them, and a failed `secret-store` (no `sudo -n`, vault locked, another
+operator's machine) never leaves Cloudflare holding the only copy. The script never prints the
+value and runs under `set +x` and `umask 077`.
+
+`--from-file PATH` takes the value from an existing file instead of prompting. The file must be a
+regular file (not a symlink), owned by you, mode `0600`; it is removed alongside the temp file in
+step 3. This is how the MailerLite key flows, because the same file also feeds the group listing:
+
+```sh
+(umask 077; IFS= read -rs -p 'key: ' k && printf %s "$k" > ~/.rr-mailerlite)   # subshell: k dies with it
+scripts/mailerlite-groups.sh ~/.rr-mailerlite                  # ids for wrangler.jsonc
+scripts/set-secret.sh MAILERLITE_API_KEY --from-file ~/.rr-mailerlite
+```
+
+That `printf` is safe: `"$k"` is expanded inside the subshell, and the history line holds the
+literal `"$k"`, not the value.
+
+`npm run secrets` (`wrangler secret list`) prints names only and must show exactly the two above.
+
+## Assets
+
+`brand/` holds the **sources** under stable names (see `brand/README.md`); everything under
+`public/img/` and `public/favicon.ico` is **derived** from them by `scripts/build-assets.sh`
+(`npm run assets`, idempotent). Never edit a derived file. The script:
+
+- re-inks every brand PNG from black to the page ink `#0e1d2d` (the page is literally two colours),
+  trims, resizes: `logo.png` 1200×591 + `logo.webp` (hero), `mark.png` 144×144 (header), favicons
+  `favicon-32.png` / `apple-touch-icon.png` / `icon-192.png` / `icon-512.png` and `favicon.ico` on an
+  opaque cream disc so they read on dark tab strips;
+- renders `og-en.png` / `og-es.png` (1200×630 share images) with a Bevan TTF fetched at build time and
+  not shipped;
+- recolours `partners/origen-ganadero.svg` to ink and widens its hairline strokes, and re-inks
+  `partners/bitcoin-historico-white.png` to `bitcoin-historico.png`;
+- fetches the three fonts and their licences from fontsource and checks their byte counts.
+
+Scratch downloads stay under `.scratch/` (gitignored) and never land in `public/`. Each re-inked
+PNG is asserted to have one opaque colour with alpha intact.
+
+### Replacing an asset
+
+There is no build step, so a replaced image or font keeps its file name — and the `Cache-Control:
+public, max-age=604800` blocks in `public/_headers` mean browsers keep the old bytes for a week
+unless the URL changes.
+
+1. Copy the new file over the **same** `brand/` name (an `.svg` may replace a `.png` of the same
+   stem; the script prefers SVG and then emits icons at every size without upscaling — ask the
+   designer for SVG).
+2. `npm run assets`, then look at the outputs at 1×.
+3. Bump the `?v=` query on every reference to the changed file — in **both** HTML files (`src`,
+   `srcset`, icons, preload, `og:image`) **and** in `style.css` (`@font-face url()`). **Today no
+   reference carries `?v=` at all** — the shipped URLs are the implicit `v1`, and the `_headers`
+   and `style.css` comments describe the convention, not the current state. So the first
+   replacement must **add** `?v=2` to every `img/` and `fonts/` reference in both HTML files and
+   `style.css` (all of them, in that one commit, so the whole tree is on the scheme from then on);
+   later replacements increment the number on the changed file's references only. The asset layer
+   ignores the query when matching a file, so nothing else changes.
+
+   ```sh
+   grep -rn 'fonts/\|img/' public/     # lists every reference
+   ```
+
+4. Commit `brand/`, `public/img/`, `public/favicon.ico` and the bumped references together.
+
+## Fonts and licences
+
+| Font | Use | Licence |
+|---|---|---|
+| Bevan 400 | tagline, date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
+| Barlow 400 / 600 | body / button, label, language switch, `<strong>` | OFL 1.1 — `public/fonts/LICENSE-barlow.txt` |
+| Dust West | the wordmark, **inside the logo images only** | personal-use only; forbids conversion — never installed, shipped or embedded as a font |
+
+The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Barlow 400 22,196 B; Barlow 600
+22,772 B), self-hosted from `public/fonts/`, declared once in `style.css` with `font-display:swap`
+and fontsource's latin `unicode-range`. The subset covers the Spanish accents and ¿ ¡ but not ₿ —
+the ₿ in the tagline is drawn with CSS bars over a plain B, and U+20BF is never typed.
+
+## Deploying
+
+**Deploys are manual.** Cloudflare Workers Builds cannot watch a self-hosted GitLab, so merging to
+`main` ships nothing on its own.
+
+```sh
+npx wrangler login     # once; account RenaissanceRodeo
+npm run deploy         # wrangler deploy
+```
+
+### CI
+
+`.gitlab-ci.yml` runs `npm test` on every merge request and on `main`. Its `deploy` job is
+`when: manual`, targets the GitLab environment **`production`** (and holds
+`resource_group: production`, so two clicks run one after the other instead of racing), and
+appears on `main` only when the CI variable `CLOUDFLARE_API_TOKEN` exists. Until that variable is
+set, the job does not exist and the laptop is the only deploy path. The image is pinned
+(`node:22.22.0`) so the toolchain under the deploy job cannot change without a diff in this repo.
+
+Setting the variable is three dashboard steps, and the scope is the point:
+
+1. **Protect the environment.** *Settings → CI/CD → Protected environments*: `production`, *Allowed
+   to deploy: Maintainers*. (The environment itself is created by the first `deploy` job run, or by
+   hand under *Operate → Environments*.) Only a Maintainer can then run the job at all.
+2. **Create the variable.** *Settings → CI/CD → Variables*: `CLOUDFLARE_API_TOKEN` — an API token
+   with *Workers Scripts: Edit* + *Account Settings: Read* on the account — flagged **Protected**,
+   **Masked**, and with **Environment scope `production`**, not `*`.
+3. Merge to `main`: the job appears on `main` pipelines with a play button and runs only when
+   a Maintainer presses it.
+
+Why the scope matters: a protected variable scoped to `*` is injected into **every** job of a
+pipeline on a protected ref. On `main` that includes `test`, which runs `npm ci` (dependency
+lifecycle scripts from whatever lockfile was merged) and `npm test` (arbitrary code) with the token
+in its environment — so the real boundary would be "a Maintainer merged it", not "a Maintainer
+clicked deploy". Scoped to `production`, GitLab hands the token only to jobs that declare
+`environment: production`, i.e. `deploy`, and the protected environment decides who may click it.
+Fork and MR pipelines never see it either way: `CI_COMMIT_BRANCH` is unset in a
+`merge_request_event` pipeline, so the `deploy` rule cannot match, and protected variables are not
+exposed to unprotected refs.
+
+**A CI deploy is non-interactive, so it auto-confirms.** wrangler answers its own *"Update them to
+point to this script instead?"* prompt with yes when stdout is not a TTY (next section). If the
+cutover `routes` are present in `wrangler.jsonc`, the `deploy` job takes `renaissance.rodeo` and
+`www` over from whichever Worker holds them, with no prompt. That is intended after cutover; before
+it, the job is a smoke deploy only because the routes are commented out.
+
+### Smoke configuration vs cutover
+
+`wrangler.jsonc` ships in **smoke** configuration: `workers_dev: true`, no `routes`. Deploying it
+creates the Worker `renaissance-rodeo` on `renaissance-rodeo.<subdomain>.workers.dev`, which is
+what makes `wrangler secret put` possible. The **cutover block** is the comment above `workers_dev`:
+two `routes` entries with `custom_domain: true` for `renaissance.rodeo` and `www.renaissance.rodeo`,
+plus `workers_dev: false`.
+
+Deploying with those routes **takes the two hostnames over** from whichever Worker holds them (the
+old `bitcoin-rodeo`). wrangler asks *"Update them to point to this script instead?"* in a terminal
+and **overrides silently when stdout is not a TTY** — a piped or CI deploy claims the domains with
+no prompt. There is no `--force` and no dry run, so the routes are added only when the takeover is
+intended. The test suite refuses a `wrangler.jsonc` with routes and `workers_dev: true` together,
+so the site cannot end up on two public hostnames, one of them outside the zone's settings.
+
+Order matters: **deploy the new Worker first, let it take the domains, then delete the old one.**
+Deleting a Worker that still holds custom domains leaves orphaned, locked DNS records (error 1043).
+The old Worker's Advanced Certificate is not removed automatically; it is harmless.
+
+Cutover checklist:
+
+1. Uncomment the cutover block, set `workers_dev: false`, `npm run deploy` in a terminal, accept the
+   prompt.
+2. `curl -sI https://renaissance.rodeo/`, `https://www.renaissance.rodeo/` and
+   `https://renaissance.rodeo/es/` — new page, `content-security-policy` present; `/es` → 307.
+3. One real signup lands in the MailerLite group (check the count, not the address).
+4. From the old checkout: `npx wrangler delete --name bitcoin-rodeo`, then
+   `npx wrangler d1 delete rodeo-list -y` (0 rows, verified), then archive the old GitHub repo.
+   Each step confirmed by hand first.
+5. Fill in the *Cutover record* below.
+
+## Tests
+
+```sh
+npm test
+```
+
+Runs in `workerd` via `@cloudflare/vitest-pool-workers` against the real `wrangler.jsonc`, with
+`fetch` stubbed — no network, no credentials. The suite deliberately covers only the paths where a
+mistake fails *open* or fails *silently*:
+
+- **fail-closed**: 503 with no `TURNSTILE_SECRET`; 503 with a test secret outside `DEV_MODE`; 403
+  when siteverify says `success:false`; 503 when `MAILERLITE_API_KEY` is unset or
+  `MAILERLITE_GROUP_ID` is unset or malformed (the placeholder, a leading zero, a number); 503 on
+  MailerLite 429, 500 or a thrown `fetch`; 405 on `GET`; 403 cross-origin; 400 on a bad email after
+  Turnstile passes;
+- **the request shape**: the happy path makes exactly one POST to `connect.mailerlite.com/api/subscribers`
+  with the email lowercased, the group id as a string, **no `status` field** and no `@` in the URL;
+  `lang=es` adds `MAILERLITE_GROUP_ID_ES` when it is set and well-formed, and nothing when it is
+  not;
+- **no membership oracle**: a MailerLite 200 (existing), 201 (new) and 422 (refused upstream)
+  produce byte-identical bodies, and the 422 log line carries key names only; the honeypot
+  (`rr_ref`) returns 200 with zero outbound calls;
+- **CSP equality**: the `content-security-policy` on a Worker response equals the line in
+  `public/_headers` (read by `vitest.config.mjs` and passed in as `TEST_HEADERS_CSP`);
+- **configuration**: `vitest.config.mjs` reads `wrangler.jsonc` with wrangler's own config reader
+  (`unstable_readConfig`, so comments are handled) and passes the result in as `TEST_WRANGLER_*`
+  bindings; the tests assert that `vars` contains none of `DEV_MODE`, `TURNSTILE_SECRET`,
+  `MAILERLITE_API_KEY`, `MAILERLITE_WEBHOOK_SECRET`; that any group id present is a string matching
+  `GROUP_ID_RE` (the committed file has the block commented out, which passes; an uncommented
+  placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
+- **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, an unknown path returns the 404 page.
+
+The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
+bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.
+
+## CSP
+
+`style-src` carries `'unsafe-inline'` **for now**. Turnstile's widget injects styles, and the safe
+way to find out whether it needs the allowance is to watch it render a challenge: load the page
+locally with the forced-challenge sitekey `3x00000000000000000000FF` and check the console for a
+`style-src` violation. None → drop `'unsafe-inline'` from the CSP line in `public/_headers` **and**
+from `SECURITY_HEADERS` in `src/index.js` (the test fails if only one changes). Everything else is
+already tight: `script-src 'self' https://challenges.cloudflare.com`, no `data:`, no CDN, no inline
+scripts — the form script is `public/signup.js`.
+
+## Cutover record
+
+- `YYYY-MM-DD` — domains `renaissance.rodeo` + `www` moved to Worker `renaissance-rodeo`; old Worker
+  `bitcoin-rodeo` and D1 `rodeo-list` deleted; `sovITxyz/bitcoin-rodeo` archived on GitHub. *(fill in
+  at cutover; note here if the old Advanced Certificate was left in place)*
+
+## Still browser-only
+
+Nothing here is automated; each is a few minutes in a dashboard.
+
+- **Always Use HTTPS** — Cloudflare → SSL/TLS → Edge Certificates. Until it is on, `http://` serves
+  the page without a redirect (HSTS in `_headers` only takes effect once a browser has seen an HTTPS
+  response).
+- **MailerLite sender-domain authentication** — the DKIM CNAME, SPF TXT and verification TXT on the
+  `renaissance.rodeo` zone (see *MailerLite*).
+- **Turnstile widget** and **MailerLite key / group** (see the sections above).
+- Optional: the `CLOUDFLARE_API_TOKEN` GitLab CI variable — protected, masked, environment scope
+  `production` — and the protected `production` environment that goes with it (see *CI*).

@@ -1,0 +1,72 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "renaissance-rodeo",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-20",
+  "account_id": "a3d83edc63133112a8dccfbdc15331de",
+
+  // Static page + one API route in one Worker. Requests fall through to ASSETS
+  // unless they match /api/subscribe — see src/index.js.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+
+  // Per-IP throttle on the signup endpoint. `period` only accepts 10 or 60.
+  "ratelimits": [
+    {
+      "name": "SUBSCRIBE_LIMIT",
+      "namespace_id": "2001",
+      "simple": { "limit": 5, "period": 60 }
+    }
+  ],
+
+  // SMOKE-TEST CONFIGURATION. At cutover this block becomes:
+  //   "routes": [
+  //     { "pattern": "renaissance.rodeo", "custom_domain": true },
+  //     { "pattern": "www.renaissance.rodeo", "custom_domain": true }
+  //   ],
+  //   "workers_dev": false,
+  // Deploying with those routes takes the two hostnames over from whichever
+  // Worker holds them. wrangler prompts in a terminal; a NON-INTERACTIVE
+  // deploy (CI, a piped or backgrounded shell) auto-confirms the takeover with
+  // no prompt at all — so the routes are added only when it is intended, and
+  // the first deploy that carries them is run by hand. Once they are in,
+  // test/index.spec.js insists workers_dev is false: the workers.dev hostname
+  // sits outside the zone's WAF and "Always Use HTTPS" rules.
+  "workers_dev": true,
+  "preview_urls": false,
+
+  "observability": { "enabled": true }
+
+  // Public configuration, not credentials — inert without the API key.
+  // MailerLite group ids are 18-digit numbers: keep them QUOTED, a JSON number
+  // loses precision. MAILERLITE_GROUP_ID is required (the Worker answers 503
+  // without it); MAILERLITE_GROUP_ID_ES is optional — Spanish-page signups
+  // join it in addition to the main group, so Spanish campaigns can be
+  // targeted without custom fields.
+  //
+  // The Worker checks the SHAPE (a quoted string of 6–20 digits, no leading
+  // zero) and refuses to run on anything else — the placeholder below is
+  // deliberately not a number, so an unedited uncomment fails `npm test` and
+  // the deploy loudly instead of sending MailerLite a group it cannot find.
+  //
+  // "vars": {
+  //   "MAILERLITE_GROUP_ID": "REPLACE_WITH_18_DIGIT_GROUP_ID",
+  //   "MAILERLITE_GROUP_ID_ES": "REPLACE_WITH_18_DIGIT_GROUP_ID"
+  // }
+
+  // No secret is here, and none may be added to "vars": a vars entry with the
+  // same name as a secret wins on deploy and the secret is no longer readable.
+  // And wrangler deletes dashboard-set vars on every deploy unless keep_vars
+  // is set — so vars live only in this file, never in the dashboard.
+  // test/index.spec.js asserts that vars carries none of DEV_MODE,
+  // TURNSTILE_SECRET or MAILERLITE_API_KEY. The two secrets are set out of
+  // band, and only ever through the script (it never puts the value on a
+  // command line, and stores a copy in the vault before Cloudflare sees it):
+  //   scripts/set-secret.sh TURNSTILE_SECRET
+  //   scripts/set-secret.sh MAILERLITE_API_KEY
+  // For local dev they go in .dev.vars (gitignored), alongside DEV_MODE=true —
+  // which the Worker refuses to honour on a production hostname.
+}
