@@ -33,11 +33,16 @@
   const el = (tag, cls) => { const n = document.createElement(tag); n.className = cls; return n; };
   const words = (t) => t.trim().split(/\s+/).length;
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // Once the flag is on <html> the page is black; anything that throws below must take it off
+  // again, or the visitor is left with no page at all.
+  const abort = () => { root.classList.remove('has-intro'); if (theme) theme.content = themeWas; };
+  document.addEventListener('DOMContentLoaded', () => { try { run(); } catch (e) { abort(); throw e; } });
+
+  function run() {
     const intro = document.querySelector('body > .intro');   // not '.intro': <html> carries has-intro, keep the names apart
     const stage = intro && intro.querySelector('.intro-stage');
     const cta = intro && intro.querySelector('.intro-cta');
-    if (!intro || !stage || !cta) { root.classList.remove('has-intro'); if (theme) theme.content = themeWas; return; }
+    if (!intro || !stage || !cta) { abort(); return; }
 
     const others = [...document.body.children].filter((n) => n !== intro);
     for (const n of others) n.inert = true;
@@ -100,6 +105,7 @@
         if (finished) return;
         finished = true;
         for (const n of others) n.inert = false;
+        document.removeEventListener('keydown', onKey);
         intro.remove();
         if (after) after.focus?.();
       };
@@ -118,12 +124,13 @@
       e.preventDefault();
       end({ focus: () => document.getElementById('main')?.focus({ preventScroll: true }) });
     });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !ended) end(); });
+    const onKey = (e) => { if (e.key === 'Escape') end(); };
+    document.addEventListener('keydown', onKey);
     intro.addEventListener('click', (e) => {
       if (e.target.closest('a, button')) return;
       if (at >= 0 && frames[at].slide !== cta) show(at + 1);
     });
 
     show(0);
-  });
+  }
 })();
