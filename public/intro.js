@@ -17,9 +17,9 @@
   const FADE_OUT = 600;     // ms — .intro-slide
   const CUT = 250;          // ms — the quick cut to the closing card (.is-cut)
   const GAP = 300;          // ms of black between frames
-  const HOLD_BASE = 800;    // ms every text frame holds…
-  const HOLD_PER_WORD = 170;// …plus this per word
-  const HOLD_MARKS = 3200;  // ms for the partner marks
+  const HOLD_BASE = 1200;   // ms every text frame holds…
+  const HOLD_PER_WORD = 210;// …plus this per word
+  const HOLD_MARKS = 4000;  // ms for the partner marks
   const LEAVE = 800;        // ms — .intro.is-leaving
   const KEY = 'rr-intro';
 
