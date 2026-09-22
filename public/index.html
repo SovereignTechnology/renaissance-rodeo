@@ -34,6 +34,7 @@
        Turnstile loader resolves the data-*-callback names below against window when
        it renders the widget and silently drops any it cannot find. -->
   <script src="/signup.js" defer></script>
+  <script src="/poster.js" defer></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
@@ -49,88 +50,121 @@
   </header>
 
   <main id="main" class="wrap" tabindex="-1">
-    <section class="hero" aria-labelledby="hero-h">
-      <h1 id="hero-h">
+    <div class="copy">
+      <section class="hero" aria-labelledby="hero-h">
+        <h1 id="hero-h">
+          <picture>
+            <source type="image/webp" srcset="/img/logo.webp">
+            <img src="/img/logo.png" width="1200" height="591" alt="Renaissance Rodeo" fetchpriority="high">
+          </picture>
+        </h1>
+        <!-- Phone only (display:none from 64rem up; loading=lazy keeps a hidden image unfetched).
+             Floats beside the four lines below, adds no height; tap opens the viewer. -->
+        <a class="poster-thumb" href="/img/poster.jpg" data-poster aria-label="See the event poster"><img src="/img/poster-thumb.jpg" width="320" height="569" alt="" loading="lazy"></a>
+        <!-- The poster sets the B of "Bravo" as a bitcoin symbol. Screen readers get
+             the plain sentence; sighted visitors get the B with CSS-drawn bars. -->
+        <p class="tagline" lang="es">
+          <span class="sr-only">Al toro Bravo por los Cuernos</span>
+          <span aria-hidden="true">Al toro <span class="btc-b">B</span>ravo por los Cuernos</span>
+        </p>
+        <p class="when"><time datetime="2026-11-13">13 November 2026</time> · Ilopango, El Salvador</p>
+        <p class="after">The day after <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
+        <p class="note">Venue, times and tickets — <a href="#signup">join the list</a>.</p>
+      </section>
+
+      <section class="about" aria-labelledby="about-h">
+        <h2 id="about-h" class="sr-only">About the event</h2>
+        <p>El Salvador is in the midst of a Renaissance, this event is designed to promote the cattle and agricultural part of this rebirth.</p>
+        <p>By celebrating the real men and women behind the cowboy culture that has survived El Salvador’s trials, we aim for the event to be a hub where local and internationals can meet and enjoy, and develop relationships that can bolster the industry and allow it to thrive as the country surges towards becoming one of the best countries on the planet.</p>
+        <p>It will be a full afternoon of rodeo entertainment, including bull riding, mutton busting, animal fairs, barrel racing, music and barbecue.</p>
+      </section>
+
+      <section aria-labelledby="partners-h">
+        <h2 id="partners-h" class="sr-only">Bitcoin Histórico, Origen Ganadero and BitPoker SV</h2>
+        <ul class="partners">
+          <li class="bh">
+            <a href="https://bitcoinhistorico.com/" rel="noopener">
+              <img src="/img/bitcoin-historico.png" width="251" height="288" alt="">
+              <span class="cap"><strong>Bitcoin Histórico</strong> — the day before<br>11–12 November 2026, Centro Histórico, San Salvador.</span>
+            </a>
+          </li>
+          <li class="og">
+            <a href="https://origenganadero.com/" rel="noopener">
+              <img src="/img/origen-ganadero.svg" width="740" height="760" alt="Origen Ganadero">
+              <span class="cap">Partner · Beef-cattle genetics and ranch consulting, El Salvador.</span>
+            </a>
+          </li>
+          <li class="bp">
+            <a href="https://www.bitpokersv.com/" rel="noopener">
+              <img src="/img/bitpoker.png" width="245" height="288" alt="">
+              <span class="cap"><strong>BitPoker SV</strong><br>Partner · El Salvador's live Bitcoin poker club.</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section id="signup" aria-labelledby="signup-h">
+        <h2 id="signup-h">Be first to know</h2>
+        <p>Venue, times and tickets will be announced to the mailing list first.</p>
+        <form class="signup" method="post" action="/api/subscribe" data-lang="en">
+          <label for="email">Email</label>
+          <div class="row">
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required maxlength="254" placeholder="you@example.com">
+            <button type="submit">Join the list</button>
+          </div>
+          <!-- Honeypot. Named rr_ref, not like an address-book field (organisation and the
+               like): browser autofill fills those and the Worker would read the visitor as a bot. -->
+          <input class="hp" type="text" name="rr_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <!-- Turnstile TEST sitekey (always passes). The launch MR replaces it here and in
+               /es/index.html — the only two files it may appear in. -->
+          <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-appearance="interaction-only" data-theme="light" data-size="flexible" data-language="en" data-action="subscribe" data-error-callback="rrTurnstileError" data-timeout-callback="rrTurnstileTimeout" data-expired-callback="rrTurnstileExpired"></div>
+          <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
+          <noscript><p class="msg">Signing up needs JavaScript — the spam check runs in your browser. Enable it and reload.</p></noscript>
+        </form>
+        <!-- Success copy for MailerLite double opt-in OFF. With it ON, use the
+             success_confirm string from the JSON below instead. -->
+        <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>You're on the list. We'll write when there's news.</p>
+        <p class="fine">No spam. Unsubscribe any time.</p>
+        <script type="application/json" id="signup-i18n">{
+          "sending": "Joining…",
+          "invalid": "That email address doesn't look right. Check it and try again.",
+          "challenge_pending": "Please complete the spam check first, then try again. If it doesn't appear, reload the page.",
+          "challenge_failed": "The spam check didn't pass. Try again.",
+          "rate_limited": "Too many attempts. Wait a minute and try again.",
+          "bad_origin": "That request was blocked. Reload the page and try again.",
+          "unavailable": "Signups aren't available right now. Try again in a few minutes.",
+          "server_error": "Something went wrong on our end. Try again in a moment.",
+          "network": "No connection. Check your network and try again.",
+          "success_confirm": "Almost there — check your inbox and confirm your email address."
+        }</script>
+      </section>
+
+    </div>
+
+    <!-- Desktop only: sticky column beside the copy (hidden below 64rem). Last in <main> so the
+         section-spacing selector is untouched and screen readers meet it after the content. -->
+    <figure class="poster">
+      <a href="/img/poster.jpg" data-poster>
         <picture>
-          <source type="image/webp" srcset="/img/logo.webp">
-          <img src="/img/logo.png" width="1200" height="591" alt="Renaissance Rodeo" fetchpriority="high">
+          <source type="image/webp" srcset="/img/poster.webp">
+          <img src="/img/poster.jpg" width="1080" height="1920" alt="Renaissance Rodeo poster: Al toro Bravo por los Cuernos, Ilopango, November 13" loading="lazy">
         </picture>
-      </h1>
-      <!-- The poster sets the B of "Bravo" as a bitcoin symbol. Screen readers get
-           the plain sentence; sighted visitors get the B with CSS-drawn bars. -->
-      <p class="tagline" lang="es">
-        <span class="sr-only">Al toro Bravo por los Cuernos</span>
-        <span aria-hidden="true">Al toro <span class="btc-b">B</span>ravo por los Cuernos</span>
-      </p>
-      <p class="when"><time datetime="2026-11-13">13 November 2026</time> · Ilopango, El Salvador</p>
-      <p class="after">The day after <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
-      <p class="note">Venue, times and tickets — <a href="#signup">join the list</a>.</p>
-    </section>
-
-    <section class="about" aria-labelledby="about-h">
-      <h2 id="about-h" class="sr-only">About the event</h2>
-      <p>El Salvador is in the midst of a Renaissance, this event is designed to promote the cattle and agricultural part of this rebirth.</p>
-      <p>By celebrating the real men and women behind the cowboy culture that has survived El Salvador’s trials, we aim for the event to be a hub where local and internationals can meet and enjoy, and develop relationships that can bolster the industry and allow it to thrive as the country surges towards becoming one of the best countries on the planet.</p>
-      <p>It will be a full afternoon of rodeo entertainment, including bull riding, mutton busting, animal fairs, barrel racing, music and barbecue.</p>
-    </section>
-
-    <section id="signup" aria-labelledby="signup-h">
-      <h2 id="signup-h">Be first to know</h2>
-      <p>Venue, times and tickets will be announced to the mailing list first.</p>
-      <form class="signup" method="post" action="/api/subscribe" data-lang="en">
-        <label for="email">Email</label>
-        <div class="row">
-          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required maxlength="254" placeholder="you@example.com">
-          <button type="submit">Join the list</button>
-        </div>
-        <!-- Honeypot. Named rr_ref, not like an address-book field (organisation and the
-             like): browser autofill fills those and the Worker would read the visitor as a bot. -->
-        <input class="hp" type="text" name="rr_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <!-- Turnstile TEST sitekey (always passes). The launch MR replaces it here and in
-             /es/index.html — the only two files it may appear in. -->
-        <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-appearance="interaction-only" data-theme="light" data-size="flexible" data-language="en" data-action="subscribe" data-error-callback="rrTurnstileError" data-timeout-callback="rrTurnstileTimeout" data-expired-callback="rrTurnstileExpired"></div>
-        <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
-        <noscript><p class="msg">Signing up needs JavaScript — the spam check runs in your browser. Enable it and reload.</p></noscript>
-      </form>
-      <!-- Success copy for MailerLite double opt-in OFF. With it ON, use the
-           success_confirm string from the JSON below instead. -->
-      <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>You're on the list. We'll write when there's news.</p>
-      <p class="fine">No spam. Unsubscribe any time.</p>
-      <script type="application/json" id="signup-i18n">{
-        "sending": "Joining…",
-        "invalid": "That email address doesn't look right. Check it and try again.",
-        "challenge_pending": "Please complete the spam check first, then try again. If it doesn't appear, reload the page.",
-        "challenge_failed": "The spam check didn't pass. Try again.",
-        "rate_limited": "Too many attempts. Wait a minute and try again.",
-        "bad_origin": "That request was blocked. Reload the page and try again.",
-        "unavailable": "Signups aren't available right now. Try again in a few minutes.",
-        "server_error": "Something went wrong on our end. Try again in a moment.",
-        "network": "No connection. Check your network and try again.",
-        "success_confirm": "Almost there — check your inbox and confirm your email address."
-      }</script>
-    </section>
-
-    <section aria-labelledby="partners-h">
-      <h2 id="partners-h" class="sr-only">Bitcoin Histórico and Origen Ganadero</h2>
-      <ul class="partners">
-        <li class="bh">
-          <a href="https://bitcoinhistorico.com/" rel="noopener">
-            <img src="/img/bitcoin-historico.png" width="251" height="288" alt="">
-            <span class="cap"><strong>Bitcoin Histórico</strong> — the day before<br>11–12 November 2026, Centro Histórico, San Salvador.</span>
-          </a>
-        </li>
-        <li class="og">
-          <a href="https://origenganadero.com/" rel="noopener">
-            <img src="/img/origen-ganadero.svg" width="740" height="760" alt="Origen Ganadero">
-            <span class="cap">Partner · Beef-cattle genetics and ranch consulting, El Salvador.</span>
-          </a>
-        </li>
-      </ul>
-    </section>
+      </a>
+    </figure>
   </main>
 
   <footer class="wrap">
     <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/" lang="es" hreflang="es">Español</a></p>
   </footer>
+
+  <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
+       open only. Without JS the data-poster links open the JPEG itself. -->
+  <dialog class="lightbox" id="poster-dialog" aria-label="Event poster">
+    <button type="button" class="lightbox-close" aria-label="Close">&#x2715;</button>
+    <picture>
+      <source type="image/webp" srcset="/img/poster.webp">
+      <img src="/img/poster.jpg" width="1080" height="1920" alt="Renaissance Rodeo poster: Al toro Bravo por los Cuernos, Ilopango, November 13" loading="lazy">
+    </picture>
+  </dialog>
 </body>
 </html>
