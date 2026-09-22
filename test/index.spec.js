@@ -854,6 +854,27 @@ describe('static pages', () => {
     expect(await res.text()).toContain('<html lang="es">');
   });
 
+  it('ships the opening sequence: intro.js, the overlay in both pages, the bull', async () => {
+    const js = await call(new Request(`${ORIGIN}/intro.js`));
+    expect(js.status).toBe(200);
+    expect(js.headers.get('content-type')).toMatch(/javascript/);
+    expect(await js.text()).toContain("const KEY = 'rr-intro';");
+
+    for (const path of ['/', '/es/']) {
+      const html = await (await call(new Request(`${ORIGIN}${path}`))).text();
+      // Synchronous in <head>: a deferred intro.js would let the cream page paint first.
+      expect(html).toContain('<script src="/intro.js"></script>');
+      expect(html).not.toContain('<script src="/intro.js" defer>');
+      expect(html).toContain('<section class="intro"');
+      // The long About paragraph is split into frames for the intro (README, "The opening sequence").
+      expect(html.match(/<span data-frame>/g)?.length).toBe(4);
+    }
+
+    const bull = await call(new Request(`${ORIGIN}/img/bull.png`));
+    expect(bull.status).toBe(200);
+    expect(bull.headers.get('content-type')).toBe('image/png');
+  });
+
   it('answers an unknown path with 404 and the 404 page', async () => {
     const page = await (await call(new Request(`${ORIGIN}/404.html`))).text();
     const res = await call(new Request(`${ORIGIN}/nope`));
