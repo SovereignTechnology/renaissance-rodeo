@@ -501,9 +501,11 @@ and the reports arrive through the catch-all.
   `renaissance-rodeo`; workers.dev hostname switched off. Signups stay `unavailable` until
   `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
   replaces the test one.
-- **Pending, each confirmed by hand:** delete Worker `bitcoin-rodeo`, delete D1 `rodeo-list`
-  (0 rows), archive `sovITxyz/bitcoin-rodeo` on GitHub. **Rollback while the old Worker exists:**
-  `cd ~/Projects/bitcoin-rodeo && npx wrangler deploy` reclaims both hostnames for it.
+- `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
+  is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
+  version of `renaissance-rodeo`.
+- **Pending:** delete the old GitHub repository `sovITxyz/bitcoin-rodeo` (needs a `gh` token with the
+  `delete_repo` scope). Its full history stays in the local checkout `~/Projects/bitcoin-rodeo`.
 
 ## Still browser-only
 
