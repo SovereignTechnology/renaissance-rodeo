@@ -168,29 +168,39 @@ MailerLite's domain unless their paid domain alignment is bought.
 
 ## Turnstile
 
-The form ships with Cloudflare's **test sitekey** `1x00000000000000000000AA` (always passes) so it
-works locally against the test secret in `.dev.vars`. Before launch:
+The form uses the production widget **`renaissance-rodeo-signup`** (Managed, hostnames
+`renaissance.rodeo` and `www.renaissance.rodeo`), sitekey `0x4AAAAAAE_nBKxDHDJBj9OH` in both
+`public/index.html` and `public/es/index.html`. Its secret is the Worker secret `TURNSTILE_SECRET`,
+with the recoverable copy in Bitwarden `sovtech/shared` as `renaissance-rodeo-turnstile-secret`.
+Both were set on 2026-09-22.
 
-1. **Create the widget** in the Cloudflare dashboard (Turnstile → Add widget): type *Managed*,
-   hostnames `renaissance.rodeo` and `www.renaissance.rodeo`. The widget is embedded with
-   `data-appearance="interaction-only"`, so it stays invisible unless a challenge is needed. (The
-   API route needs a token with *Turnstile Sites Write*, which wrangler's OAuth token lacks — the
-   dashboard is quicker.) Add the `workers.dev` hostname too if you want the smoke deploy to accept
-   signups; otherwise the hostname check rejects them there and signups are proven on the real
-   domain after cutover.
-2. **Replace the sitekey in exactly two files**: `public/index.html` and `public/es/index.html`.
-   Replacing only one is the failure that hides — Turnstile renders a widget with a wrong sitekey
-   without complaint, so that page looks normal while every submission from it is rejected as
-   `challenge_failed`. The launch check:
+**Local development** needs Cloudflare's test sitekey, because `localhost` is not one of the
+widget's hostnames and the real widget refuses to render there. Swap it in both files for the
+session and **do not commit it**. The test suite does not check this, the launch check below does:
 
-   ```sh
-   grep -rl 'data-sitekey="1x0' public/ | wc -l   # must be 0
-   grep -rl data-sitekey public/ | wc -l          # must be 2
-   ```
+```sh
+sed -i 's/data-sitekey="0x4AAAAAAE_nBKxDHDJBj9OH"/data-sitekey="1x00000000000000000000AA"/' public/index.html public/es/index.html
+git checkout -- public/index.html public/es/index.html   # afterwards
+```
 
-3. **Set the secret** `TURNSTILE_SECRET` with `scripts/set-secret.sh TURNSTILE_SECRET` (see
-   *Secrets*). Without it, or with a test secret, the Worker answers `503 unavailable` in
-   production.
+The launch check, before any deploy:
+
+```sh
+grep -rl 'data-sitekey="1x0' public/ | wc -l   # must be 0
+grep -rl data-sitekey public/ | wc -l          # must be 2
+```
+
+Replacing the sitekey in only one file is the failure that hides. Turnstile renders a widget with a
+wrong sitekey without complaint, so that page looks normal while every submission from it is
+rejected as `challenge_failed`.
+
+**Recreating or rotating the widget is done in the terminal.** Wrangler 4.135+ has
+`wrangler turnstile widget create|list|get|update|delete`, and its OAuth login includes the
+`challenge-widgets.write` scope. A login older than that lacks the scope, and `wrangler whoami`
+names it as missing; `npx wrangler login` fixes it. `create --json` prints the secret, so never
+let that output reach a terminal: pipe it through `jq -er .secret` into a `0600` file and hand
+that file to `scripts/set-secret.sh TURNSTILE_SECRET --from-file`. Print only `.sitekey`, which
+is public.
 
 Every rejected siteverify is logged, address-free: a non-200 answer logs its HTTP status, a
 `success:false` answer logs the `error-codes` Cloudflare returned (`invalid-input-secret`,
@@ -506,6 +516,9 @@ and the reports arrive through the catch-all.
   `renaissance-rodeo`; workers.dev hostname switched off. Signups stay `unavailable` until
   `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
   replaces the test one.
+- `2026-09-22` — Turnstile widget `renaissance-rodeo-signup` created from the terminal, real sitekey
+  in both pages, `TURNSTILE_SECRET` set (Bitwarden copy first). Signups stay `unavailable` until
+  the MailerLite key and group exist.
 - `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
   is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
   version of `renaissance-rodeo`.
@@ -516,11 +529,8 @@ and the reports arrive through the catch-all.
 
 Nothing here is automated; each is a few minutes in a dashboard.
 
-- **Always Use HTTPS** — Cloudflare → SSL/TLS → Edge Certificates. Until it is on, `http://` serves
-  the page without a redirect (HSTS in `_headers` only takes effect once a browser has seen an HTTPS
-  response).
 - **MailerLite sender-domain authentication** — the DKIM CNAME, SPF TXT and verification TXT on the
   `renaissance.rodeo` zone (see *MailerLite*).
-- **Turnstile widget** and **MailerLite key / group** (see the sections above).
+- **MailerLite key / group** (see *MailerLite*). The key is issued only in MailerLite's dashboard.
 - **Workers Builds connection** — once, see *Deploying*. Until it exists, `main` is deployed by hand.
 - **SPF merge and Cloudflare DKIM** for Email Routing — see *Email*.
