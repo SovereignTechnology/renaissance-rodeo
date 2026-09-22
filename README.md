@@ -366,16 +366,16 @@ exposed to unprotected refs.
 **A CI deploy is non-interactive, so it auto-confirms.** wrangler answers its own *"Update them to
 point to this script instead?"* prompt with yes when stdout is not a TTY (next section). If the
 cutover `routes` are present in `wrangler.jsonc`, the `deploy` job takes `renaissance.rodeo` and
-`www` over from whichever Worker holds them, with no prompt. That is intended after cutover; before
-it, the job is a smoke deploy only because the routes are commented out.
+`www` over from whichever Worker holds them, with no prompt. The routes have been live since the
+2026-09-21 cutover, so every deploy re-asserts both custom domains, which is intended.
 
 ### Smoke configuration vs cutover
 
-`wrangler.jsonc` ships in **smoke** configuration: `workers_dev: true`, no `routes`. Deploying it
-creates the Worker `renaissance-rodeo` on `renaissance-rodeo.<subdomain>.workers.dev`, which is
-what makes `wrangler secret put` possible. The **cutover block** is the comment above `workers_dev`:
-two `routes` entries with `custom_domain: true` for `renaissance.rodeo` and `www.renaissance.rodeo`,
-plus `workers_dev: false`.
+Since the 2026-09-21 cutover `wrangler.jsonc` is in **live** configuration: two `routes` entries
+with `custom_domain: true` for `renaissance.rodeo` and `www.renaissance.rodeo`, plus
+`workers_dev: false`. Before that it shipped in **smoke** configuration (`workers_dev: true`, no
+`routes`), which created the Worker `renaissance-rodeo` on its workers.dev hostname so it could be
+tested in production, and so `wrangler secret put` had a Worker to write to.
 
 Deploying with those routes **takes the two hostnames over** from whichever Worker holds them (the
 old `bitcoin-rodeo`). wrangler asks *"Update them to point to this script instead?"* in a terminal
@@ -388,10 +388,10 @@ Order matters: **deploy the new Worker first, let it take the domains, then dele
 Deleting a Worker that still holds custom domains leaves orphaned, locked DNS records (error 1043).
 The old Worker's Advanced Certificate is not removed automatically; it is harmless.
 
-Cutover checklist:
+Cutover checklist (done 2026-09-21; kept for any future domain move):
 
-1. Uncomment the cutover block, set `workers_dev: false`, `npm run deploy` in a terminal, accept the
-   prompt.
+1. Add the two `routes`, set `workers_dev: false`, `npm run deploy`. In a terminal wrangler asks
+   before taking the hostnames; a piped shell takes them without asking.
 2. `curl -sI https://renaissance.rodeo/`, `https://www.renaissance.rodeo/` and
    `https://renaissance.rodeo/es/` — new page, `content-security-policy` present; `/es` → 307.
 3. One real signup lands in the MailerLite group (check the count, not the address).
@@ -447,9 +447,16 @@ scripts — the form script is `public/signup.js`.
 
 ## Cutover record
 
-- `YYYY-MM-DD` — domains `renaissance.rodeo` + `www` moved to Worker `renaissance-rodeo`; old Worker
-  `bitcoin-rodeo` and D1 `rodeo-list` deleted; `sovITxyz/bitcoin-rodeo` archived on GitHub. *(fill in
-  at cutover; note here if the old Advanced Certificate was left in place)*
+- `2026-09-21` — smoke deploy of `renaissance-rodeo` on
+  `renaissance-rodeo.bitcoin-rodeo.workers.dev` verified (pages, `/es` → 307, 404, headers, every
+  API gate; signups fail closed with `unavailable` because no secret is set yet).
+- `2026-09-21` — domains `renaissance.rodeo` + `www` moved from Worker `bitcoin-rodeo` to
+  `renaissance-rodeo`; workers.dev hostname switched off. Signups stay `unavailable` until
+  `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
+  replaces the test one.
+- **Pending, each confirmed by hand:** delete Worker `bitcoin-rodeo`, delete D1 `rodeo-list`
+  (0 rows), archive `sovITxyz/bitcoin-rodeo` on GitHub. **Rollback while the old Worker exists:**
+  `cd ~/Projects/bitcoin-rodeo && npx wrangler deploy` reclaims both hostnames for it.
 
 ## Still browser-only
 

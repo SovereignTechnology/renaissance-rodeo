@@ -22,20 +22,20 @@
     }
   ],
 
-  // SMOKE-TEST CONFIGURATION. At cutover this block becomes:
-  //   "routes": [
-  //     { "pattern": "renaissance.rodeo", "custom_domain": true },
-  //     { "pattern": "www.renaissance.rodeo", "custom_domain": true }
-  //   ],
-  //   "workers_dev": false,
-  // Deploying with those routes takes the two hostnames over from whichever
-  // Worker holds them. wrangler prompts in a terminal; a NON-INTERACTIVE
-  // deploy (CI, a piped or backgrounded shell) auto-confirms the takeover with
-  // no prompt at all — so the routes are added only when it is intended, and
-  // the first deploy that carries them is run by hand. Once they are in,
-  // test/index.spec.js insists workers_dev is false: the workers.dev hostname
-  // sits outside the zone's WAF and "Always Use HTTPS" rules.
-  "workers_dev": true,
+  // LIVE CONFIGURATION since the 2026-09-21 cutover (before it this file had
+  // `workers_dev: true` and no routes, a smoke deploy on workers.dev only).
+  // Deploying these routes claims both hostnames from whichever Worker holds
+  // them: wrangler prompts in a terminal, and a NON-INTERACTIVE deploy (CI, a
+  // piped or backgrounded shell) auto-confirms that takeover with no prompt.
+  // Attaching a custom domain creates its DNS record and certificate; the zone
+  // holds no other records. test/index.spec.js insists workers_dev is false
+  // whenever routes exist: the workers.dev hostname sits outside the zone's
+  // WAF and "Always Use HTTPS" rules.
+  "routes": [
+    { "pattern": "renaissance.rodeo", "custom_domain": true },
+    { "pattern": "www.renaissance.rodeo", "custom_domain": true }
+  ],
+  "workers_dev": false,
   "preview_urls": false,
 
   "observability": { "enabled": true }
