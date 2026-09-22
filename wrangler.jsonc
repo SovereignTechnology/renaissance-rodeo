@@ -38,7 +38,7 @@
   "workers_dev": false,
   "preview_urls": false,
 
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
 
   // Public configuration, not credentials — inert without the API key.
   // MailerLite group ids are 18-digit numbers: keep them QUOTED, a JSON number
@@ -48,14 +48,16 @@
   // targeted without custom fields.
   //
   // The Worker checks the SHAPE (a quoted string of 6–20 digits, no leading
-  // zero) and refuses to run on anything else — the placeholder below is
-  // deliberately not a number, so an unedited uncomment fails `npm test` and
+  // zero) and refuses to run on anything else — the placeholder it replaced was
+  // deliberately not a number, so an unedited uncomment failed `npm test` and
   // the deploy loudly instead of sending MailerLite a group it cannot find.
   //
-  // "vars": {
-  //   "MAILERLITE_GROUP_ID": "REPLACE_WITH_18_DIGIT_GROUP_ID",
-  //   "MAILERLITE_GROUP_ID_ES": "REPLACE_WITH_18_DIGIT_GROUP_ID"
-  // }
+  // Groups "Renaissance Rodeo" and "Renaissance Rodeo (ES)", created 2026-09-22
+  // (list them with scripts/mailerlite-groups.sh).
+  "vars": {
+    "MAILERLITE_GROUP_ID": "199289599917295168",
+    "MAILERLITE_GROUP_ID_ES": "199289600360843046"
+  }
 
   // No secret is here, and none may be added to "vars": a vars entry with the
   // same name as a secret wins on deploy and the secret is no longer readable.
