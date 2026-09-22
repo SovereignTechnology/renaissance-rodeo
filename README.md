@@ -114,8 +114,9 @@ group of zeros and blaming the visitor's address.
 Every signup joins `MAILERLITE_GROUP_ID`; a signup from `/es/` additionally joins
 `MAILERLITE_GROUP_ID_ES` when it is set, so Spanish campaigns can be targeted without custom fields.
 `scripts/mailerlite-groups.sh` lists the account's groups with their ids; it reads the API key from
-a `0600` file (made as shown under *Secrets*) and never prints it. Ids are public and committed;
-commit the `vars` change with the sitekey swap (below).
+a `0600` file (made as shown under *Secrets*) and never prints it. Ids are public and committed.
+The live groups are **Renaissance Rodeo** `199289599917295168` and **Renaissance Rodeo (ES)**
+`199289600360843046` (created 2026-09-22 through the API with the same key file).
 
 **`vars` live only in `wrangler.jsonc`.** `wrangler deploy` replaces the Worker's plain-text
 bindings with the file's (`keep_vars` defaults to false), so a group id typed into the dashboard's
@@ -517,8 +518,9 @@ and the reports arrive through the catch-all.
   `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
   replaces the test one.
 - `2026-09-22` — Turnstile widget `renaissance-rodeo-signup` created from the terminal, real sitekey
-  in both pages, `TURNSTILE_SECRET` set (Bitwarden copy first). Signups stay `unavailable` until
-  the MailerLite key and group exist.
+  in both pages, `TURNSTILE_SECRET` set (Bitwarden copy first).
+- `2026-09-22` — MailerLite groups created, ids in `wrangler.jsonc` `vars`, `MAILERLITE_API_KEY`
+  set (Bitwarden `renaissance-rodeo-mailerlite-api-key` first). Every signup prerequisite exists.
 - `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
   is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
   version of `renaissance-rodeo`.
@@ -531,6 +533,5 @@ Nothing here is automated; each is a few minutes in a dashboard.
 
 - **MailerLite sender-domain authentication** — the DKIM CNAME, SPF TXT and verification TXT on the
   `renaissance.rodeo` zone (see *MailerLite*).
-- **MailerLite key / group** (see *MailerLite*). The key is issued only in MailerLite's dashboard.
 - **Workers Builds connection** — once, see *Deploying*. Until it exists, `main` is deployed by hand.
 - **SPF merge and Cloudflare DKIM** for Email Routing — see *Email*.
