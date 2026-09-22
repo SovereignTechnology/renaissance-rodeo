@@ -43,7 +43,6 @@
   --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --text-body: clamp(1.0625rem, 1rem + .3vw, 1.1875rem);
   --text-small: .9375rem;
-  --text-tag: clamp(1.125rem, 1rem + .8vw, 1.5rem);
   --text-date: clamp(1.125rem, .95rem + 1vw, 1.5rem);
   --text-h2: clamp(1.625rem, 1.25rem + 1.8vw, 2.25rem);
   --text-button: 1.0625rem;
@@ -157,13 +156,8 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .poster-thumb img { width: 100%; }
 .hero::after { content: ""; display: block; clear: both; }
 .poster { display: none; }
-.tagline {
-  margin-top: 1.25rem;
-  font: 400 var(--text-tag) / 1.3 var(--font-display);
-  letter-spacing: .01em;
-}
 .when {
-  margin-top: .75rem;
+  margin-top: 1.25rem;
   font: 400 var(--text-date) / 1.3 var(--font-display);
   text-transform: uppercase;
   letter-spacing: .05em;
@@ -171,25 +165,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .after { margin-top: .75rem; }
 .note { margin-top: .25rem; color: var(--muted); }
 
-/* The bitcoin B in "Bravo": two bars above and two below the B, drawn in CSS so the
-   glyph never has to exist in the font. Each pseudo-element is one bar and its
-   box-shadow is the second. Positions are in em from a line-height:1 box and
-   were measured against Bevan (cap top .074em from the top, baseline .148em
-   from the bottom; the B's top slab spans x .03-.60em, so bars at .20 and
-   .40em merge into it and stand .11em proud). Delete the .btc-b span and the
-   word is a plain "Bravo". */
-.btc-b { position: relative; display: inline-block; line-height: 1; }
-.btc-b::before, .btc-b::after {
-  content: "";
-  position: absolute;
-  left: .2em;
-  width: .09em;
-  height: .16em;
-  background: currentColor;
-  box-shadow: .2em 0 0 currentColor;
-}
-.btc-b::before { top: -.04em; }
-.btc-b::after { bottom: .04em; }
 
 /* ---------- sections ---------- */
 .copy > section + section { margin-top: var(--gap-section); }
