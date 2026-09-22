@@ -1,0 +1,19 @@
+{
+  "name": "renaissance-rodeo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Renaissance Rodeo — landing page and mailing-list signup (renaissance.rodeo)",
+  "scripts": {
+    "dev": "wrangler dev --ip 0.0.0.0 --port 8788",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "assets": "bash scripts/build-assets.sh",
+    "secrets": "wrangler secret list"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.0.0"
+  }
+}

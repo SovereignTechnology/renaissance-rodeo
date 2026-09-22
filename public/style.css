@@ -1,0 +1,283 @@
+/* Renaissance Rodeo — the one stylesheet, shared by /, /es/ and /404.html.
+   Two inks on cream, one 36rem column, one media query. Font files live in
+   /fonts/ and are referenced ONLY here (plus the two preloads in each page);
+   when a font file is replaced, bump its ?v= query here and in the preloads. */
+
+@font-face {
+  font-family: 'Bevan';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/bevan-latin-400-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/fonts/barlow-latin-400-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(/fonts/barlow-latin-600-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
+/* ---------- tokens ---------- */
+:root {
+  color-scheme: light;
+  --cream: #f7edd8;
+  --paper: #fffdf8;
+  --ink: #0e1d2d;
+  --muted: #3f4a58;
+  --red: #c01102;
+  --red-deep: #a30e02;
+  --font-display: 'Bevan', Rockwell, 'Roboto Slab', Georgia, serif;
+  --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-body: clamp(1.0625rem, 1rem + .3vw, 1.1875rem);
+  --text-small: .9375rem;
+  --text-tag: clamp(1.125rem, 1rem + .8vw, 1.5rem);
+  --text-date: clamp(1.125rem, .95rem + 1vw, 1.5rem);
+  --text-h2: clamp(1.625rem, 1.25rem + 1.8vw, 2.25rem);
+  --text-button: 1.0625rem;
+  --lh-body: 1.55;
+  --gap-section: clamp(2.5rem, 7vw, 4.5rem);
+  --control: 3rem;
+  --border: 1.5px;
+  --radius: 0;
+  --ring: 3px solid var(--red);
+  --ring-offset: 2px;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { overflow-x: clip; }
+body { margin: 0; }
+html, body {
+  background: var(--cream);
+  color: var(--ink);
+  font: var(--text-body) / var(--lh-body) var(--font-body);
+}
+img { display: block; max-width: 100%; height: auto; }
+h1, h2, p { margin: 0; }
+strong { font-weight: 600; }
+a {
+  color: var(--ink);
+  text-underline-offset: .15em;
+  text-decoration-thickness: .08em;
+}
+:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+#signup-ok:focus, main:focus { outline: 0; }
+/* The UA sheet's display:none for [hidden] loses to any display: set by a
+   class; this keeps hidden meaning hidden whatever else matches. */
+[hidden] { display: none !important; }
+
+.sr-only, .skip:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap { max-width: 36rem; margin-inline: auto; padding-inline: 1rem; }
+
+/* ---------- skip link (sr-only until focused, then an ink pill) ---------- */
+.skip:focus {
+  position: absolute;
+  top: .75rem;
+  left: .75rem;
+  z-index: 1;
+  padding: .75rem 1.125rem;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 999px;
+  font: 600 var(--text-small) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+
+/* ---------- header ---------- */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: .75rem;
+}
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+.mark img { width: 36px; height: 36px; }
+.lang {
+  display: flex;
+  align-items: center;
+  font: 600 .9375rem / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.lang a, .lang [aria-current] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+.lang [aria-current] { color: var(--muted); }
+.lang .sep { color: var(--muted); }
+
+/* ---------- hero ---------- */
+main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
+.hero h1 img { width: 100%; }
+.tagline {
+  margin-top: 1.25rem;
+  font: 400 var(--text-tag) / 1.3 var(--font-display);
+  letter-spacing: .01em;
+}
+.when {
+  margin-top: .75rem;
+  font: 400 var(--text-date) / 1.3 var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.after { margin-top: .75rem; }
+.note { margin-top: .25rem; color: var(--muted); }
+
+/* The bitcoin B in "Bravo": two bars above and two below the B, drawn in CSS so the
+   glyph never has to exist in the font. Each pseudo-element is one bar and its
+   box-shadow is the second. Positions are in em from a line-height:1 box and
+   were measured against Bevan (cap top .074em from the top, baseline .148em
+   from the bottom; the B's top slab spans x .03-.60em, so bars at .20 and
+   .40em merge into it and stand .11em proud). Delete the .btc-b span and the
+   word is a plain "Bravo". */
+.btc-b { position: relative; display: inline-block; line-height: 1; }
+.btc-b::before, .btc-b::after {
+  content: "";
+  position: absolute;
+  left: .2em;
+  width: .09em;
+  height: .16em;
+  background: currentColor;
+  box-shadow: .2em 0 0 currentColor;
+}
+.btc-b::before { top: -.04em; }
+.btc-b::after { bottom: .04em; }
+
+/* ---------- sections ---------- */
+main > section + section { margin-top: var(--gap-section); }
+.about p { margin-block: 1.1em; overflow-wrap: break-word; }
+.about p:first-of-type { margin-top: 0; }
+.about p:last-of-type { margin-bottom: 0; }
+
+/* ---------- signup ---------- */
+#signup { scroll-margin-top: 1.5rem; }
+#signup h2 { font: 400 var(--text-h2) / 1.15 var(--font-display); }
+#signup h2 + p { margin-top: .75rem; }
+.signup { margin-top: 1.25rem; }
+.signup label { display: block; margin-bottom: .5rem; font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.signup input[type="email"] {
+  flex: 1 1 16rem;
+  min-width: 0;
+  height: var(--control);
+  padding: 0 .875rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: var(--border) solid var(--ink);
+  border-radius: var(--radius);
+  font: 400 max(1.0625rem, 16px) / 1 var(--font-body);
+}
+.signup input::placeholder { color: var(--muted); opacity: 1; }
+.signup button {
+  flex: 0 0 auto;
+  height: var(--control);
+  padding: 0 1.5rem;
+  background: var(--red);
+  color: var(--cream);
+  border: var(--border) solid var(--red);
+  border-radius: var(--radius);
+  font: 600 var(--text-button) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.signup button:hover { background: var(--red-deep); border-color: var(--red-deep); }
+.signup button:disabled { opacity: .6; cursor: default; }
+/* Honeypot: off-screen, never display:none (bots skip fields they can see are
+   hidden; humans and screen readers never reach it — tabindex=-1, aria-hidden). */
+.hp {
+  position: absolute !important;
+  left: -9999px !important;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.cf-turnstile { margin-top: .5rem; }
+.msg {
+  min-height: 1.5em;
+  margin-top: .5rem;
+  color: var(--red);
+  font-size: var(--text-small);
+}
+.success { margin-top: 1.25rem; font-weight: 600; }
+.fine { margin-top: .75rem; color: var(--muted); font-size: var(--text-small); }
+
+/* ---------- partners ---------- */
+.partners {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 2.5rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.partners a { display: block; text-decoration: none; }
+.partners img { height: 7.5rem; width: auto; }
+.partners .og img { height: 9.5rem; }
+.partners .cap {
+  display: block;
+  margin-top: 1rem;
+  font-size: var(--text-small);
+  line-height: 1.45;
+}
+.partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
+
+/* ---------- footer ---------- */
+footer { padding-block: var(--gap-section) 2rem; color: var(--muted); font-size: var(--text-small); }
+footer a { color: inherit; }
+
+/* ---------- 404 ---------- */
+.notfound { padding-block: var(--gap-section); }
+.notfound .code { font: 400 clamp(4rem, 12vw, 6rem) / 1 var(--font-display); }
+.notfound h1 { margin-top: .75rem; font-size: var(--text-h2); font-weight: 400; }
+.notfound p + p { margin-top: 1.25rem; }
+
+/* ---------- the one media query ---------- */
+@media (max-width: 519px) {
+  .signup button { flex-basis: 100%; }
+  .partners img { height: 6.5rem; }
+  .partners .og img { height: 8.5rem; }
+}
+
+/* ---------- motion, only where the visitor has not asked for less ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease; }
+}

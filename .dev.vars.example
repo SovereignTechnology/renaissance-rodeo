@@ -1,0 +1,14 @@
+# Local development only. Copy to .dev.vars (gitignored). Never deployed:
+# `wrangler secret put` is what sets the real values in Cloudflare.
+#
+# DEV_MODE relaxes exactly two production checks, both of which would
+# otherwise make local testing impossible:
+#   - the Turnstile siteverify hostname must match the request host
+#   - a Cloudflare test secret is refused outright
+DEV_MODE=true
+# Cloudflare's documented ALWAYS-PASSES test secret. Not a credential.
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+# A THROWAWAY MailerLite key, never the production one: `npm run dev` binds all
+# interfaces and DEV_MODE disables the test-secret refusal, so anyone who can
+# reach the dev port could push auto-passing signups into that account.
+# MAILERLITE_API_KEY=

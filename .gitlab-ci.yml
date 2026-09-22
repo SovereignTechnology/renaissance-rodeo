@@ -1,0 +1,59 @@
+# Cloudflare Workers Builds cannot watch a self-hosted GitLab, so:
+#   - `test` runs on every merge request and on main (CI signal for the MR).
+#   - `deploy` is MANUAL and only offered on main when the CI variable
+#     CLOUDFLARE_API_TOKEN exists (Workers Scripts:Edit + Account
+#     Settings:Read on account a3d83edc…). Until then, deploys are
+#     `npm run deploy` from a logged-in laptop — see README, "CI".
+#
+# The token must be a PROTECTED, MASKED variable with ENVIRONMENT SCOPE
+# `production` (not `*`), and the `production` environment must be protected
+# (Allowed to deploy: Maintainers). `when: manual` gates the click, not the
+# token: a protected variable scoped to `*` is injected into EVERY job of a
+# pipeline on a protected ref — including `test` on main, which runs `npm ci`
+# (lockfile lifecycle scripts) and `npm test` (arbitrary code). The scope is
+# what keeps the token inside the one job that declares `environment:
+# production`; the protected environment is what decides who may run it.
+stages: [test, deploy]
+
+default:
+  # Pinned. A floating `node:22` would change the toolchain under the deploy
+  # job with no diff in this repo to show for it.
+  image: node:22.22.0
+
+.npm-cache: &npm-cache
+  cache:
+    key:
+      files: [package-lock.json]
+    paths: [.npm/]
+
+test:
+  stage: test
+  <<: *npm-cache
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm test
+
+deploy:
+  stage: deploy
+  <<: *npm-cache
+  # `environment` is what the token's environment scope matches (see the top
+  # of this file); `resource_group` makes two manual clicks run one after the
+  # other instead of racing.
+  environment:
+    name: production
+  resource_group: production
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CLOUDFLARE_API_TOKEN
+      when: manual
+  # NON-INTERACTIVE, so it AUTO-CONFIRMS. wrangler answers its own "Update
+  # them to point to this script instead?" prompt with yes when stdout is not
+  # a TTY. With the cutover `routes` present in wrangler.jsonc this job takes
+  # renaissance.rodeo and www over from whichever Worker holds them, with no
+  # prompt. Intended after cutover; a smoke deploy only while the routes stay
+  # commented out. See README, "Smoke configuration vs cutover".
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npx wrangler deploy
