@@ -1,14 +1,16 @@
 // The black opening sequence. Loaded synchronously in <head> (no defer) so the first thing
-// it does — putting .has-intro on <html> — lands before first paint and the page never flashes
-// cream before the black. Everything else waits for DOMContentLoaded.
+// it does — putting .has-intro on <html> — lands before first paint and the page never
+// flashes cream before the black. Everything else waits for DOMContentLoaded.
 //
-// Plays only when motion is allowed, once per browser session (sessionStorage 'rr-intro',
-// set at start so a reload mid-sequence skips it) and never on a deep link (#signup from a
-// mail or a share goes straight to the form). No JS, or any of those, and the overlay stays
-// display:none. The frames are built from the page's own copy: every span[data-frame]
-// inside an About paragraph is one frame (a paragraph without spans is one frame), then the
-// partner marks, then the static closing card, which holds until the visitor acts.
-// Skip, Esc, or a tap anywhere that is not a control moves things along.
+// Autoplays only when motion is allowed, once per browser session (sessionStorage
+// 'rr-intro', set at start so a reload mid-sequence skips it) and never on a deep link
+// (#signup from a mail or a share goes straight to the form). No JS, or any of those, and
+// the overlay stays display:none. The "View intro" button at the foot of the page replays it
+// on request, motion preference or not — an explicit ask.
+//
+// The frames are static markup in each page (section.intro): the text slides, then the
+// partner marks (cloned from the partner row), then the closing card, which holds until the
+// visitor acts. Skip, Esc, or a tap anywhere that is not a control moves things along.
 (() => {
   const FADE_IN = 900;      // ms — mirrored by .intro-slide.is-on in style.css
   const FADE_OUT = 600;     // ms — .intro-slide
@@ -21,44 +23,36 @@
   const KEY = 'rr-intro';
 
   const root = document.documentElement;
-  let seen = false;
-  try { seen = sessionStorage.getItem(KEY) === '1'; } catch { /* storage blocked: play, do not remember */ }
-  if (seen || location.hash || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  try { sessionStorage.setItem(KEY, '1'); } catch { /* same */ }
-  root.classList.add('has-intro');
   const theme = document.querySelector('meta[name="theme-color"]');
   const themeWas = theme ? theme.content : '';
-  if (theme) theme.content = '#000';
 
-  const el = (tag, cls) => { const n = document.createElement(tag); n.className = cls; return n; };
-  const words = (t) => t.trim().split(/\s+/).length;
+  let seen = false;
+  try { seen = sessionStorage.getItem(KEY) === '1'; } catch { /* storage blocked: play, do not remember */ }
+  const autoplay = !seen && !location.hash && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (autoplay) {
+    try { sessionStorage.setItem(KEY, '1'); } catch { /* same */ }
+    root.classList.add('has-intro');
+    if (theme) theme.content = '#000';
+  }
 
   // Once the flag is on <html> the page is black; anything that throws below must take it off
   // again, or the visitor is left with no page at all.
   const abort = () => { root.classList.remove('has-intro'); if (theme) theme.content = themeWas; };
-  document.addEventListener('DOMContentLoaded', () => { try { run(); } catch (e) { abort(); throw e; } });
+  document.addEventListener('DOMContentLoaded', () => { try { setup(); } catch (e) { abort(); throw e; } });
 
-  function run() {
+  function setup() {
     const intro = document.querySelector('body > .intro');   // not '.intro': <html> carries has-intro, keep the names apart
     const stage = intro && intro.querySelector('.intro-stage');
     const cta = intro && intro.querySelector('.intro-cta');
+    const replay = document.querySelector('.intro-replay');
     if (!intro || !stage || !cta) { abort(); return; }
 
-    const others = [...document.body.children].filter((n) => n !== intro);
-    for (const n of others) n.inert = true;
+    const el = (tag, cls) => { const n = document.createElement(tag); n.className = cls; return n; };
+    // textContent, not innerText: the slides are visibility:hidden here and innerText reads as "".
+    const words = (n) => { const c = n.cloneNode(true); for (const br of c.querySelectorAll('br')) br.replaceWith(' '); return c.textContent.trim().split(/\s+/).length; };
 
-    const frames = [];
-    for (const p of document.querySelectorAll('.about p')) {
-      const spans = p.querySelectorAll('span[data-frame]');
-      const texts = spans.length ? [...spans].map((s) => s.textContent) : [p.textContent];
-      for (const text of texts) {
-        const slide = el('div', 'intro-slide');
-        const copy = el('p', 'intro-text');
-        copy.textContent = text.trim();
-        slide.append(copy);
-        frames.push({ slide, hold: HOLD_BASE + words(text) * HOLD_PER_WORD, enter: FADE_OUT + GAP });
-      }
-    }
+    // Text frames from the markup, then the partner marks, then the closing card.
+    const frames = [...stage.querySelectorAll('.intro-slide')].map((slide) => ({ slide, hold: HOLD_BASE + words(slide) * HOLD_PER_WORD, enter: FADE_OUT + GAP }));
     const marks = document.querySelectorAll('.partners img');
     if (marks.length) {
       const slide = el('div', 'intro-slide');
@@ -70,17 +64,20 @@
         row.append(c);
       }
       slide.append(row);
+      stage.append(slide);
       frames.push({ slide, hold: HOLD_MARKS, enter: FADE_OUT + GAP });
     }
-    stage.append(...frames.map((f) => f.slide));
     cta.classList.add('is-cut');
     frames.push({ slide: cta, hold: Infinity, enter: CUT });
 
+    const others = [...document.body.children].filter((n) => n !== intro);
+    let playing = false;
     let at = -1;
     let timer = 0;
-    let ended = false;
+    let opener = null;      // the element to hand focus back to when a replay ends
+
     const show = (n) => {
-      if (ended || n >= frames.length) return;
+      if (!playing || n >= frames.length) return;
       clearTimeout(timer);
       if (at >= 0) frames[at].slide.classList.remove('is-on');
       at = n;
@@ -92,9 +89,22 @@
       }, at === 0 ? 0 : f.enter);
     };
 
+    const start = (from) => {
+      if (playing) return;
+      playing = true;
+      opener = from || null;
+      at = -1;
+      for (const f of frames) f.slide.classList.remove('is-on');
+      intro.classList.remove('is-leaving');
+      root.classList.add('has-intro');
+      if (theme) theme.content = '#000';
+      for (const n of others) n.inert = true;
+      show(0);
+    };
+
     const end = (after) => {
-      if (ended) return;
-      ended = true;
+      if (!playing) return;
+      playing = false;
       clearTimeout(timer);
       intro.classList.add('is-leaving');
       root.classList.remove('has-intro');           // the page fades up underneath while the black lifts
@@ -105,12 +115,13 @@
         if (finished) return;
         finished = true;
         for (const n of others) n.inert = false;
-        document.removeEventListener('keydown', onKey);
-        intro.remove();
-        if (after) after.focus?.();
+        intro.classList.remove('is-leaving');       // and now display:none again, ready for a replay
+        if (at >= 0) frames[at].slide.classList.remove('is-on');
+        if (after?.focus) after.focus(); else opener?.focus();
+        opener = null;
       };
       intro.addEventListener('transitionend', finish, { once: true });
-      setTimeout(finish, LEAVE + 100);          // no transition (motion off mid-way, hidden tab): still finish
+      setTimeout(finish, LEAVE + 100);          // no transition (motion off, hidden tab): still finish
     };
 
     intro.querySelector('.intro-skip')?.addEventListener('click', () => end());
@@ -124,13 +135,16 @@
       e.preventDefault();
       end({ focus: () => document.getElementById('main')?.focus({ preventScroll: true }) });
     });
-    const onKey = (e) => { if (e.key === 'Escape') end(); };
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') end(); });
     intro.addEventListener('click', (e) => {
       if (e.target.closest('a, button')) return;
       if (at >= 0 && frames[at].slide !== cta) show(at + 1);
     });
+    if (replay) {
+      replay.hidden = false;                    // it only works with JS, so it only shows with JS
+      replay.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'instant' }); start(replay); });
+    }
 
-    show(0);
+    if (autoplay) start(); else abort();
   }
 })();

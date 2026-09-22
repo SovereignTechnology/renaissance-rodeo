@@ -332,10 +332,12 @@ unless the URL changes.
 
 ## The opening sequence
 
-`/` and `/es/` open on a black screen: the About copy fades in frame by frame, front and centre,
-then the three partner marks, then a quick cut to the bull-and-rider with **Join the waitlist**
-(lands on the form with the email field focused) and **Continue to the site**. That last card
-holds until the visitor acts; Skip (top right), Esc, or a tap anywhere else moves things along.
+`/` and `/es/` open on a black screen: five short text frames fade in front and centre, then the
+three partner marks, then a quick cut to the bull-and-rider with **Join the waitlist** (lands on
+the form with the email field focused) and **Continue to the site**. That last card holds until
+the visitor acts; Skip (top right), Esc, or a tap anywhere else moves things along. A **View
+intro** pill at the bottom right of the page replays it on request (motion preference or not —
+that is an explicit ask); it is `hidden` until `intro.js` unhides it.
 
 - `public/intro.js` is loaded **synchronously in `<head>`** so it can put `.has-intro` on `<html>`
   before first paint — deferred, the cream page would flash before the black. It plays only when
@@ -343,16 +345,14 @@ holds until the visitor acts; Skip (top right), Esc, or a tap anywhere else move
   (`sessionStorage` key `rr-intro`, set at start so a reload mid-sequence skips it; storage that
   throws means play-and-forget) and never on a URL with a fragment (`#signup` from a mail goes
   straight to the form). Without JS the overlay is `display:none`.
-- The frames are the page's own copy: each `span[data-frame]` inside an About paragraph is one
-  frame, a paragraph without spans is one frame, then the `.partners` marks. The long second
-  paragraph is split into four spans in both HTML files (unstyled, so it still reads as one
-  paragraph); edit the copy there and the intro follows. The closing card is the only static
-  intro markup, right after the skip link in each page.
+- The text frames are static markup in `section.intro` (right after the skip link in each page):
+  copy written for the screen, shorter than the About section, one `.intro-slide` per frame with
+  `<br>` for the line breaks. Then the `.partners` marks are cloned in, then the closing card.
 - Timing lives at the top of `intro.js`: a text frame holds `800 ms + 170 ms × words` between a
   0.9 s fade-in and a 0.6 s fade-out, the marks hold 3.2 s, the cut to the closing card is 0.25 s.
   The CSS durations in `style.css` ("intro" block and the motion query) mirror those constants.
 - While it plays, everything else in `<body>` is `inert` and `theme-color` is black; both are
-  restored as it leaves.
+  restored as it leaves. A replay hands focus back to the View intro button when it ends.
 
 ## Fonts and licences
 

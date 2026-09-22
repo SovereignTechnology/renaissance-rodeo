@@ -42,13 +42,19 @@
 <body>
   <a class="skip" href="#main">Ir al contenido</a>
 
-  <!-- La secuencia de apertura (style.css "intro", controlada por /intro.js). Los cuadros de texto y
-       las marcas aliadas se clonan del texto "El evento" y de la fila de aliados en tiempo de
-       ejecución; aquí solo viven las cadenas que no tienen otro sitio. display:none salvo que
-       intro.js lo active. -->
+  <!-- La secuencia de apertura (style.css "intro", controlada por /intro.js). Los cuadros de texto
+       son este texto, escrito para la pantalla: más corto que la sección "El evento", que queda
+       como está. Las marcas aliadas se clonan de la fila de aliados en tiempo de ejecución.
+       display:none salvo que intro.js lo muestre; el botón "Ver intro" al pie de la página lo repite. -->
   <section class="intro" aria-label="Introducción">
     <button type="button" class="intro-skip">Saltar intro</button>
-    <div class="intro-stage" aria-hidden="true"></div>
+    <div class="intro-stage" aria-hidden="true">
+      <div class="intro-slide"><p class="intro-text">El Salvador vive un renacimiento.<br>Este evento celebra el lado ganadero y agrícola de ese renacer.</p></div>
+      <div class="intro-slide"><p class="intro-text">Honramos a los verdaderos hombres y mujeres detrás de la cultura vaquera,<br>una cultura que ha resistido los años más duros de El Salvador.</p></div>
+      <div class="intro-slide"><p class="intro-text">Un punto de encuentro donde salvadoreños y visitantes internacionales se reúnen,<br>forjando relaciones que fortalecen la industria.</p></div>
+      <div class="intro-slide"><p class="intro-text">Mientras El Salvador se eleva hacia convertirse en uno de los mejores países del planeta.</p></div>
+      <div class="intro-slide"><p class="intro-text">Una tarde completa de entretenimiento de rodeo.<br>Monta de toros. Monta de borregos. Feria de animales. Carrera de barriles. Música. Barbacoa.</p></div>
+    </div>
     <div class="intro-slide intro-cta">
       <img src="/img/bull.png" width="500" height="510" alt="">
       <a class="intro-join" href="#signup">Únase a la lista de espera</a>
@@ -85,8 +91,7 @@
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">El evento</h2>
         <p>El Salvador vive un Renacimiento, y este evento está diseñado para impulsar la parte ganadera y agrícola de ese renacer.</p>
-        <!-- Los span data-frame son los cuadros de la intro; no llevan estilo, el párrafo se lee como uno solo. -->
-        <p><span data-frame>Al celebrar a los verdaderos hombres y mujeres detrás de la cultura vaquera que ha sobrevivido a las adversidades de El Salvador,</span> <span data-frame>buscamos que el evento sea un punto de encuentro donde salvadoreños y visitantes internacionales puedan reunirse, disfrutar</span> <span data-frame>y forjar relaciones que fortalezcan la industria</span> <span data-frame>y le permitan prosperar, mientras el país avanza con fuerza hacia convertirse en uno de los mejores países del planeta.</span></p>
+        <p>Al celebrar a los verdaderos hombres y mujeres detrás de la cultura vaquera que ha sobrevivido a las adversidades de El Salvador, buscamos que el evento sea un punto de encuentro donde salvadoreños y visitantes internacionales puedan reunirse, disfrutar y forjar relaciones que fortalezcan la industria y le permitan prosperar, mientras el país avanza con fuerza hacia convertirse en uno de los mejores países del planeta.</p>
         <p>Será una tarde completa de entretenimiento de rodeo, con monta de toros, monta de borregos para niños, feria de animales, carrera de barriles, música y barbacoa.</p>
       </section>
 
@@ -167,6 +172,9 @@
   <footer class="wrap">
     <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/" lang="en" hreflang="en">English</a></p>
   </footer>
+
+  <!-- Repite la secuencia de apertura. Lo muestra intro.js (sin él no hace nada). -->
+  <button type="button" class="intro-replay" hidden>Ver intro</button>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
        open only. Without JS the data-poster links open the JPEG itself. -->

@@ -42,12 +42,19 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
-  <!-- The opening sequence (style.css "intro", driven by /intro.js). Text frames and the
-       partner marks are cloned from the About copy and the partner row at runtime — only the
-       strings that have no other home live here. display:none unless intro.js opts in. -->
+  <!-- The opening sequence (style.css "intro", driven by /intro.js). The text frames are this
+       copy, written for the screen — shorter than the About section, which stays as it is. The
+       partner marks are cloned from the partner row at runtime. display:none unless intro.js
+       shows it; the "View intro" button at the foot of the page replays it. -->
   <section class="intro" aria-label="Introduction">
     <button type="button" class="intro-skip">Skip intro</button>
-    <div class="intro-stage" aria-hidden="true"></div>
+    <div class="intro-stage" aria-hidden="true">
+      <div class="intro-slide"><p class="intro-text">El Salvador is in the midst of a renaissance.<br>This event celebrates the cattle and agricultural side of that rebirth.</p></div>
+      <div class="intro-slide"><p class="intro-text">We honor the real men and women behind the cowboy culture,<br>a culture that has endured through El Salvador’s hardest years.</p></div>
+      <div class="intro-slide"><p class="intro-text">A gathering place where locals and international visitors meet,<br>building relationships that strengthen the industry.</p></div>
+      <div class="intro-slide"><p class="intro-text">As El Salvador rises toward becoming one of the best countries on the planet.</p></div>
+      <div class="intro-slide"><p class="intro-text">A full afternoon of rodeo entertainment.<br>Bull riding. Mutton busting. Animal fairs. Barrel racing. Music. Barbecue.</p></div>
+    </div>
     <div class="intro-slide intro-cta">
       <img src="/img/bull.png" width="500" height="510" alt="">
       <a class="intro-join" href="#signup">Join the waitlist</a>
@@ -84,8 +91,7 @@
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">About the event</h2>
         <p>El Salvador is in the midst of a Renaissance, this event is designed to promote the cattle and agricultural part of this rebirth.</p>
-        <!-- data-frame spans are the intro's frames; they carry no styling, the paragraph reads as one. -->
-        <p><span data-frame>By celebrating the real men and women behind the cowboy culture that has survived El Salvador’s trials,</span> <span data-frame>we aim for the event to be a hub where local and internationals can meet and enjoy,</span> <span data-frame>and develop relationships that can bolster the industry</span> <span data-frame>and allow it to thrive as the country surges towards becoming one of the best countries on the planet.</span></p>
+        <p>By celebrating the real men and women behind the cowboy culture that has survived El Salvador’s trials, we aim for the event to be a hub where local and internationals can meet and enjoy, and develop relationships that can bolster the industry and allow it to thrive as the country surges towards becoming one of the best countries on the planet.</p>
         <p>It will be a full afternoon of rodeo entertainment, including bull riding, mutton busting, animal fairs, barrel racing, music and barbecue.</p>
       </section>
 
@@ -166,6 +172,9 @@
   <footer class="wrap">
     <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/" lang="es" hreflang="es">Español</a></p>
   </footer>
+
+  <!-- Replays the opening sequence. Shown by intro.js (it does nothing without it). -->
+  <button type="button" class="intro-replay" hidden>View intro</button>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
        open only. Without JS the data-poster links open the JPEG itself. -->
