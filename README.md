@@ -349,8 +349,8 @@ that is an explicit ask); it is `hidden` until `intro.js` unhides it.
 - The text frames are static markup in `section.intro` (right after the skip link in each page):
   copy written for the screen, shorter than the About section, one `.intro-slide` per frame with
   `<br>` for the line breaks. Then the `.partners` marks are cloned in, then the closing card.
-- Timing lives at the top of `intro.js`: a text frame holds `800 ms + 170 ms × words` between a
-  0.9 s fade-in and a 0.6 s fade-out, the marks hold 3.2 s, the cut to the closing card is 0.25 s.
+- Timing lives at the top of `intro.js`: a text frame holds `1200 ms + 210 ms × words` between a
+  0.9 s fade-in and a 0.6 s fade-out, the marks hold 4 s, the cut to the closing card is 0.25 s.
   The CSS durations in `style.css` ("intro" block and the motion query) mirror those constants.
 - While it plays, everything else in `<body>` is `inert` and `theme-color` is black; both are
   restored as it leaves. A replay hands focus back to the View intro button when it ends.
