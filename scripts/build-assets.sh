@@ -60,6 +60,7 @@ declare -A EXPECT=(
   [logo.png]=1200x591
   [logo.webp]=1200x591
   [mark.png]=144x144
+  [bull.png]=500x510
   [favicon-32.png]=32x32
   [apple-touch-icon.png]=180x180
   [icon-192.png]=192x192
@@ -220,6 +221,16 @@ build_mark() {
   assert_ink "$OUT_IMG/mark.png"
 }
 
+# The bull-and-rider at source size, re-inked, for the intro's closing card (inverted to cream
+# by CSS there). No square padding: the CSS sizes it by width and the HTML carries 500×510.
+build_bull() {
+  local src; src=$(prepare bull-black keep)   # untrimmed: the 500×510 canvas IS the declared size
+  assert_dims "$src" 500x510
+  convert "$src" -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/bull.png"
+  palettise_ink "$OUT_IMG/bull.png"
+  assert_ink "$OUT_IMG/bull.png"
+}
+
 build_icons() {
   local src spec name canvas bull; src=$(prepare bull-black)
   for spec in $ICONS; do
@@ -344,7 +355,7 @@ verify() {
     f="$img/$name"; [ -s "$f" ] || die "missing output $f (run: npm run assets)"
     assert_dims "$f" "${EXPECT[$name]}"
   done
-  for f in logo.png mark.png bitcoin-historico.png bitpoker.png; do assert_ink "$img/$f"; done
+  for f in logo.png mark.png bull.png bitcoin-historico.png bitpoker.png; do assert_ink "$img/$f"; done
   for f in favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-en.png og-es.png poster.jpg poster-thumb.jpg; do assert_opaque "$img/$f"; done
   [ "$(stat -c %s "$img/poster.jpg")" -le "$POSTER_MAX_JPG" ] || die "poster.jpg is over $((POSTER_MAX_JPG / 1024)) KB"
   [ "$(stat -c %s "$img/poster.webp")" -le "$POSTER_MAX_WEBP" ] || die "poster.webp is over $((POSTER_MAX_WEBP / 1024)) KB"
@@ -385,7 +396,7 @@ size_table() {
   local f
   printf '\n%-24s %-10s %9s\n' 'output' 'size' 'bytes'
   printf '%-24s %-10s %9s\n' '------------------------' '----------' '---------'
-  for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
+  for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/bull.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
            "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png \
            "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg; do
@@ -431,6 +442,7 @@ main() {
       rm -f -- "$OUT_IMG"/* "$OUT/favicon.ico"      # a previous failed build must not pass verify by proxy
       build_logo
       build_mark
+      build_bull
       build_icons
       build_og
       build_origen_ganadero

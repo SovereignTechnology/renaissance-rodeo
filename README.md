@@ -293,6 +293,9 @@ literal `"$k"`, not the value.
 - recolours `partners/origen-ganadero.svg` to ink and widens its hairline strokes, and re-inks
   `partners/bitcoin-historico-white.png` to `bitcoin-historico.png` and `partners/bitpoker-black.png`
   to `bitpoker.png`;
+- re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (the intro's closing card, where CSS
+  inverts it to cream on black; the same trick turns the three partner marks cream, so the intro
+  ships no second copy of any image);
 - encodes the announcement poster `poster.jpg` (1080×1920) as `poster.jpg` + `poster.webp` (the desktop
   column and the tap-to-open viewer) and `poster-thumb.jpg` (320 wide, the phone thumbnail beside the
   hero lines), each under a byte ceiling. The viewer is a native `<dialog>` driven by `public/poster.js`;
@@ -327,16 +330,40 @@ unless the URL changes.
 
 4. Commit `brand/`, `public/img/`, `public/favicon.ico` and the bumped references together.
 
+## The opening sequence
+
+`/` and `/es/` open on a black screen: the About copy fades in frame by frame, front and centre,
+then the three partner marks, then a quick cut to the bull-and-rider with **Join the waitlist**
+(lands on the form with the email field focused) and **Continue to the site**. That last card
+holds until the visitor acts; Skip (top right), Esc, or a tap anywhere else moves things along.
+
+- `public/intro.js` is loaded **synchronously in `<head>`** so it can put `.has-intro` on `<html>`
+  before first paint — deferred, the cream page would flash before the black. It plays only when
+  motion is allowed (`prefers-reduced-motion: no-preference`), **once per browser session**
+  (`sessionStorage` key `rr-intro`, set at start so a reload mid-sequence skips it; storage that
+  throws means play-and-forget) and never on a URL with a fragment (`#signup` from a mail goes
+  straight to the form). Without JS the overlay is `display:none`.
+- The frames are the page's own copy: each `span[data-frame]` inside an About paragraph is one
+  frame, a paragraph without spans is one frame, then the `.partners` marks. The long second
+  paragraph is split into four spans in both HTML files (unstyled, so it still reads as one
+  paragraph); edit the copy there and the intro follows. The closing card is the only static
+  intro markup, right after the skip link in each page.
+- Timing lives at the top of `intro.js`: a text frame holds `800 ms + 170 ms × words` between a
+  0.9 s fade-in and a 0.6 s fade-out, the marks hold 3.2 s, the cut to the closing card is 0.25 s.
+  The CSS durations in `style.css` ("intro" block and the motion query) mirror those constants.
+- While it plays, everything else in `<body>` is `inert` and `theme-color` is black; both are
+  restored as it leaves.
+
 ## Fonts and licences
 
 | Font | Use | Licence |
 |---|---|---|
 | Bevan 400 | date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
-| Barlow 400 / 600 | body / button, label, language switch, `<strong>` | OFL 1.1 — `public/fonts/LICENSE-barlow.txt` |
+| Cormorant Garamond 400 / 600 | body and the intro frames / button, label, language switch, `<strong>` | OFL 1.1 — `public/fonts/LICENSE-cormorant-garamond.txt` |
 | Dust West | the wordmark, **inside the logo images only** | personal-use only; forbids conversion — never installed, shipped or embedded as a font |
 
-The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Barlow 400 22,196 B; Barlow 600
-22,772 B), self-hosted from `public/fonts/`, declared once in `style.css` with `font-display:swap`
+The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Cormorant Garamond 400 22,876 B;
+Cormorant Garamond 600 23,396 B), self-hosted from `public/fonts/`, declared once in `style.css` with `font-display:swap`
 and fontsource's latin `unicode-range`. The subset covers the Spanish accents and ¿ ¡ but not ₿ —
 no page text uses it (it appears only inside the poster and partner images), and U+20BF is never typed.
 

@@ -1,9 +1,11 @@
 /* Renaissance Rodeo — the one stylesheet, shared by /, /es/ and /404.html.
    Two inks on cream, one 36rem column of copy, two media queries (a phone
    tweak at ≤519px; from 64rem up the poster gets a sticky column beside the
-   copy). Font files live in
-   /fonts/ and are referenced ONLY here (plus the two preloads in each page);
-   when a font file is replaced, bump its ?v= query here and in the preloads. */
+   copy), and the black opening sequence (the "intro" block; /intro.js drives
+   it, only on / and /es/). Bevan for the date and headings, Cormorant Garamond
+   for everything else. Font files live in /fonts/ and are referenced ONLY here
+   (plus the two preloads in each page); when a font file is replaced, bump its
+   ?v= query here and in the preloads. */
 
 @font-face {
   font-family: 'Bevan';
@@ -14,19 +16,19 @@
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
-  font-family: 'Barlow';
+  font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/barlow-latin-400-normal.woff2) format('woff2');
+  src: url(/fonts/cormorant-garamond-latin-400-normal.woff2) format('woff2');
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
-  font-family: 'Barlow';
+  font-family: 'Cormorant Garamond';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(/fonts/barlow-latin-600-normal.woff2) format('woff2');
+  src: url(/fonts/cormorant-garamond-latin-600-normal.woff2) format('woff2');
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 
@@ -40,13 +42,13 @@
   --red: #c01102;
   --red-deep: #a30e02;
   --font-display: 'Bevan', Rockwell, 'Roboto Slab', Georgia, serif;
-  --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --text-body: clamp(1.0625rem, 1rem + .3vw, 1.1875rem);
-  --text-small: .9375rem;
+  --font-body: 'Cormorant Garamond', Cormorant, 'EB Garamond', Garamond, Georgia, serif;
+  --text-body: clamp(1.25rem, 1.15rem + .4vw, 1.4375rem);
+  --text-small: 1.125rem;
   --text-date: clamp(1.125rem, .95rem + 1vw, 1.5rem);
   --text-h2: clamp(1.625rem, 1.25rem + 1.8vw, 2.25rem);
-  --text-button: 1.0625rem;
-  --lh-body: 1.55;
+  --text-button: 1.1875rem;
+  --lh-body: 1.45;
   --gap-section: clamp(2.5rem, 7vw, 4.5rem);
   --control: 3rem;
   --border: 1.5px;
@@ -127,7 +129,7 @@ a {
 .lang {
   display: flex;
   align-items: center;
-  font: 600 .9375rem / 1 var(--font-body);
+  font: 600 1.0625rem / 1 var(--font-body);
   text-transform: uppercase;
   letter-spacing: .06em;
 }
@@ -188,7 +190,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   color: var(--ink);
   border: var(--border) solid var(--ink);
   border-radius: var(--radius);
-  font: 400 max(1.0625rem, 16px) / 1 var(--font-body);
+  font: 400 max(1.25rem, 16px) / 1 var(--font-body);
 }
 .signup input::placeholder { color: var(--muted); opacity: 1; }
 .signup button {
@@ -292,6 +294,97 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .lightbox-close:hover { background: var(--red); border-color: var(--red); }
 body:has(dialog[open]) { overflow: hidden; }
 
+/* ---------- intro: the black opening sequence ---------- */
+/* /intro.js, loaded synchronously in <head>, puts .intro on <html> before first paint when the
+   sequence should play (motion allowed, not yet seen this session, no #fragment), so the page
+   never flashes cream first. Without that class — no JS, reduced motion, second page of the
+   session — the overlay is display:none and nothing below applies. The frames are cloned from
+   the About copy and the partner marks at runtime; only the closing card is static markup. */
+html:not(.has-intro) .intro:not(.is-leaving) { display: none; }
+html.has-intro { background: #000; overflow: hidden; }
+html.has-intro body > :not(.intro) { opacity: 0; }
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #000;
+  color: var(--cream);
+  text-align: center;
+}
+.intro.is-leaving { opacity: 0; }
+/* Every frame sits in the same grid cell; only .is-on is visible (and reachable). */
+.intro-stage { display: grid; place-items: center; grid-area: 1 / 1; width: 100%; }
+.intro-slide {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+}
+.intro-slide.is-on { opacity: 1; visibility: visible; }
+.intro-text {
+  max-width: 34rem;
+  font: 400 clamp(1.375rem, 1.1rem + 1.4vw, 2.25rem) / 1.4 var(--font-body);
+  text-wrap: balance;
+}
+.intro-marks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1.5rem, 6vw, 4rem);
+}
+/* The marks and the bull are the ink-coloured site assets; inverting #0e1d2d gives #f1e2d2,
+   the cream, so the intro ships no second copy of any image. */
+.intro-marks img, .intro-cta img { filter: invert(1); }
+.intro-marks img { max-height: 6rem; max-width: 26vw; width: auto; height: auto; }
+.intro-cta { gap: 1.5rem; }
+.intro-cta img { width: min(60vw, 16rem); }
+.intro-join {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control);
+  padding: 0 1.5rem;
+  background: var(--red);
+  color: var(--cream);
+  border: var(--border) solid var(--red);
+  border-radius: var(--radius);
+  font: 600 var(--text-button) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+.intro-join:hover { background: var(--red-deep); border-color: var(--red-deep); }
+.intro-enter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 .5rem;
+  color: var(--cream);
+  font-size: var(--text-small);
+}
+.intro-skip {
+  position: fixed;
+  top: .75rem;
+  right: .75rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 1rem;
+  background: transparent;
+  color: var(--cream);
+  border: var(--border) solid rgb(247 237 216 / .6);
+  border-radius: 999px;
+  font: 600 var(--text-small) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.intro-skip:hover { border-color: var(--cream); }
+.intro :focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+
 /* ---------- footer ---------- */
 footer { padding-block: var(--gap-section) 2rem; color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
@@ -305,6 +398,7 @@ footer a { color: inherit; }
 /* ---------- phones ---------- */
 @media (max-width: 519px) {
   .signup button { flex-basis: 100%; }
+  .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .partners a { grid-template-rows: 5.5rem auto; }
   .partners img { max-height: 5.5rem; }
@@ -360,4 +454,11 @@ footer a { color: inherit; }
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
   .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease; }
+  /* Intro fades. The durations are mirrored in intro.js (FADE_IN / FADE_OUT / LEAVE); the
+     page's own fade-up runs as html.has-intro comes off. */
+  .intro-slide { transition: opacity .6s ease, visibility 0s linear .6s; }
+  .intro-slide.is-on { transition: opacity .9s ease, visibility 0s; }
+  .intro-slide.is-cut.is-on { transition-duration: .25s; }
+  .intro { transition: opacity .8s ease; }
+  body > :not(.intro) { transition: opacity .6s ease; }
 }

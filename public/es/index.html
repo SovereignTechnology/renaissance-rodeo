@@ -28,8 +28,10 @@
   <link rel="icon" type="image/png" sizes="512x512" href="/img/icon-512.png">
   <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
   <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
+  <!-- Síncrono a propósito: debe poner .has-intro en <html> antes del primer pintado. Unos pocos KB, mismo origen. -->
+  <script src="/intro.js"></script>
   <!-- Ambos diferidos (defer), así que se ejecutan en el orden del documento: primero
        signup.js, porque el cargador de Turnstile resuelve los nombres data-*-callback de
        abajo contra window al dibujar el widget y descarta en silencio los que no encuentra. -->
@@ -39,6 +41,20 @@
 </head>
 <body>
   <a class="skip" href="#main">Ir al contenido</a>
+
+  <!-- La secuencia de apertura (style.css "intro", controlada por /intro.js). Los cuadros de texto y
+       las marcas aliadas se clonan del texto "El evento" y de la fila de aliados en tiempo de
+       ejecución; aquí solo viven las cadenas que no tienen otro sitio. display:none salvo que
+       intro.js lo active. -->
+  <section class="intro" aria-label="Introducción">
+    <button type="button" class="intro-skip">Saltar intro</button>
+    <div class="intro-stage" aria-hidden="true"></div>
+    <div class="intro-slide intro-cta">
+      <img src="/img/bull.png" width="500" height="510" alt="">
+      <a class="intro-join" href="#signup">Únase a la lista de espera</a>
+      <a class="intro-enter" href="#main">Ir al sitio</a>
+    </div>
+  </section>
 
   <header class="top wrap">
     <a class="mark" href="/es/" aria-label="Renaissance Rodeo"><img src="/img/mark.png" width="36" height="36" alt=""></a>
@@ -69,7 +85,8 @@
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">El evento</h2>
         <p>El Salvador vive un Renacimiento, y este evento está diseñado para impulsar la parte ganadera y agrícola de ese renacer.</p>
-        <p>Al celebrar a los verdaderos hombres y mujeres detrás de la cultura vaquera que ha sobrevivido a las adversidades de El Salvador, buscamos que el evento sea un punto de encuentro donde salvadoreños y visitantes internacionales puedan reunirse, disfrutar y forjar relaciones que fortalezcan la industria y le permitan prosperar, mientras el país avanza con fuerza hacia convertirse en uno de los mejores países del planeta.</p>
+        <!-- Los span data-frame son los cuadros de la intro; no llevan estilo, el párrafo se lee como uno solo. -->
+        <p><span data-frame>Al celebrar a los verdaderos hombres y mujeres detrás de la cultura vaquera que ha sobrevivido a las adversidades de El Salvador,</span> <span data-frame>buscamos que el evento sea un punto de encuentro donde salvadoreños y visitantes internacionales puedan reunirse, disfrutar</span> <span data-frame>y forjar relaciones que fortalezcan la industria</span> <span data-frame>y le permitan prosperar, mientras el país avanza con fuerza hacia convertirse en uno de los mejores países del planeta.</span></p>
         <p>Será una tarde completa de entretenimiento de rodeo, con monta de toros, monta de borregos para niños, feria de animales, carrera de barriles, música y barbacoa.</p>
       </section>
 

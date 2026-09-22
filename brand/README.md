@@ -8,7 +8,7 @@ under the SAME name, re-run the script, and commit both.
 |---|---|---|
 | `logo-stacked-black.png` / `-white.png` | stacked wordmark "RENAISSANCE / RODEO" + bull-and-rider, transparent | designer export (interim: Signal-compressed, 1451×800) |
 | `logo-square-black.png` / `-white.png` | bull above the stacked wordmark, transparent | designer export (interim, 616×629) |
-| `bull-black.png` / `-white.png` | bull-and-rider silhouette only, transparent | designer export (interim, 500×510) |
+| `bull-black.png` / `-white.png` | bull-and-rider silhouette only, transparent; also `img/bull.png` at full canvas for the intro | designer export (interim, 500×510) |
 | `partners/origen-ganadero.svg` | Origen Ganadero mark + wordmark, single colour `#F2E8D5` | https://origenganadero.com/assets/images/logos/og-logo-mix-cream.svg |
 | `partners/bitcoin-historico-white.png` | Bitcoin Histórico emblem, white on transparent, 500×574 | bitcoinhistorico.com theme cache |
 | `partners/bitcoin-historico-gold-lockup.png` | emblem + wordmark lockup, 400×126 (swap-in if the emblem alone reads thin) | bitcoinhistorico.com theme cache |
