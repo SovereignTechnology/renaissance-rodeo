@@ -10,7 +10,8 @@
 //
 // The frames are static markup in each page (section.intro): the text slides, then the
 // partner marks (cloned from the partner row), then the closing card, which holds until the
-// visitor acts. Skip, Esc, or a tap anywhere that is not a control moves things along.
+// visitor acts. Skip or Esc ends it; a tap, a horizontal swipe or the arrow keys step through
+// the frames, forward and back.
 (() => {
   const FADE_IN = 900;      // ms — mirrored by .intro-slide.is-on in style.css
   const FADE_OUT = 600;     // ms — .intro-slide
@@ -60,6 +61,7 @@
       for (const m of marks) {
         const c = m.cloneNode(false);   // same src, width, height; decorative here
         c.alt = '';
+        c.draggable = false;
         c.removeAttribute('loading');
         row.append(c);
       }
@@ -135,10 +137,27 @@
       e.preventDefault();
       end({ focus: () => document.getElementById('main')?.focus({ preventScroll: true }) });
     });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') end(); });
+    // Step forward or back through the frames; the closing card is the end of the line.
+    const step = (d) => { if (at >= 0 && at + d >= 0 && at + d < frames.length) show(at + d); };
+    document.addEventListener('keydown', (e) => {
+      if (!playing) return;
+      if (e.key === 'Escape') end();
+      else if (e.key === 'ArrowRight') step(1);
+      else if (e.key === 'ArrowLeft') step(-1);
+    });
+    // Swipe: a mostly horizontal pointer travel of 40px+ (touch-action:none keeps the browser
+    // from cancelling it). A tap anywhere that is not a control steps forward.
+    let x0 = null, y0 = 0, swiped = false;
+    intro.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; swiped = false; });
+    intro.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; step(dx < 0 ? 1 : -1); }
+    });
     intro.addEventListener('click', (e) => {
-      if (e.target.closest('a, button')) return;
-      if (at >= 0 && frames[at].slide !== cta) show(at + 1);
+      if (swiped || e.target.closest('a, button')) return;
+      step(1);
     });
     if (replay) {
       replay.hidden = false;                    // it only works with JS, so it only shows with JS
