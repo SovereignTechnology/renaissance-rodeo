@@ -313,7 +313,10 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   background: #000;
   color: var(--cream);
   text-align: center;
+  touch-action: none;   /* swipes reach intro.js as pointer events instead of being cancelled as pans */
+  user-select: none;    /* and a drag across the text is a swipe, not a selection */
 }
+.intro img { -webkit-user-drag: none; }   /* a drag that starts on a mark is a swipe, not an image drag */
 .intro.is-leaving { opacity: 0; }
 /* Every frame sits in the same grid cell; only .is-on is visible (and reachable). */
 .intro-stage { display: grid; place-items: center; grid-area: 1 / 1; width: 100%; }

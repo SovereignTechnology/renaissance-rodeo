@@ -335,7 +335,8 @@ unless the URL changes.
 `/` and `/es/` open on a black screen: five short text frames fade in front and centre, then the
 three partner marks, then a quick cut to the bull-and-rider with **Join the waitlist** (lands on
 the form with the email field focused) and **Continue to the site**. That last card holds until
-the visitor acts; Skip (top right), Esc, or a tap anywhere else moves things along. A **View
+the visitor acts. Skip (top right) or Esc ends it; a tap, a horizontal swipe or the ← → keys step
+through the frames, forward and back. A **View
 intro** pill at the bottom right of the page replays it on request (motion preference or not —
 that is an explicit ask); it is `hidden` until `intro.js` unhides it.
 
