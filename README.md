@@ -331,14 +331,14 @@ unless the URL changes.
 
 | Font | Use | Licence |
 |---|---|---|
-| Bevan 400 | tagline, date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
+| Bevan 400 | date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
 | Barlow 400 / 600 | body / button, label, language switch, `<strong>` | OFL 1.1 — `public/fonts/LICENSE-barlow.txt` |
 | Dust West | the wordmark, **inside the logo images only** | personal-use only; forbids conversion — never installed, shipped or embedded as a font |
 
 The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Barlow 400 22,196 B; Barlow 600
 22,772 B), self-hosted from `public/fonts/`, declared once in `style.css` with `font-display:swap`
 and fontsource's latin `unicode-range`. The subset covers the Spanish accents and ¿ ¡ but not ₿ —
-the ₿ in the tagline is drawn with CSS bars over a plain B, and U+20BF is never typed.
+no page text uses it (it appears only inside the poster and partner images), and U+20BF is never typed.
 
 ## Deploying
 
