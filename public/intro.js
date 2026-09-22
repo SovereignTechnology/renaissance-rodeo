@@ -5,7 +5,7 @@
 // Autoplays only when motion is allowed, once per browser session (sessionStorage
 // 'rr-intro', set at start so a reload mid-sequence skips it) and never on a deep link
 // (#signup from a mail or a share goes straight to the form). No JS, or any of those, and
-// the overlay stays display:none. The "View intro" button at the foot of the page replays it
+// the overlay stays display:none. The "View intro" button in the footer replays it
 // on request, motion preference or not — an explicit ask.
 //
 // The frames are static markup in each page (section.intro): the text slides, then the
