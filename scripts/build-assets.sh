@@ -20,7 +20,8 @@
 #
 # Every re-inked output is asserted to hold exactly ONE opaque colour (the ink) with
 # alpha intact; every icon is asserted to be fully opaque; every output is asserted to
-# have the exact pixel size the HTML declares. Any mismatch fails loudly.
+# have the exact pixel size the HTML declares. Any mismatch fails loudly. The one
+# photographic asset (the announcement poster) is opaque by nature and gets byte ceilings.
 set -euo pipefail
 
 # ---------------------------------------------------------------- configuration
@@ -67,7 +68,15 @@ declare -A EXPECT=(
   [og-es.png]=1200x630
   [origen-ganadero.svg]=740x760
   [bitcoin-historico.png]=251x288
+  [bitpoker.png]=245x288
+  [poster.jpg]=1080x1920
+  [poster.webp]=1080x1920
+  [poster-thumb.jpg]=320x569
 )
+# The poster is the one opaque photograph-like asset: byte ceilings instead of colour assertions.
+POSTER_MAX_JPG=$((600 * 1024))
+POSTER_MAX_WEBP=$((400 * 1024))
+POSTER_MAX_THUMB=$((60 * 1024))
 # Favicon family: output name → canvas size → bull size (bull centred on an opaque cream square)
 ICONS='favicon-32.png:32:24 apple-touch-icon.png:180:136 icon-192.png:192:144 icon-512.png:512:352'
 
@@ -304,6 +313,27 @@ build_bitcoin_historico() {
   assert_ink "$OUT_IMG/bitcoin-historico.png"
 }
 
+build_bitpoker() {
+  local src; src=$(prepare partners/bitpoker-black)
+  no_upscale "$src" 1 288
+  convert "$src" -resize x288 -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/bitpoker.png"
+  palettise_ink "$OUT_IMG/bitpoker.png"
+  assert_ink "$OUT_IMG/bitpoker.png"
+}
+
+# The announcement poster (1080×1920 designer JPEG). Served three ways: poster.jpg + poster.webp at
+# full size (desktop column and the tap-to-open viewer) and poster-thumb.jpg (the phone thumbnail,
+# ~105 CSS px wide, so 320 px covers 3× screens). Opaque by nature — no re-inking, no alpha.
+build_poster() {
+  local src="$BRAND/poster.jpg"
+  [ -f "$src" ] || die "missing $src"
+  assert_dims "$src" 1080x1920
+  convert "$src" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 82 "$OUT_IMG/poster.jpg"
+  cwebp -quiet -q 80 -metadata none "$src" -o "$OUT_IMG/poster.webp"
+  convert "$src" -strip -resize 320x -quality 75 "$OUT_IMG/poster-thumb.jpg"
+  assert_opaque "$OUT_IMG/poster.jpg"; assert_opaque "$OUT_IMG/poster-thumb.jpg"
+}
+
 # ---------------------------------------------------------------- verify (also `check` mode)
 # verify <dir> — <dir> holds img/* and favicon.ico: the staging dir during a build (nothing
 # reaches public/ until this passes there), public/ itself for `check` and after promotion.
@@ -314,8 +344,11 @@ verify() {
     f="$img/$name"; [ -s "$f" ] || die "missing output $f (run: npm run assets)"
     assert_dims "$f" "${EXPECT[$name]}"
   done
-  for f in logo.png mark.png bitcoin-historico.png; do assert_ink "$img/$f"; done
-  for f in favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-en.png og-es.png; do assert_opaque "$img/$f"; done
+  for f in logo.png mark.png bitcoin-historico.png bitpoker.png; do assert_ink "$img/$f"; done
+  for f in favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-en.png og-es.png poster.jpg poster-thumb.jpg; do assert_opaque "$img/$f"; done
+  [ "$(stat -c %s "$img/poster.jpg")" -le "$POSTER_MAX_JPG" ] || die "poster.jpg is over $((POSTER_MAX_JPG / 1024)) KB"
+  [ "$(stat -c %s "$img/poster.webp")" -le "$POSTER_MAX_WEBP" ] || die "poster.webp is over $((POSTER_MAX_WEBP / 1024)) KB"
+  [ "$(stat -c %s "$img/poster-thumb.jpg")" -le "$POSTER_MAX_THUMB" ] || die "poster-thumb.jpg is over $((POSTER_MAX_THUMB / 1024)) KB"
   assert_png8_max_colors "$img/og-en.png" 64
   assert_png8_max_colors "$img/og-es.png" 64
   [ "$(identify -format '%[opaque]' "$img/logo.webp")" = false ] || die "logo.webp lost its alpha"
@@ -354,7 +387,8 @@ size_table() {
   printf '%-24s %-10s %9s\n' '------------------------' '----------' '---------'
   for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
-           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png; do
+           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png \
+           "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg; do
     printf '%-24s %-10s %9s\n' "${f#"$PUBLIC"/}" "$(identify -format '%wx%h' "${f}[0]")" "$(stat -c %s "$f")"
   done
   printf '%-24s %-10s %9s\n' 'total' '' "$(cat "$IMG"/* "$PUBLIC"/favicon.ico | wc -c)"
@@ -374,6 +408,8 @@ preview() {
     fi
   done
   convert "$IMG/bitcoin-historico.png" -resize x120 -background "$cream" -flatten "$P/bh-x120.png"
+  convert "$IMG/bitpoker.png" -resize x120 -background "$cream" -flatten "$P/bp-x120.png"
+  convert "$IMG/poster-thumb.jpg" -resize x180 "$P/poster-thumb-x180.png"
   convert "$IMG/logo.png" -background "$cream" -flatten -resize 600x "$P/logo-on-cream.png"
   convert "$IMG/mark.png" -background "$cream" -flatten -resize 36x36 "$P/mark-36.png"
   # favicon strip at 1×, then the same magnified 4× (nearest-neighbour) so pixel legibility can be judged
@@ -399,6 +435,8 @@ main() {
       build_og
       build_origen_ganadero
       build_bitcoin_historico
+      build_bitpoker
+      build_poster
       verify "$OUT"
       promote
       verify "$PUBLIC"

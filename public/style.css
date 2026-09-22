@@ -1,5 +1,7 @@
 /* Renaissance Rodeo — the one stylesheet, shared by /, /es/ and /404.html.
-   Two inks on cream, one 36rem column, one media query. Font files live in
+   Two inks on cream, one 36rem column of copy, two media queries (a phone
+   tweak at ≤519px; from 64rem up the poster gets a sticky column beside the
+   copy). Font files live in
    /fonts/ and are referenced ONLY here (plus the two preloads in each page);
    when a font file is replaced, bump its ?v= query here and in the preloads. */
 
@@ -143,6 +145,18 @@ a {
 /* ---------- hero ---------- */
 main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .hero h1 img { width: 100%; }
+/* Phone poster: a thumbnail floated right of the four hero lines, so it costs no height.
+   The desktop column (.poster) is display:none here and takes over from 64rem up. */
+.poster-thumb {
+  float: right;
+  width: 30%;
+  max-width: 8.5rem;
+  margin: .25rem 0 .75rem 1.25rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 8px 24px rgb(0 0 0 / .18);
+}
+.poster-thumb img { width: 100%; }
+.hero::after { content: ""; display: block; clear: both; }
+.poster { display: none; }
 .tagline {
   margin-top: 1.25rem;
   font: 400 var(--text-tag) / 1.3 var(--font-display);
@@ -178,7 +192,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .btc-b::after { bottom: .04em; }
 
 /* ---------- sections ---------- */
-main > section + section { margin-top: var(--gap-section); }
+.copy > section + section { margin-top: var(--gap-section); }
 .about p { margin-block: 1.1em; overflow-wrap: break-word; }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
@@ -240,24 +254,68 @@ main > section + section { margin-top: var(--gap-section); }
 .fine { margin-top: .75rem; color: var(--muted); font-size: var(--text-small); }
 
 /* ---------- partners ---------- */
+/* Three marks in one row at every width. Each link is a two-row grid: a fixed-height logo
+   slot (the mark fits inside it, centred, so three different aspect ratios sit on one line)
+   and the caption. On phones the slot shrinks and the captions go screen-reader-only. */
 .partners {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 2.5rem 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem 1.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  text-align: center;
 }
-.partners a { display: block; text-decoration: none; }
-.partners img { height: 7.5rem; width: auto; }
-.partners .og img { height: 9.5rem; }
+.partners a {
+  display: grid;
+  grid-template-rows: 8rem auto;
+  justify-items: center;
+  align-items: center;
+  text-decoration: none;
+}
+.partners img { max-height: 8rem; max-width: 100%; width: auto; height: auto; }
 .partners .cap {
   display: block;
-  margin-top: 1rem;
+  align-self: start;
+  margin-top: .75rem;
   font-size: var(--text-small);
   line-height: 1.45;
 }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
+
+/* ---------- poster viewer (<dialog>) ---------- */
+/* Scoped to [open]: a bare .lightbox{display:grid} would undo the UA's display:none on the
+   closed dialog and put the poster into the page flow. */
+.lightbox {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.lightbox[open] { display: grid; place-items: center; }
+.lightbox::backdrop { background: rgb(14 29 45 / .92); }
+.lightbox picture { display: contents; }
+.lightbox img { max-width: 100vw; max-height: 100dvh; width: auto; height: auto; }
+.lightbox-close {
+  position: fixed;
+  top: .75rem;
+  right: .75rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--ink);
+  color: var(--cream);
+  border: var(--border) solid var(--cream);
+  border-radius: 999px;
+  font: 600 1.125rem / 1 var(--font-body);
+  cursor: pointer;
+}
+.lightbox-close:hover { background: var(--red); border-color: var(--red); }
+body:has(dialog[open]) { overflow: hidden; }
 
 /* ---------- footer ---------- */
 footer { padding-block: var(--gap-section) 2rem; color: var(--muted); font-size: var(--text-small); }
@@ -269,11 +327,58 @@ footer a { color: inherit; }
 .notfound h1 { margin-top: .75rem; font-size: var(--text-h2); font-weight: 400; }
 .notfound p + p { margin-top: 1.25rem; }
 
-/* ---------- the one media query ---------- */
+/* ---------- phones ---------- */
 @media (max-width: 519px) {
   .signup button { flex-basis: 100%; }
-  .partners img { height: 6.5rem; }
-  .partners .og img { height: 8.5rem; }
+  .partners { gap: 1.5rem 1rem; }
+  .partners a { grid-template-rows: 5.5rem auto; }
+  .partners img { max-height: 5.5rem; }
+  /* Three captions in ~6rem columns would wrap into a wall of text: the marks stand alone,
+     the names stay readable to assistive tech (Bitcoin Histórico's "day before" is in the hero). */
+  .partners .cap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ---------- desktop: the poster gets a sticky column beside the copy ---------- */
+@media (min-width: 64rem) {
+  .wrap { max-width: 64rem; }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 36rem) 22rem;
+    column-gap: 4rem;
+    justify-content: space-between;
+  }
+  /* Everything but the poster stays in the copy track — the 404 page shares this sheet and
+     has no .copy wrapper, so auto-placement would otherwise spill its heading into track 2. */
+  main > :not(.poster) { grid-column: 1; }
+  .poster-thumb { display: none; }
+  .poster {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    position: sticky;
+    top: 1.5rem;
+    margin: 0;
+  }
+  .poster a { display: block; }
+  /* Both max-constraints together keep the 9:16 ratio: on a short laptop viewport the height
+     cap wins and the width follows, on a tall one the column width wins. */
+  .poster img {
+    max-width: 100%;
+    max-height: calc(100vh - 3rem);
+    width: auto;
+    height: auto;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 14px 36px rgb(0 0 0 / .2);
+  }
 }
 
 /* ---------- motion, only where the visitor has not asked for less ---------- */

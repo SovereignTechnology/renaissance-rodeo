@@ -280,7 +280,12 @@ literal `"$k"`, not the value.
 - renders `og-en.png` / `og-es.png` (1200×630 share images) with a Bevan TTF fetched at build time and
   not shipped;
 - recolours `partners/origen-ganadero.svg` to ink and widens its hairline strokes, and re-inks
-  `partners/bitcoin-historico-white.png` to `bitcoin-historico.png`;
+  `partners/bitcoin-historico-white.png` to `bitcoin-historico.png` and `partners/bitpoker-black.png`
+  to `bitpoker.png`;
+- encodes the announcement poster `poster.jpg` (1080×1920) as `poster.jpg` + `poster.webp` (the desktop
+  column and the tap-to-open viewer) and `poster-thumb.jpg` (320 wide, the phone thumbnail beside the
+  hero lines), each under a byte ceiling. The viewer is a native `<dialog>` driven by `public/poster.js`;
+  without JavaScript the same links open the JPEG;
 - fetches the three fonts and their licences from fontsource and checks their byte counts.
 
 Scratch downloads stay under `.scratch/` (gitignored) and never land in `public/`. Each re-inked
