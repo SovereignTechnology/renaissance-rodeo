@@ -866,8 +866,9 @@ describe('static pages', () => {
       expect(html).toContain('<script src="/intro.js"></script>');
       expect(html).not.toContain('<script src="/intro.js" defer>');
       expect(html).toContain('<section class="intro"');
-      // The long About paragraph is split into frames for the intro (README, "The opening sequence").
-      expect(html.match(/<span data-frame>/g)?.length).toBe(4);
+      // Five text frames written for the screen, and the replay button (README, "The opening sequence").
+      expect(html.match(/class="intro-text"/g)?.length).toBe(5);
+      expect(html).toContain('class="intro-replay" hidden>');
     }
 
     const bull = await call(new Request(`${ORIGIN}/img/bull.png`));
