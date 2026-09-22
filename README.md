@@ -5,8 +5,8 @@ the day after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San 
 and tickets are announced to the mailing list first, so the page exists to collect email addresses:
 a form gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
-and answers a single API route. Live at <https://renaissance.rodeo>, source in GitLab
-`sovtech/renaissance-rodeo`.
+and answers a single API route. Live at <https://renaissance.rodeo>, source in GitHub
+`sovITxyz/renaissance-rodeo` (private). Pushing to `main` deploys it.
 
 ## Requests
 
@@ -162,8 +162,9 @@ signup (checklist step 3).
 
 **Sender domain (browser-only).** Sending from `@renaissance.rodeo` needs the domain authenticated
 in MailerLite: a DKIM CNAME, an SPF TXT and a verification TXT on the `renaissance.rodeo` zone, added
-in the Cloudflare dashboard (wrangler's token is zone-read only). MailerLite's own unsubscribe and
-tracking links stay on MailerLite's domain unless their paid domain alignment is bought.
+in the Cloudflare dashboard (wrangler's token is zone-read only). The SPF part shares one record with
+Email Routing: see *Email* before editing it. MailerLite's own unsubscribe and tracking links stay on
+MailerLite's domain unless their paid domain alignment is bought.
 
 ## Turnstile
 
@@ -325,49 +326,56 @@ the ₿ in the tagline is drawn with CSS bars over a plain B, and U+20BF is neve
 
 ## Deploying
 
-**Deploys are manual.** Cloudflare Workers Builds cannot watch a self-hosted GitLab, so merging to
-`main` ships nothing on its own.
+**Pushing to `main` deploys.** The Worker is connected to this GitHub repository with Cloudflare
+**Workers Builds**: every push to `main` runs the build command (`npm test`) and then the deploy
+command (`npx wrangler deploy`) on Cloudflare's build servers, using an API token Cloudflare
+creates for the purpose. No Cloudflare credential lives in this repository or in GitHub. A failing
+test stops the deploy, because the build command runs first.
+
+The connection is made once in the dashboard: *Workers & Pages → `renaissance-rodeo` → Settings →
+Builds → Connect*, which installs the Cloudflare GitHub App (grant it this repository only).
+
+| Field | Value |
+|---|---|
+| Git repository | `sovITxyz/renaissance-rodeo` |
+| Branch | `main` |
+| Build command | `npm test` |
+| Deploy command | `npx wrangler deploy` (the default) |
+| Root directory | empty |
+| Builds for non-production branches | off — pull requests are tested by GitHub Actions instead |
+
+The Worker name in the dashboard must equal `name` in `wrangler.jsonc` (`renaissance-rodeo`) or the
+build fails. The Node version comes from `.node-version` (22), which the build image honours;
+without it the image uses its own default (Node 24).
+
+**A Workers Builds deploy is non-interactive, so it auto-confirms.** wrangler answers its own
+*"Update them to point to this script instead?"* prompt with yes when stdout is not a TTY, so every
+deploy re-asserts the two custom domains in `wrangler.jsonc` without asking. That is intended while
+the routes are live; it also means a `routes` change merged to `main` takes effect on push.
+
+A manual deploy still works, for example while Workers Builds is unavailable:
 
 ```sh
 npx wrangler login     # once; account RenaissanceRodeo
 npm run deploy         # wrangler deploy
 ```
 
+Deploy manually only from a clean, up-to-date `main`. Anything else puts code in production that is
+not in `main`, and the next push to `main` silently replaces it.
+
 ### CI
 
-`.gitlab-ci.yml` runs `npm test` on every merge request and on `main`. Its `deploy` job is
-`when: manual`, targets the GitLab environment **`production`** (and holds
-`resource_group: production`, so two clicks run one after the other instead of racing), and
-appears on `main` only when the CI variable `CLOUDFLARE_API_TOKEN` exists. Until that variable is
-set, the job does not exist and the laptop is the only deploy path. The image is pinned
-(`node:22.22.0`) so the toolchain under the deploy job cannot change without a diff in this repo.
+`.github/workflows/test.yml` runs `npm test` on every pull request and on pushes to `main`, on
+GitHub Actions, with `contents: read` and no secrets. The actions are pinned to commit SHAs and the
+Node version comes from the same `.node-version`. It is the pull-request signal; the deploy gate is
+the Workers Builds build command above.
 
-Setting the variable is three dashboard steps, and the scope is the point:
+### Source history
 
-1. **Protect the environment.** *Settings → CI/CD → Protected environments*: `production`, *Allowed
-   to deploy: Maintainers*. (The environment itself is created by the first `deploy` job run, or by
-   hand under *Operate → Environments*.) Only a Maintainer can then run the job at all.
-2. **Create the variable.** *Settings → CI/CD → Variables*: `CLOUDFLARE_API_TOKEN` — an API token
-   with *Workers Scripts: Edit* + *Account Settings: Read* on the account — flagged **Protected**,
-   **Masked**, and with **Environment scope `production`**, not `*`.
-3. Merge to `main`: the job appears on `main` pipelines with a play button and runs only when
-   a Maintainer presses it.
-
-Why the scope matters: a protected variable scoped to `*` is injected into **every** job of a
-pipeline on a protected ref. On `main` that includes `test`, which runs `npm ci` (dependency
-lifecycle scripts from whatever lockfile was merged) and `npm test` (arbitrary code) with the token
-in its environment — so the real boundary would be "a Maintainer merged it", not "a Maintainer
-clicked deploy". Scoped to `production`, GitLab hands the token only to jobs that declare
-`environment: production`, i.e. `deploy`, and the protected environment decides who may click it.
-Fork and MR pipelines never see it either way: `CI_COMMIT_BRANCH` is unset in a
-`merge_request_event` pipeline, so the `deploy` rule cannot match, and protected variables are not
-exposed to unprotected refs.
-
-**A CI deploy is non-interactive, so it auto-confirms.** wrangler answers its own *"Update them to
-point to this script instead?"* prompt with yes when stdout is not a TTY (next section). If the
-cutover `routes` are present in `wrangler.jsonc`, the `deploy` job takes `renaissance.rodeo` and
-`www` over from whichever Worker holds them, with no prompt. The routes have been live since the
-2026-09-21 cutover, so every deploy re-asserts both custom domains, which is intended.
+The site was first built in the private GitLab project `sovtech/renaissance-rodeo` on sovit.xyz
+(merge request !1 built the site, !2 cut the domain over). GitHub has been the canonical remote since
+2026-09-21 because Workers Builds cannot watch a self-hosted GitLab; the GitLab project is no longer
+pushed to and may lag behind.
 
 ### Smoke configuration vs cutover
 
@@ -445,6 +453,45 @@ from `SECURITY_HEADERS` in `src/index.js` (the test fails if only one changes). 
 already tight: `script-src 'self' https://challenges.cloudflare.com`, no `data:`, no CDN, no inline
 scripts — the form script is `public/signup.js`.
 
+## Email
+
+Cloudflare **Email Routing** receives mail for `renaissance.rodeo`. The catch-all forwards every
+address to `rodeo@sovit.xyz`. That address has no mailbox of its own on sovit.xyz; the sovit.xyz
+domain catch-all delivers it to the `cameron` mailbox. A destination must be verified by clicking
+the link Cloudflare mails to it before any rule can forward there.
+
+The login wrangler uses carries `email_routing (write)`, so routing is managed from here:
+
+```sh
+npx wrangler email routing settings renaissance.rodeo          # enabled? status?
+npx wrangler email routing dns get renaissance.rodeo           # records Cloudflare expects
+npx wrangler email routing addresses list                      # destinations and verification
+npx wrangler email routing rules get renaissance.rodeo catch-all
+npx wrangler email routing rules update renaissance.rodeo catch-all \
+  --action-type forward --action-value rodeo@sovit.xyz --enabled true
+```
+
+DNS records themselves are edited in the dashboard: the wrangler login can only read the zone.
+
+**One SPF record, two senders.** The apex must carry exactly one `v=spf1` TXT record, with both
+includes:
+
+```
+v=spf1 include:_spf.mx.cloudflare.net include:_spf.mlsend.com ~all
+```
+
+Cloudflare's include covers Email Routing, which rewrites the envelope sender of forwarded mail to
+`renaissance.rodeo`; MailerLite's covers campaigns. A second `v=spf1` record makes SPF fail for
+both. MailerLite's own setup writes `v=spf1 a mx include:_spf.mlsend.com ~all`; the `a` and `mx`
+terms authorise the Worker's addresses and Cloudflare's inbound mail servers, neither of which sends
+mail, so they are left out. Re-running MailerLite's automatic domain setup can put its record back:
+check for a single `v=spf1` afterwards with `dig +short TXT renaissance.rodeo`.
+
+DKIM keys coexist: `cf2024-1._domainkey` for Cloudflare, added from *Email → Email Routing →
+Settings*, and `litesrv._domainkey`, MailerLite's CNAME. There is no DMARC record yet. When
+MailerLite sending starts, add `_dmarc` TXT `v=DMARC1; p=none; rua=mailto:dmarc@renaissance.rodeo`,
+and the reports arrive through the catch-all.
+
 ## Cutover record
 
 - `2026-09-21` — smoke deploy of `renaissance-rodeo` on
@@ -454,9 +501,11 @@ scripts — the form script is `public/signup.js`.
   `renaissance-rodeo`; workers.dev hostname switched off. Signups stay `unavailable` until
   `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
   replaces the test one.
-- **Pending, each confirmed by hand:** delete Worker `bitcoin-rodeo`, delete D1 `rodeo-list`
-  (0 rows), archive `sovITxyz/bitcoin-rodeo` on GitHub. **Rollback while the old Worker exists:**
-  `cd ~/Projects/bitcoin-rodeo && npx wrangler deploy` reclaims both hostnames for it.
+- `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
+  is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
+  version of `renaissance-rodeo`.
+- **Pending:** delete the old GitHub repository `sovITxyz/bitcoin-rodeo` (needs a `gh` token with the
+  `delete_repo` scope). Its full history stays in the local checkout `~/Projects/bitcoin-rodeo`.
 
 ## Still browser-only
 
@@ -468,5 +517,5 @@ Nothing here is automated; each is a few minutes in a dashboard.
 - **MailerLite sender-domain authentication** — the DKIM CNAME, SPF TXT and verification TXT on the
   `renaissance.rodeo` zone (see *MailerLite*).
 - **Turnstile widget** and **MailerLite key / group** (see the sections above).
-- Optional: the `CLOUDFLARE_API_TOKEN` GitLab CI variable — protected, masked, environment scope
-  `production` — and the protected `production` environment that goes with it (see *CI*).
+- **Workers Builds connection** — once, see *Deploying*. Until it exists, `main` is deployed by hand.
+- **SPF merge and Cloudflare DKIM** for Email Routing — see *Email*.
