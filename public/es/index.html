@@ -30,8 +30,8 @@
   <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
-  <!-- Síncrono a propósito: debe poner .has-intro en <html> antes del primer pintado. Unos pocos KB, mismo origen. -->
-  <script src="/intro.js"></script>
+  <!-- Diferido: la secuencia nunca se reproduce al llegar, así que no le cuesta nada al primer pintado. -->
+  <script src="/intro.js" defer></script>
   <!-- Ambos diferidos (defer), así que se ejecutan en el orden del documento: primero
        signup.js, porque el cargador de Turnstile resuelve los nombres data-*-callback de
        abajo contra window al dibujar el widget y descarta en silencio los que no encuentra. -->
@@ -45,7 +45,8 @@
   <!-- La secuencia de apertura (style.css "intro", controlada por /intro.js). Los cuadros de texto
        son este texto, escrito para la pantalla: más corto que la sección "El evento", que queda
        como está. Las marcas aliadas se clonan de la fila de aliados en tiempo de ejecución.
-       display:none salvo que intro.js lo muestre; el botón "Ver intro" al pie de la página lo repite. -->
+       Nunca se reproduce al llegar: display:none hasta que el botón "Ver intro" al pie de la
+       página la inicia. -->
   <section class="intro" aria-label="Introducción">
     <button type="button" class="intro-skip">Saltar intro</button>
     <div class="intro-stage" aria-hidden="true">
