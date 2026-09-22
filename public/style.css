@@ -387,26 +387,25 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 .intro-skip:hover { border-color: var(--cream); }
 .intro :focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Replay, inline at the end of the footer line; hidden until intro.js unhides it. */
+/* Replay, pinned to the footer's bottom right; hidden until intro.js unhides it. Styled as
+   footer text in an outline so it reads as part of the line, not a floating control. */
 .intro-replay {
+  flex: none;
   min-height: 32px;
-  padding: 0 .85rem;
-  vertical-align: middle;
-  background: var(--ink);
-  color: var(--cream);
-  border: var(--border) solid var(--ink);
+  padding: 0 .75rem;
+  background: none;
+  color: inherit;
+  border: 1px solid currentColor;
   border-radius: 999px;
-  font: 600 var(--text-small) / 1 var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  font: inherit;
+  line-height: 1;
   cursor: pointer;
 }
-.intro-replay:hover { background: var(--red); border-color: var(--red); }
+.intro-replay:hover { color: var(--red); }
 
 /* ---------- footer ---------- */
-footer { padding-block: var(--gap-section); color: var(--muted); font-size: var(--text-small); }
+footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
-footer .nowrap { white-space: nowrap; }
 
 /* ---------- 404 ---------- */
 .notfound { padding-block: var(--gap-section); }
