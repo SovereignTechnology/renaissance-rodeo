@@ -5,8 +5,9 @@ the day after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San 
 and tickets are announced to the mailing list first, so the page exists to collect email addresses:
 a form gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
-and answers a single API route. Live at <https://renaissance.rodeo>, source in GitHub
-`sovITxyz/renaissance-rodeo` (private). Pushing to `main` deploys it.
+and answers a single API route. Live at <https://renaissance.rodeo>. The canonical source is on
+Nostr (see *Source history*); GitHub `SovereignTechnology/renaissance-rodeo` (public) is the deploy
+mirror, and pushing to its `main` deploys the site.
 
 ## Requests
 
@@ -41,8 +42,8 @@ cp .dev.vars.example .dev.vars && chmod 600 .dev.vars   # first run only; see be
 npm run dev                      # wrangler dev --ip 0.0.0.0 --port 8788
 ```
 
-`npm run dev` binds all interfaces so the preview is reachable over the tailnet at
-<http://100.64.0.3:8788> (this laptop is `latitude-5420`; the LAN address is firewalled).
+`npm run dev` binds all interfaces so the preview is reachable from other machines on your private
+network at `http://<this-machine>:8788`.
 
 ### Local secrets and DEV_MODE
 
@@ -381,7 +382,7 @@ Builds → Connect*, which installs the Cloudflare GitHub App (grant it this rep
 
 | Field | Value |
 |---|---|
-| Git repository | `sovITxyz/renaissance-rodeo` |
+| Git repository | `SovereignTechnology/renaissance-rodeo` (was `sovITxyz/…` before the account rename) |
 | Branch | `main` |
 | Build command | `npm test` |
 | Deploy command | `npx wrangler deploy` (the default) |
@@ -416,10 +417,20 @@ the Workers Builds build command above.
 
 ### Source history
 
-The site was first built in the private GitLab project `sovtech/renaissance-rodeo` on sovit.xyz
-(merge request !1 built the site, !2 cut the domain over). GitHub has been the canonical remote since
-2026-09-21 because Workers Builds cannot watch a self-hosted GitLab; the GitLab project is no longer
-pushed to and may lag behind.
+The canonical repository is on Nostr (NIP-34), maintained by the SovTech key and hosted on the
+GRASP servers `git.sovit.xyz` and `git.buildinelsalvador.com`:
+
+```sh
+git clone nostr://npub1s0vtechh66tx7vrwdud8zfyheu9zca7swwfrzd4qu2a4f93mxs6qvn9adx/git.sovit.xyz/renaissance-rodeo
+```
+
+Patches and issues go there (`ngit send`, `ngit issue create`). GitHub is the deploy mirror, because
+Workers Builds only watches GitHub: changes are squash-merged into GitHub `main`, which deploys,
+and that exact commit is then published to the Nostr `main`, signed by the SovTech key. Nothing
+else is ever pushed to Nostr, so the signed Nostr `main` is the record of what was released.
+
+The site was first built in a private self-hosted GitLab project (merge request !1 built the site,
+!2 cut the domain over). GitHub took over on 2026-09-21, and the GitLab project is archived.
 
 ### Smoke configuration vs cutover
 
@@ -500,8 +511,7 @@ scripts — the form script is `public/signup.js`.
 ## Email
 
 Cloudflare **Email Routing** receives mail for `renaissance.rodeo`. The catch-all forwards every
-address to `rodeo@sovit.xyz`. That address has no mailbox of its own on sovit.xyz; the sovit.xyz
-domain catch-all delivers it to the `cameron` mailbox. A destination must be verified by clicking
+address to `rodeo@sovit.xyz`. A destination must be verified by clicking
 the link Cloudflare mails to it before any rule can forward there.
 
 The login wrangler uses carries `email_routing (write)`, so routing is managed from here:
@@ -552,8 +562,8 @@ and the reports arrive through the catch-all.
 - `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
   is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
   version of `renaissance-rodeo`.
-- **Pending:** delete the old GitHub repository `sovITxyz/bitcoin-rodeo` (needs a `gh` token with the
-  `delete_repo` scope). Its full history stays in the local checkout `~/Projects/bitcoin-rodeo`.
+- **Pending:** delete the old private GitHub repository `SovereignTechnology/bitcoin-rodeo` (needs a
+  `gh` token with the `delete_repo` scope). A local checkout keeps its full history.
 
 ## Still browser-only
 
