@@ -892,6 +892,37 @@ describe('static pages', () => {
     }
   });
 
+  it('ends both pages with a share bar that works without JS, and keeps "No spam" by the input', async () => {
+    const js = await call(new Request(`${ORIGIN}/share.js`));
+    expect(js.status).toBe(200);
+    expect(js.headers.get('content-type')).toMatch(/javascript/);
+
+    for (const [path, page] of [['/', 'https%3A%2F%2Frenaissance.rodeo%2F'], ['/es/', 'https%3A%2F%2Frenaissance.rodeo%2Fes%2F']]) {
+      const res = await call(new Request(`${ORIGIN}${path}`));
+      const html = await res.text();
+
+      expect(html).toContain('<script src="/share.js" defer></script>');
+      // Each network's share page gets this page's own address, and opens in a new tab.
+      for (const prefix of ['https://wa.me/?text=', 'https://x.com/intent/post?text=', 'https://www.facebook.com/sharer/sharer.php?u=', 'https://t.me/share/url?url=']) {
+        const link = html.match(new RegExp(`<a href="(${prefix.replace(/[.?/]/g, '\\$&')}[^"]*)"([^>]*)>`));
+        expect(link, prefix).not.toBeNull();
+        expect(link[1]).toContain(page);
+        expect(link[2]).toContain('target="_blank" rel="noopener"');
+      }
+      expect(html).toMatch(new RegExp(`<a href="mailto:\\?subject=[^"]*&amp;body=${page}"`));
+      // The JS-only buttons ship hidden, so a visitor without JS never sees a dead control.
+      expect(html).toMatch(/class="share-copy"[^>]* hidden>/);
+      expect(html).toMatch(/class="share-native"[^>]* hidden>/);
+
+      // "No spam" sits inside the form, under the input row and above the Turnstile widget.
+      const form = html.slice(html.indexOf('<form class="signup"'), html.indexOf('</form>'));
+      expect(form.indexOf('class="fine"')).toBeGreaterThan(form.indexOf('type="submit"'));
+      expect(form.indexOf('class="fine"')).toBeLessThan(form.indexOf('class="cf-turnstile"'));
+
+      expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
+    }
+  });
+
   it('answers an unknown path with 404 and the 404 page', async () => {
     const page = await (await call(new Request(`${ORIGIN}/404.html`))).text();
     const res = await call(new Request(`${ORIGIN}/nope`));
