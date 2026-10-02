@@ -879,6 +879,19 @@ describe('static pages', () => {
     expect(bull.headers.get('content-type')).toBe('image/png');
   });
 
+  it('links X and Instagram from both pages, and credits the share card to @rodeo_sv', async () => {
+    for (const path of ['/', '/es/']) {
+      const res = await call(new Request(`${ORIGIN}${path}`));
+      const html = await res.text();
+
+      expect(html).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener"');
+      expect(html).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener"');
+      expect(html).toContain('<meta name="twitter:site" content="@rodeo_sv">');
+      // Inline SVG, not an image load: the CSP stays exactly as it was.
+      expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
+    }
+  });
+
   it('answers an unknown path with 404 and the 404 page', async () => {
     const page = await (await call(new Request(`${ORIGIN}/404.html`))).text();
     const res = await call(new Request(`${ORIGIN}/nope`));
