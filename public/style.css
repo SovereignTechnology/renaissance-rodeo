@@ -242,6 +242,9 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   color: var(--red);
   font-size: var(--text-small);
 }
+/* Empty, the error line takes no room (the share bar sits close under the form); a message
+   opens it, which moves only what is below the form, never the input or the button. */
+.msg:empty { min-height: 0; margin-top: 0; }
 .success { margin-top: 1.25rem; font-weight: 600; }
 /* Inside the form, straight under the input row: the reassurance sits by the field it is about. */
 .fine { margin-top: .5rem; color: var(--muted); font-size: var(--text-small); }
@@ -251,6 +254,8 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
    (.social), each led by a small label. A two-column grid so both icon rows start on the same
    line whatever the label's length ("Compartir" vs "Seguir"); the rows are display:contents
    so their label and list land in the grid's columns. On phones each label sits above its row. */
+/* Closer to the form than the standard section gap: it belongs to the signup's ending. */
+.copy > section.share { margin-top: clamp(1.5rem, 4vw, 2.25rem); }
 .share { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: .75rem; }
 .share-row { display: contents; }
 .share .social { flex-wrap: wrap; }
@@ -436,7 +441,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .intro-replay:hover { color: var(--red); }
 
 /* ---------- footer ---------- */
-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: var(--gap-section); color: var(--muted); font-size: var(--text-small); }
+/* Shorter on top than the section gap so the share bar is not stranded above it (only /
+   and /es/ have a footer). */
+footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
 
 /* ---------- 404 ---------- */
