@@ -146,7 +146,7 @@ a {
    no row of their own and no image request (nothing new for img-src or the asset pipeline). */
 .top-end { display: flex; align-items: center; gap: .25rem; }
 .social { display: flex; margin: 0; padding: 0; list-style: none; }
-.social a {
+.social a, .social button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +154,8 @@ a {
   min-height: 44px;
   color: var(--ink);
 }
-.social a:hover { color: var(--red); }
+.social button { padding: 0; background: none; border: 0; font: inherit; cursor: pointer; }
+.social a:hover, .social button:hover { color: var(--red); }
 .social svg { display: block; width: 20px; height: 20px; }
 
 /* ---------- hero ---------- */
@@ -241,8 +242,31 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   color: var(--red);
   font-size: var(--text-small);
 }
+/* Empty, the error line takes no room (the share bar sits close under the form); a message
+   opens it, which moves only what is below the form, never the input or the button. */
+.msg:empty { min-height: 0; margin-top: 0; }
 .success { margin-top: 1.25rem; font-weight: 600; }
-.fine { margin-top: .75rem; color: var(--muted); font-size: var(--text-small); }
+/* Inside the form, straight under the input row: the reassurance sits by the field it is about. */
+.fine { margin-top: .5rem; color: var(--muted); font-size: var(--text-small); }
+
+/* ---------- share / follow ---------- */
+/* The foot of the copy, like the end of an article: two thin rows of the header's icons
+   (.social), each led by a small label. A two-column grid so both icon rows start on the same
+   line whatever the label's length ("Compartir" vs "Seguir"); the rows are display:contents
+   so their label and list land in the grid's columns. On phones each label sits above its row. */
+/* Closer to the form than the standard section gap: it belongs to the signup's ending. */
+.copy > section.share { margin-top: clamp(1.5rem, 4vw, 2.25rem); }
+.share { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: .75rem; }
+.share-row { display: contents; }
+.share .social { flex-wrap: wrap; }
+.share-label {
+  color: var(--muted);
+  font: 600 var(--text-small) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+/* Empty until "Copy link" is used, so it takes no room; the text clears itself after 3 s. */
+.share-status { grid-column: 2; color: var(--muted); font-size: var(--text-small); }
 
 /* ---------- partners ---------- */
 /* Three marks in one row at every width. Each link is a two-row grid: a fixed-height logo
@@ -417,7 +441,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .intro-replay:hover { color: var(--red); }
 
 /* ---------- footer ---------- */
-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: var(--gap-section); color: var(--muted); font-size: var(--text-small); }
+/* Shorter on top than the section gap so the share bar is not stranded above it (only /
+   and /es/ have a footer). */
+footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
 
 /* ---------- 404 ---------- */
@@ -431,6 +457,12 @@ footer a { color: inherit; }
   .signup button { flex-basis: 100%; }
   .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
+  .share { display: block; }
+  .share-row { display: block; }
+  .share-row + .share-status + .share-row, .share-row + .share-row { margin-top: .75rem; }
+  .share-label { display: block; margin-bottom: .125rem; }
+  /* Pull the 44px tap targets left so the first glyph lines up with the label above it. */
+  .share .social { margin-inline-start: -12px; }
   .partners a { grid-template-rows: 5.5rem auto; }
   .partners img { max-height: 5.5rem; }
   /* Three captions in ~6rem columns would wrap into a wall of text: the marks stand alone,
