@@ -286,7 +286,7 @@ literal `"$k"`, not the value.
 (`npm run assets`, idempotent). Never edit a derived file. The script:
 
 - re-inks every brand PNG from black to the page ink `#0e1d2d` (the page is literally two colours),
-  trims, resizes: `logo.png` 1200×591 + `logo.webp` (hero), `mark.png` 144×144 (header), favicons
+  trims, resizes: `logo.png` 1200×591 + `logo.webp` (hero), `mark.png` 144×144 (no longer shown on the pages since the header mark was removed; kept as a brand asset), favicons
   `favicon-32.png` / `apple-touch-icon.png` / `icon-192.png` / `icon-512.png` and `favicon.ico` on an
   opaque cream disc so they read on dark tab strips;
 - renders `og-en.png` / `og-es.png` (1200×630 share images) with a Bevan TTF fetched at build time and
