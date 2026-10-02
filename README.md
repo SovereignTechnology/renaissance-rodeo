@@ -331,6 +331,15 @@ unless the URL changes.
 
 4. Commit `brand/`, `public/img/`, `public/favicon.ico` and the bumped references together.
 
+## Social links
+
+X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons beside `EN | ES`,
+drawn in `currentColor` (`.social` in `style.css`): no row of their own, no image file, nothing for
+`img-src` or `npm run assets`. Each link carries `rel="me noopener"` and an `aria-label` in the
+page's language. `<meta name="twitter:site" content="@rodeo_sv">` credits the share card on X. A
+handle change touches both `public/index.html` and `public/es/index.html` (tested); `404.html`
+has no social links.
+
 ## The opening sequence
 
 **It never plays on arrival.** `/` and `/es/` open on the cream site; the sequence sits behind the
@@ -493,7 +502,8 @@ mistake fails *open* or fails *silently*:
   `MAILERLITE_API_KEY`, `MAILERLITE_WEBHOOK_SECRET`; that any group id present is a string matching
   `GROUP_ID_RE` (the committed file has the block commented out, which passes; an uncommented
   placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
-- **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, an unknown path returns the 404 page.
+- **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links and
+  `twitter:site`, an unknown path returns the 404 page.
 
 The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
 bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.

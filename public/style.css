@@ -142,6 +142,20 @@ a {
 }
 .lang [aria-current] { color: var(--muted); }
 .lang .sep { color: var(--muted); }
+/* X and Instagram: inline-SVG icons in currentColor beside the language switch, so they take
+   no row of their own and no image request (nothing new for img-src or the asset pipeline). */
+.top-end { display: flex; align-items: center; gap: .25rem; }
+.social { display: flex; margin: 0; padding: 0; list-style: none; }
+.social a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--ink);
+}
+.social a:hover { color: var(--red); }
+.social svg { display: block; width: 20px; height: 20px; }
 
 /* ---------- hero ---------- */
 main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
