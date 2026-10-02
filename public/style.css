@@ -208,8 +208,11 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   font: 400 max(1.25rem, 16px) / 1 var(--font-body);
 }
 .signup input::placeholder { color: var(--muted); opacity: 1; }
+/* Full width under the input at every width. Side by side only fitted at some widths (rem
+   follows the fluid body size, and the poster column narrows the copy from 64rem up), so the
+   button kept wrapping onto a line of its own at its natural width; one layout everywhere. */
 .signup button {
-  flex: 0 0 auto;
+  flex: 1 0 100%;
   height: var(--control);
   padding: 0 1.5rem;
   background: var(--red);
@@ -454,7 +457,6 @@ footer a { color: inherit; }
 
 /* ---------- phones ---------- */
 @media (max-width: 519px) {
-  .signup button { flex-basis: 100%; }
   .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .share { display: block; }
