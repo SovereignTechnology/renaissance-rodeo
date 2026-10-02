@@ -112,20 +112,14 @@ a {
 }
 
 /* ---------- header ---------- */
+/* Right-aligned: no mark on the left any more (the hero logo carries the name), so the
+   social icons and the language switch hold the right edge on their own. */
 .top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding-block: .75rem;
 }
-.mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-}
-.mark img { width: 36px; height: 36px; }
 .lang {
   display: flex;
   align-items: center;

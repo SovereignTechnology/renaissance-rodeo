@@ -887,6 +887,8 @@ describe('static pages', () => {
       expect(html).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<meta name="twitter:site" content="@rodeo_sv">');
+      // The header's top-left bull mark was removed on purpose; the corner stays blank.
+      expect(html).not.toContain('class="mark"');
       // Inline SVG, not an image load: the CSP stays exactly as it was.
       expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
     }
@@ -930,6 +932,7 @@ describe('static pages', () => {
     expect(res.status).toBe(404);
     expect(res.headers.get('content-type')).toMatch(/^text\/html/);
     expect(await res.text()).toBe(page);
+    expect(page).not.toContain('class="mark"');
     expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
     expect(res.headers.get('strict-transport-security')).toBe('max-age=31536000');
   });
