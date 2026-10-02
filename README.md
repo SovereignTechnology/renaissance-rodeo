@@ -340,6 +340,22 @@ page's language. `<meta name="twitter:site" content="@rodeo_sv">` credits the sh
 handle change touches both `public/index.html` and `public/es/index.html` (tested); `404.html`
 has no social links.
 
+The copy ends, after the signup, with an article-style **Share / Follow** block (`section.share`):
+
+- Five share links (WhatsApp, X, Facebook, Telegram, email) are plain links with the page's URL and
+  title already encoded into each `href`, so they work with no JavaScript. The four web ones
+  open in a new tab (`target="_blank" rel="noopener"`), deliberately unlike every other outbound
+  link on the site, so sharing never takes the visitor away from the page.
+- Two buttons ship `hidden` and are unhidden by `public/share.js` only where the browser can run
+  them: **Copy link** (Clipboard API; shows the section's `data-copied` text for 3 s) and the
+  system **share sheet** (Web Share, mostly phones). The script reads `data-url` / `data-title` /
+  `data-copied` from the section, so it has no per-language text.
+- **Follow** repeats the header's two `@rodeo_sv` links.
+
+If the page URL or title changes, update the section's `data-*` values **and** the encoded share
+`href`s in both HTML files. "No spam. Unsubscribe any time." sits inside the form, directly under
+the input row (tested).
+
 ## The opening sequence
 
 **It never plays on arrival.** `/` and `/es/` open on the cream site; the sequence sits behind the
@@ -502,8 +518,8 @@ mistake fails *open* or fails *silently*:
   `MAILERLITE_API_KEY`, `MAILERLITE_WEBHOOK_SECRET`; that any group id present is a string matching
   `GROUP_ID_RE` (the committed file has the block commented out, which passes; an uncommented
   placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
-- **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links and
-  `twitter:site`, an unknown path returns the 404 page.
+- **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links,
+  `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page.
 
 The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
 bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.
