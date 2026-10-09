@@ -1150,7 +1150,8 @@ describe('navigation, tickets and sponsors', () => {
         // Links and icons both live in it, so the menu panel carries both.
         expect(nav, path).toContain('<ul class="site-links">');
         expect(nav, path).toContain('<ul class="social">');
-        // The button comes right after it and before the language switch: [mark] … [menu] EN | ES.
+        // The button comes right after it and before the language switch. On screen that is
+        // [mark][menu] … EN | ES: the hidden nav takes no room, and the switch is pushed right.
         expect(header, path).toMatch(
           new RegExp(`</nav>\\s*<button type="button" class="menu-btn" popovertarget="site-nav" aria-label="${lang === 'en' ? 'Menu' : 'Menú'}">`)
         );

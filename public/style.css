@@ -126,7 +126,7 @@ a {
 /* ---------- header ---------- */
 /* One bar on every page. Desktop: [mark] TEAM TICKETS SPONSORS [X][Instagram] ……… EN | ES.
    Below 64rem the links and icons do not fit beside the switch (Spanish alone is ~335px), so the
-   bar is [mark] ……… [menu] EN | ES and the menu button opens them in a panel under the bar
+   bar is [mark][menu] ……… EN | ES and the menu button opens them in a panel under the bar
    (see "header below 64rem"). The mark (small bull-and-rider, leads home) is on the subpages
    only; / and /es/ open with the hero logo instead. */
 .top {
@@ -605,7 +605,9 @@ footer a { color: inherit; }
 .top:has(.site:popover-open) .menu-btn .i-close { display: block; }
 
 /* ---------- header below 64rem: one bar, links in a menu ---------- */
-/* The bar is [mark] ……… [menu] EN | ES on every page. The menu opens nav.site as a panel
+/* The bar is [mark][menu] ……… EN | ES on every page: the button sits right after the bull (at
+   the left edge on / and /es/, which have no mark), the panel's links start under it, and the
+   language switch keeps the right edge. The menu opens nav.site as a panel
    pinned under the bar, full width, its contents on the copy column's left edge: the page
    links one per line, then the icons. Tapping a link, outside the panel, the button again or
    Esc closes it (the browser's light dismiss, no script). The panel is positioned absolutely
@@ -614,8 +616,12 @@ footer a { color: inherit; }
 @media (max-width: 63.99rem) {
   .top { column-gap: 0; }
   @supports selector(:popover-open) {
-    .menu-btn { display: inline-flex; margin-inline-start: auto; }
-    .menu-btn + .lang { margin-inline-start: 0; }
+    .menu-btn { display: inline-flex; }
+    /* Right against the mark: the bull's own 4px of box, then the button's 12px round its glyph. */
+    .mark { margin-inline-end: 0; }
+    /* On / and /es/ (no mark) the button starts the bar: pull its 44px tap box left so the glyph
+       lines up with the page text and the panel's links below. */
+    .top > .site:first-child + .menu-btn { margin-inline-start: -12px; }
   }
   .site:popover-open {
     position: absolute;

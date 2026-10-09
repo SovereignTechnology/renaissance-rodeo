@@ -344,7 +344,7 @@ Every page except `404.html` has the same header and footer, in its language:
 
 ```
 desktop   [mark]  TEAM  TICKETS  SPONSORS  [X] [Instagram]                EN | ES
-phone     [mark]                                                 [menu]  EN | ES
+phone     [mark] [menu]                                                  EN | ES
 ```
 
 - **Header** (`.top`): the small bull-and-rider mark (`img/mark.png`, 36px, linking home) on every
@@ -353,7 +353,8 @@ phone     [mark]                                                 [menu]  EN | ES
   **the same page** in the other language.
 - **Below 1024px** the links and icons do not fit beside the switch (the Spanish links alone are
   about 335px), so the bar stays one row and a **menu button** (three bars, a cross while open,
-  labelled Menu / Menú) sits just left of `EN | ES`. It opens `nav.site` as a panel under the bar:
+  labelled Menu / Menú) sits right after the bull mark (at the left edge on `/` and `/es/`, which
+  have no mark), with `EN | ES` on the right. It opens `nav.site` as a panel under the bar:
   the page links one per line, then the icons. `nav.site` is an HTML **popover**
   (`<nav … popover>` + `<button popovertarget="site-nav">`), so it opens, closes on Esc, on a tap
   outside or on the button again, with **no script**. The browser hides a popover until it is
