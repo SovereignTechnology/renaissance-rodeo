@@ -439,8 +439,9 @@ posting to the same `/api/subscribe` and the same MailerLite list (`data-lang` p
 signups in the Spanish group too). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
-When ticket sales open, the page gets a **Buy** link to the ticket shop; that work is tracked in
-the pretix issue.
+When ticket sales open, the page gets a **Buy** link to the ticket shop; that work (self-hosted
+pretix at `tickets.renaissance.rodeo`, paid through a BTCPay store of its own) is scoped in
+GitHub issue #21.
 
 ## The sponsors page
 
