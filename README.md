@@ -438,8 +438,11 @@ in `brand/` by `scripts/build-assets.sh` like every other image (never a hotlink
 
 ## The tickets page
 
-`/tickets` and `/es/tickets` say **Coming soon** / **Próximamente** and carry the home page's
-signup form word for word: same fields, honeypot, Turnstile widget, messages and success line,
+`/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
+your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
+entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
+**VIP tickets** / **Boletos VIP**, **Coming soon** / **Próximamente**, and the home page's signup
+form word for word: same fields, honeypot, Turnstile widget, messages and success line,
 posting to the same `/api/subscribe` and the same MailerLite list (`data-lang` puts Spanish-page
 signups in the Spanish group too). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
@@ -492,6 +495,12 @@ The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Cormorant Ga
 Cormorant Garamond 600 23,396 B), self-hosted from `public/fonts/`, declared once in `style.css` with `font-display:swap`
 and fontsource's latin `unicode-range`. The subset covers the Spanish accents and ¿ ¡ but not ₿ —
 no page text uses it (it appears only inside the poster and partner images), and U+20BF is never typed.
+
+**The date lockup.** On `/` and `/es/` the date and the place sit under the logo as two centred
+lines of Bevan (`.when-date`, `.when-place`), sized in container units (`5.8cqi` of the hero) so
+they scale with the logo at every width; the longest line, the Spanish date, fills about 95% of
+the column. A browser without container units falls back to `--text-date`. The phone poster
+thumbnail floats beside the two lines under it.
 
 ## Page scale
 
@@ -635,7 +644,9 @@ mistake fails *open* or fails *silently*:
   and icons, and one menu button pointing at it, before the language switch; every subpage header opens with the mark and its
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
-  test key; the tickets pages repeat the home signup form and strings; the sponsors pages repeat
+  test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
+  put VIP under "coming soon" and repeat the home signup form and strings; the home date lockup is
+  two lines under the logo; the sponsors pages repeat
   the partner row; the sitemap lists all eight pages;
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
   `/team.html` redirect to `/team`, the two files list the same names and links in the same order,

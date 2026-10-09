@@ -223,8 +223,8 @@ a {
 /* ---------- hero ---------- */
 main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .hero h1 img { width: 100%; }
-/* Phone poster: a thumbnail floated right of the four hero lines, so it costs no height.
-   The desktop column (.poster) is display:none here and takes over from 64rem up. */
+/* Phone poster: a thumbnail floated right of the two hero lines under the date, so it costs no
+   height. The desktop column (.poster) is display:none here and takes over from 64rem up. */
 .poster-thumb {
   float: right;
   width: 30%;
@@ -235,13 +235,21 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .poster-thumb img { width: 100%; }
 .hero::after { content: ""; display: block; clear: both; }
 .poster { display: none; }
+/* Date and place: a lockup under the logo, two centred lines of Bevan sized to the column (cqi,
+   so it scales with the logo above it at every width; a browser without container units keeps
+   --text-date). At 5.8cqi the longest line, the Spanish date, fills about 95% of the column. */
+.hero { container-type: inline-size; }
 .when {
-  margin-top: 1.25rem;
-  font: 400 var(--text-date) / 1.3 var(--font-display);
+  margin-top: .5rem;
+  font: 400 var(--text-date) / 1.25 var(--font-display);
+  font-size: 5.8cqi;
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: .05em;
 }
-.after { margin-top: .75rem; }
+.when-date, .when-place { display: block; }
+.when + .poster-thumb { margin-top: 1rem; }
+.after { margin-top: 1rem; }
 .note { margin-top: .25rem; color: var(--muted); }
 
 
@@ -556,7 +564,23 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   text-transform: uppercase;
   letter-spacing: .05em;
 }
-.page #signup { margin-top: 2.25rem; }
+/* "Have a Bitcoin Histórico ticket?": a ruled box with the Bitcoin Histórico emblem beside the
+   text (the partner-row image, so nothing new to build or allow). */
+.included {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+  padding: 1.25rem;
+  background: var(--paper);
+  border: var(--border) solid var(--ink);
+}
+.included img { flex: none; width: 4.5rem; height: auto; }
+.included h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
+.included p { margin-top: .5rem; }
+.page #signup { margin-top: var(--gap-section); }
+#signup .soon { margin-top: .25rem; }
+#signup .soon + p { margin-top: .75rem; }
 .page-section { margin-top: var(--gap-section); }
 .page-section h2 { margin-bottom: 1.25rem; font: 400 clamp(1.25rem, 1.1rem + .8vw, 1.625rem) / 1.2 var(--font-display); }
 .page-section p + p { margin-top: 1em; }
@@ -654,6 +678,11 @@ footer a { color: inherit; }
 
 /* ---------- phones ---------- */
 @media (max-width: 519px) {
+  /* The emblem beside the heading only, a size down; the sentence takes the box's full width. */
+  .included { display: grid; grid-template-columns: 3rem minmax(0, 1fr); align-items: center; gap: .75rem 1rem; padding: 1rem; }
+  .included img { width: 3rem; }
+  .included > div { display: contents; }
+  .included p { grid-column: 1 / -1; margin-top: 0; }
   .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .share { display: block; }
