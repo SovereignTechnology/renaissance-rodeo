@@ -1138,6 +1138,30 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
+  it('opens the page links and icons from one menu button: a popover nav, no script', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      for (const path of Object.values(pages)) {
+        const html = (await page(path)).html;
+        const header = block(html, '<header class="top wrap">', '</header>');
+        const nav = block(header, '<nav class="site"', '</nav>');
+
+        // The nav is the popover; the browser hides it below 64rem until the button opens it.
+        expect(nav, path).toMatch(/^<nav class="site" id="site-nav" popover aria-label="[^"]+">/);
+        // Links and icons both live in it, so the menu panel carries both.
+        expect(nav, path).toContain('<ul class="site-links">');
+        expect(nav, path).toContain('<ul class="social">');
+        // The button comes right after it and before the language switch: [mark] … [menu] EN | ES.
+        expect(header, path).toMatch(
+          new RegExp(`</nav>\\s*<button type="button" class="menu-btn" popovertarget="site-nav" aria-label="${lang === 'en' ? 'Menu' : 'Menú'}">`)
+        );
+        expect(header.indexOf('class="menu-btn"'), path).toBeLessThan(header.indexOf('<nav class="lang"'));
+        // One target, one invoker: a second id="site-nav" would leave the button opening the wrong one.
+        expect(html.match(/id="site-nav"/g), path).toHaveLength(1);
+        expect(html.match(/popovertarget=/g), path).toHaveLength(1);
+      }
+    }
+  });
+
   it('starts every subpage header with the mark leading home, and switches language to the same page', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
       for (const [key, path] of Object.entries(pages)) {
