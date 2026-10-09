@@ -15,6 +15,7 @@ mirror, and pushing to its `main` deploys the site.
 |---|---|
 | `GET /` | `public/index.html` (English) |
 | `GET /es/` | `public/es/index.html` (Spanish); `/es` is a 307 to `/es/` from the assets layer |
+| `GET /team`, `GET /es/team` | `public/team.html`, `public/es/team.html` (see *The team page*); `/team/` and `/team.html` are 307s to `/team` from the assets layer, likewise for `/es/team` |
 | `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → MailerLite `POST /api/subscribers` → `{ok:true}` |
 | everything else | `public/*` via the Worker's `ASSETS` binding (`style.css`, `signup.js`, `img/`, `fonts/`, `robots.txt`, `sitemap.xml`); unknown paths get `public/404.html` |
 
@@ -337,8 +338,8 @@ X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons 
 drawn in `currentColor` (`.social` in `style.css`): no row of their own, no image file, nothing for
 `img-src` or `npm run assets`. Each link carries `rel="me noopener"` and an `aria-label` in the
 page's language. `<meta name="twitter:site" content="@rodeo_sv">` credits the share card on X. A
-handle change touches both `public/index.html` and `public/es/index.html` (tested); `404.html`
-has no social links.
+handle change touches `public/index.html`, `public/es/index.html`, `public/team.html` and
+`public/es/team.html` (tested); `404.html` has no social links.
 
 The copy ends, after the signup, with an article-style **Share / Follow** block (`section.share`):
 
@@ -355,6 +356,44 @@ The copy ends, after the signup, with an article-style **Share / Follow** block 
 If the page URL or title changes, update the section's `data-*` values **and** the encoded share
 `href`s in both HTML files. "No spam. Unsubscribe any time." sits inside the form, directly under
 the input row (tested).
+
+## The team page
+
+`/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team, linked
+from **Team** / **Equipo** at the right of each home page's header; on the team page that item is
+the current page (muted, not a link) and the logo at the top leads home. The page is static, has no
+script, and needs nothing new in the CSP.
+
+Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
+
+```html
+<li class="member">
+  <span class="avatar" aria-hidden="true">TT</span>          <!-- photo placeholder: initials -->
+  <div class="member-body">
+    <h2 class="member-name">Tom Taber</h2>
+    <p class="member-org"><a href="https://origenganadero.com/" rel="noopener">Origen Ganadero</a></p>
+    <ul class="social"> … one <li> per X link, the icon from the header, aria-label "Tom Taber on X" … </ul>
+  </div>
+</li>
+```
+
+The organisation line is plain text when there is no site to link (`Media &amp; Marketing`), and
+the line or the icon list is left out when there is nothing to show.
+
+**To add, remove or reorder someone, edit both files the same way** and in the same commit. The
+tests compare them: the same names in the same order and the same links in the same order in both
+languages; the square must hold the initials of the first two words of the name; every outbound
+link must be `https://` with `rel="noopener"`; every X icon must carry an `aria-label` ("… on X" /
+"… en X"). Translate the organisation line when it is a description (`Medios y marketing`), never
+a name.
+
+**Only list people who have agreed to be listed.** This repository is public and the site deploys on
+merge, so a name in a commit is published — whether or not the card is visible, and even if the
+commit is reverted. Keep unconfirmed people out of commits, branch names and PR text entirely.
+
+**Photos** replace the initials square later: an `<img>` with `width`/`height`, built from a source
+in `brand/` by `scripts/build-assets.sh` like every other image (never a hotlinked or `data:` URL —
+`img-src 'self'`). Until then the square is ink with the initials in Bevan.
 
 ## The opening sequence
 
@@ -529,7 +568,11 @@ mistake fails *open* or fails *silently*:
   `GROUP_ID_RE` (the committed file has the block commented out, which passes; an uncommented
   placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
 - **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links,
-  `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page.
+  `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page;
+- **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
+  `/team.html` redirect to `/team`, the two files list the same names and links in the same order,
+  each square holds the name's initials, every outbound link is `https` + `noopener`, every X icon
+  is labelled, neither page loads a script, and both home pages and the sitemap link them.
 
 The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
 bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.
