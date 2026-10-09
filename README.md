@@ -343,15 +343,23 @@ unless the URL changes.
 Every page except `404.html` has the same header and footer, in its language:
 
 ```
-[mark]  TEAM  TICKETS  SPONSORS  [X] [Instagram]                    EN | ES
+desktop   [mark]  TEAM  TICKETS  SPONSORS  [X] [Instagram]                EN | ES
+phone     [mark] [menu]                                                  EN | ES
 ```
 
 - **Header** (`.top`): the small bull-and-rider mark (`img/mark.png`, 36px, linking home) on every
-  page but `/` and `/es/`, which open with the hero logo instead; then the page links
-  (`nav.site`); then the X and Instagram icons; then the language switch, pushed right. The
-  switch links to **the same page** in the other language. Below 1024px (the desktop layout) the
-  page links take a row of their own under the rest, and below 520px a size smaller; at 320px the
-  Spanish list wraps to two lines.
+  page but `/` and `/es/`, which open with the hero logo instead; then `nav.site` (the page links
+  and the X and Instagram icons); then the language switch, pushed right. The switch links to
+  **the same page** in the other language.
+- **Below 1024px** the links and icons do not fit beside the switch (the Spanish links alone are
+  about 335px), so the bar stays one row and a **menu button** (three bars, a cross while open,
+  labelled Menu / Menú) sits right after the bull mark (at the left edge on `/` and `/es/`, which
+  have no mark), with `EN | ES` on the right. It opens `nav.site` as a panel under the bar:
+  the page links one per line, then the icons. `nav.site` is an HTML **popover**
+  (`<nav … popover>` + `<button popovertarget="site-nav">`), so it opens, closes on Esc, on a tap
+  outside or on the button again, with **no script**. The browser hides a popover until it is
+  opened; from 1024px `style.css` shows it in the bar instead, and hides the button. A browser
+  without popovers never hides it, gets no button, and shows the links on a row under the bar.
 - **Footer** (`.foot-nav`): the same page links as words, then X and Instagram as words, then the
   copyright line with the other-language link. The home pages keep the intro's replay button at
   the bottom right.
@@ -362,7 +370,8 @@ Every page except `404.html` has the same header and footer, in its language:
 
 **Adding a page to the list** means editing the header and the footer of all eight pages. The
 tests fail unless every page of a language carries the same links in the same order, in both
-places, with only the current one marked.
+places, with only the current one marked, and unless every page has exactly one popover nav with
+one button pointing at it.
 
 ## Social links
 
@@ -622,7 +631,8 @@ mistake fails *open* or fails *silently*:
   `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page;
 - **navigation, tickets, sponsors**: the four new pages are served in their language with the
   site CSP and redirect their other spellings; every page carries the same page links in the
-  header and the footer, marking only itself; every subpage header opens with the mark and its
+  header and the footer, marking only itself; every page has one popover nav holding the links
+  and icons, and one menu button pointing at it, before the language switch; every subpage header opens with the mark and its
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages repeat the home signup form and strings; the sponsors pages repeat
