@@ -1,9 +1,10 @@
 # Renaissance Rodeo
 
-One-page bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador,
-the day after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador). Venue, times
-and tickets are announced to the mailing list first, so the page exists to collect email addresses:
-a form gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
+Bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador, the day
+after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a home page plus
+Team, Tickets and Sponsors pages, each in English and Spanish. Venue, times and tickets are
+announced to the mailing list first, so the home and tickets pages collect email addresses: a form
+gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
 and answers a single API route. Live at <https://renaissance.rodeo>. The canonical source is on
 Nostr (see *Source history*); GitHub `SovereignTechnology/renaissance-rodeo` (public) is the deploy
@@ -16,6 +17,8 @@ mirror, and pushing to its `main` deploys the site.
 | `GET /` | `public/index.html` (English) |
 | `GET /es/` | `public/es/index.html` (Spanish); `/es` is a 307 to `/es/` from the assets layer |
 | `GET /team`, `GET /es/team` | `public/team.html`, `public/es/team.html` (see *The team page*); `/team/` and `/team.html` are 307s to `/team` from the assets layer, likewise for `/es/team` |
+| `GET /tickets`, `GET /es/tickets` | `public/tickets.html`, `public/es/tickets.html` (see *The tickets page*); slash and `.html` spellings redirect the same way |
+| `GET /sponsors`, `GET /es/sponsors` | `public/sponsors.html`, `public/es/sponsors.html` (see *The sponsors page*); likewise |
 | `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → MailerLite `POST /api/subscribers` → `{ok:true}` |
 | everything else | `public/*` via the Worker's `ASSETS` binding (`style.css`, `signup.js`, `img/`, `fonts/`, `robots.txt`, `sitemap.xml`); unknown paths get `public/404.html` |
 
@@ -172,28 +175,31 @@ MailerLite's domain unless their paid domain alignment is bought.
 ## Turnstile
 
 The form uses the production widget **`renaissance-rodeo-signup`** (Managed, hostnames
-`renaissance.rodeo` and `www.renaissance.rodeo`), sitekey `0x4AAAAAAE_nBKxDHDJBj9OH` in both
-`public/index.html` and `public/es/index.html`. Its secret is the Worker secret `TURNSTILE_SECRET`,
+`renaissance.rodeo` and `www.renaissance.rodeo`), sitekey `0x4AAAAAAE_nBKxDHDJBj9OH` in the four
+pages with a signup form: `public/index.html`, `public/es/index.html`, `public/tickets.html` and
+`public/es/tickets.html`. Its secret is the Worker secret `TURNSTILE_SECRET`,
 with the recoverable copy in Bitwarden `sovtech/shared` as `renaissance-rodeo-turnstile-secret`.
 Both were set on 2026-09-22.
 
 **Local development** needs Cloudflare's test sitekey, because `localhost` is not one of the
-widget's hostnames and the real widget refuses to render there. Swap it in both files for the
-session and **do not commit it**. The test suite does not check this, the launch check below does:
+widget's hostnames and the real widget refuses to render there. Swap it in all four files for the
+session and **do not commit it**: the test suite fails on a test sitekey, on a key that differs
+between the four files, and on a widget in any other page, and Workers Builds runs the suite
+before every deploy, so a swapped key cannot ship.
 
 ```sh
-sed -i 's/data-sitekey="0x4AAAAAAE_nBKxDHDJBj9OH"/data-sitekey="1x00000000000000000000AA"/' public/index.html public/es/index.html
-git checkout -- public/index.html public/es/index.html   # afterwards
+sed -i 's/data-sitekey="0x4AAAAAAE_nBKxDHDJBj9OH"/data-sitekey="1x00000000000000000000AA"/' public/index.html public/es/index.html public/tickets.html public/es/tickets.html
+git checkout -- public/index.html public/es/index.html public/tickets.html public/es/tickets.html   # afterwards
 ```
 
-The launch check, before any deploy:
+The same check by hand, before any deploy:
 
 ```sh
 grep -rl 'data-sitekey="1x0' public/ | wc -l   # must be 0
-grep -rl data-sitekey public/ | wc -l          # must be 2
+grep -rl data-sitekey public/ | wc -l          # must be 4
 ```
 
-Replacing the sitekey in only one file is the failure that hides. Turnstile renders a widget with a
+Replacing the sitekey in only some of the files is the failure that hides. Turnstile renders a widget with a
 wrong sitekey without complaint, so that page looks normal while every submission from it is
 rejected as `challenge_failed`.
 
@@ -332,14 +338,40 @@ unless the URL changes.
 
 4. Commit `brand/`, `public/img/`, `public/favicon.ico` and the bumped references together.
 
+## Navigation
+
+Every page except `404.html` has the same header and footer, in its language:
+
+```
+[mark]  TEAM  TICKETS  SPONSORS  [X] [Instagram]                    EN | ES
+```
+
+- **Header** (`.top`): the small bull-and-rider mark (`img/mark.png`, 36px, linking home) on every
+  page but `/` and `/es/`, which open with the hero logo instead; then the page links
+  (`nav.site`); then the X and Instagram icons; then the language switch, pushed right. The
+  switch links to **the same page** in the other language. Below 1024px (the desktop layout) the
+  page links take a row of their own under the rest, and below 520px a size smaller; at 320px the
+  Spanish list wraps to two lines.
+- **Footer** (`.foot-nav`): the same page links as words, then X and Instagram as words, then the
+  copyright line with the other-language link. The home pages keep the intro's replay button at
+  the bottom right.
+- The page you are on is marked `aria-current="page"` (underlined) in both lists. The home pages
+  mark none.
+- Spanish labels: **Equipo**, **Boletos**, **Patrocinadores**; the Spanish pages are `/es/team`,
+  `/es/tickets`, `/es/sponsors`.
+
+**Adding a page to the list** means editing the header and the footer of all eight pages. The
+tests fail unless every page of a language carries the same links in the same order, in both
+places, with only the current one marked.
+
 ## Social links
 
-X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons beside `EN | ES`,
-drawn in `currentColor` (`.social` in `style.css`): no row of their own, no image file, nothing for
-`img-src` or `npm run assets`. Each link carries `rel="me noopener"` and an `aria-label` in the
-page's language. `<meta name="twitter:site" content="@rodeo_sv">` credits the share card on X. A
-handle change touches `public/index.html`, `public/es/index.html`, `public/team.html` and
-`public/es/team.html` (tested); `404.html` has no social links.
+X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons after the page
+links, drawn in `currentColor` (`.social` in `style.css`): no row of their own, no image file,
+nothing for `img-src` or `npm run assets`. Each icon link carries `rel="me noopener"` and an
+`aria-label` in the page's language; the footer repeats both as words. `<meta name="twitter:site"
+content="@rodeo_sv">` credits the share card on X. A handle change touches the header and footer
+of all eight pages (tested); `404.html` has no social links.
 
 The copy ends, after the signup, with an article-style **Share / Follow** block (`section.share`):
 
@@ -359,12 +391,14 @@ the input row (tested).
 
 ## The team page
 
-`/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team, linked
-from **Team** / **Equipo** at the right of each home page's header. The team pages have no hero
-logo: their header starts with the small bull-and-rider mark (`img/mark.png` at 36px, the one the
-home pages dropped in #17) at the top left, linking home in the page's language, and leaves out the
-Team link (the h1 says where you are, and a 320px phone has no room for both). The page is static,
-has no script, and needs nothing new in the CSP.
+`/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team. They
+are linked as **Team** / **Equipo** in every page's header and footer (*Navigation*), and from the
+team strip on the home pages. The page is static, has no script, and needs nothing new in the CSP.
+
+**The home pages show the team too**: `section.team-strip`, after the partners, with the same
+initials squares, small, and the names only, three to a row, then "Meet the team". It must list
+the same people in the same order as the team page (tested), so **adding or removing someone means
+editing four files**: both team pages and both home pages.
 
 Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 
@@ -382,7 +416,7 @@ Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 The organisation line is plain text when there is no site to link (`Media &amp; Marketing`), and
 the line or the icon list is left out when there is nothing to show.
 
-**To add, remove or reorder someone, edit both files the same way** and in the same commit. The
+**To add, remove or reorder someone, edit all four files the same way** and in the same commit. The
 tests compare them: the same names in the same order and the same links in the same order in both
 languages; the square must hold the initials of the first two words of the name; every outbound
 link must be `https://` with `rel="noopener"`; every X icon must carry an `aria-label` ("… on X" /
@@ -396,6 +430,25 @@ commit is reverted. Keep unconfirmed people out of commits, branch names and PR 
 **Photos** replace the initials square later: an `<img>` with `width`/`height`, built from a source
 in `brand/` by `scripts/build-assets.sh` like every other image (never a hotlinked or `data:` URL —
 `img-src 'self'`). Until then the square is ink with the initials in Bevan.
+
+## The tickets page
+
+`/tickets` and `/es/tickets` say **Coming soon** / **Próximamente** and carry the home page's
+signup form word for word: same fields, honeypot, Turnstile widget, messages and success line,
+posting to the same `/api/subscribe` and the same MailerLite list (`data-lang` puts Spanish-page
+signups in the Spanish group too). The tests compare the form, the success line and the message
+strings with the home page's, so a change to one form must be made in all four signup pages.
+
+When ticket sales open, the page gets a **Buy** link to the ticket shop; that work (self-hosted
+pretix at `tickets.renaissance.rodeo`, paid through a BTCPay store of its own) is scoped in
+GitHub issue #21.
+
+## The sponsors page
+
+`/sponsors` and `/es/sponsors` carry the home page's partner row (tested to match it) with every
+caption shown, stacked on phones, then **Become a sponsor** with `sponsors@renaissance.rodeo`
+(the zone's catch-all forwards it, see *Email*). A new partner goes into both home pages and both
+sponsors pages, and its logo through `brand/` and `npm run assets` like every other image.
 
 ## The opening sequence
 
@@ -571,6 +624,13 @@ mistake fails *open* or fails *silently*:
   placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
 - **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links,
   `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page;
+- **navigation, tickets, sponsors**: the four new pages are served in their language with the
+  site CSP and redirect their other spellings; every page carries the same page links in the
+  header and the footer, marking only itself; every subpage header opens with the mark and its
+  language switch leads to the same page; every outbound link on every page is `https` +
+  `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
+  test key; the tickets pages repeat the home signup form and strings; the sponsors pages repeat
+  the partner row; the home team strip matches the team page; the sitemap lists all eight pages;
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
   `/team.html` redirect to `/team`, the two files list the same names and links in the same order,
   each square holds the name's initials, every outbound link is `https` + `noopener`, every X icon
