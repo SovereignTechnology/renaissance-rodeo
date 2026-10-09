@@ -360,9 +360,11 @@ the input row (tested).
 ## The team page
 
 `/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team, linked
-from **Team** / **Equipo** at the right of each home page's header; on the team page that item is
-the current page (muted, not a link) and the logo at the top leads home. The page is static, has no
-script, and needs nothing new in the CSP.
+from **Team** / **Equipo** at the right of each home page's header. The team pages have no hero
+logo: their header starts with the small bull-and-rider mark (`img/mark.png` at 36px, the one the
+home pages dropped in #17) at the top left, linking home in the page's language, and leaves out the
+Team link (the h1 says where you are, and a 320px phone has no room for both). The page is static,
+has no script, and needs nothing new in the CSP.
 
 Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 
@@ -572,7 +574,8 @@ mistake fails *open* or fails *silently*:
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
   `/team.html` redirect to `/team`, the two files list the same names and links in the same order,
   each square holds the name's initials, every outbound link is `https` + `noopener`, every X icon
-  is labelled, neither page loads a script, and both home pages and the sitemap link them.
+  is labelled, the header opens with the bull-and-rider mark linking home in the page's language,
+  neither page loads a script, and both home pages and the sitemap link them.
 
 The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
 bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.

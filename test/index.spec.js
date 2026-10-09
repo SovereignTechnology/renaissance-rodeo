@@ -887,8 +887,9 @@ describe('static pages', () => {
       expect(html).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<meta name="twitter:site" content="@rodeo_sv">');
-      // The header's top-left bull mark was removed on purpose; the corner stays blank.
-      expect(html).not.toContain('class="mark"');
+      // The home pages' top-left bull mark was removed on purpose; the corner stays blank there.
+      // The team pages have no hero logo, so they carry the small mark (tested under "team page").
+      if (!path.endsWith('team')) expect(html).not.toContain('class="mark"');
       // Inline SVG, not an image load: the CSP stays exactly as it was.
       expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
     }
@@ -1033,6 +1034,19 @@ describe('team page', () => {
       for (const [, href, attrs] of grid(html).matchAll(/<a href="(https:\/\/x\.com\/[^"]*)"([^>]*)>/g)) {
         expect(attrs, href).toMatch(lang === 'en' ? /aria-label="[^"]+ on X"/ : /aria-label="[^"]+ en X"/);
       }
+    }
+  });
+
+  it('carries the small bull-and-rider mark top left, leading to the home page in its language', async () => {
+    for (const [path, home] of [[PAGES.en, '/'], [PAGES.es, '/es/']]) {
+      const html = (await page(path)).html;
+      const header = html.slice(html.indexOf('<header class="top wrap">'), html.indexOf('</header>'));
+
+      // First thing in the header, so it sits at the left edge; the big wordmark is gone.
+      expect(header).toMatch(
+        new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${home}" aria-label="[^"]+"><img src="/img/mark.png" width="36" height="36" alt=""></a>`)
+      );
+      expect(html).not.toContain('/img/logo.png');
     }
   });
 
