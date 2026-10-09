@@ -394,6 +394,16 @@ Cormorant Garamond 600 23,396 B), self-hosted from `public/fonts/`, declared onc
 and fontsource's latin `unicode-range`. The subset covers the Spanish accents and ¿ ¡ but not ₿ —
 no page text uses it (it appears only inside the poster and partner images), and U+20BF is never typed.
 
+## Page scale
+
+The root font size is the body size (20–23px), so `1rem` in `style.css` is 20–23px rather than
+16px, and every rem-based length (type, column widths, gaps, the poster) comes out about 1.3× its
+16px reading. At 100% zoom on a desktop that read too large; 75% browser zoom looked right. So
+`--scale` multiplies the root size: `1` below 64rem (1024px), `.75` from 64rem up. Everything
+measured in rem shrinks together, the full-screen poster viewer and the intro (sized in `vw`/`dvh`)
+still fill the screen, and px sizes (icons, 44px tap targets, borders, the focus ring) stay as they
+are. To tune desktop, change the one `.75`; phones and tablets are not touched by it.
+
 ## Deploying
 
 **Pushing to `main` deploys.** The Worker is connected to this GitHub repository with Cloudflare
