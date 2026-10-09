@@ -124,14 +124,25 @@ a {
 }
 
 /* ---------- header ---------- */
-/* Right-aligned: no mark on the left any more (the hero logo carries the name), so the
-   social icons and the language switch hold the right edge on their own. */
+/* Right-aligned: no mark on the left of / and /es/ (the hero logo carries the name), so the
+   social icons and the language switch hold the right edge on their own. The team pages have
+   no hero logo: there the small bull-and-rider mark sits top left and leads home, its auto
+   end margin keeping everything else on the right. */
 .top {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   padding-block: .75rem;
 }
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-inline: -4px auto;   /* the 36px glyph, not its 44px tap box, lines up with the text */
+}
+.mark img { width: 36px; height: 36px; }
 .lang {
   display: flex;
   align-items: center;
@@ -148,6 +159,21 @@ a {
 }
 .lang [aria-current] { color: var(--muted); }
 .lang .sep { color: var(--muted); }
+/* Page links (Team on / and /es/), first on the right edge, set like the language switch. The
+   team pages leave it out: their h1 says where you are, and the mark is the way home. */
+.site, .site a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.site {
+  margin-inline-end: .25rem;
+  font: 600 1.0625rem / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+/* No start padding: on a 320px phone "EQUIPO" + the icons + ES | EN fill the row exactly. */
+.site a { padding-inline: 0 .25rem; }
 /* X and Instagram: inline-SVG icons in currentColor beside the language switch, so they take
    no row of their own and no image request (nothing new for img-src or the asset pipeline). */
 .top-end { display: flex; align-items: center; gap: .25rem; }
@@ -449,9 +475,50 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 .intro-replay:hover { color: var(--red); }
 
+/* ---------- team (/team, /es/team) ---------- */
+/* One list of cards: a square (the person's initials until photos arrive), then the name, the
+   organisation and an X link. Phones: the square sits beside the text. From 520px: centred
+   cards with the square on top, two to a row; three from 64rem, where the team page leaves the
+   poster grid and takes the full width (desktop block below). The square is capped at 12rem so
+   six of them do not turn the page into a wall of ink. */
+.team h1 { font: 400 var(--text-h2) / 1.15 var(--font-display); }
+.team-lede { margin-top: .75rem; }
+.team-grid {
+  display: grid;
+  gap: 1.75rem;
+  margin: 2.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.member { display: flex; align-items: center; gap: 1.25rem; }
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 5.5rem;
+  aspect-ratio: 1;
+  background: var(--ink);
+  color: var(--cream);
+  font: 400 1.75rem / 1 var(--font-display);
+  letter-spacing: .04em;
+  user-select: none;
+}
+.member-name { font: 400 1.25rem / 1.2 var(--font-display); }
+.member-org { margin-top: .25rem; }
+/* Pull the 44px tap target left so the X glyph lines up with the text above it. */
+.member .social { margin-inline-start: -12px; }
+.team-contact { margin-top: var(--gap-section); }
+@media (min-width: 520px) {
+  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 2rem; }
+  .member { display: block; text-align: center; }
+  .avatar { width: min(100%, 12rem); margin-inline: auto; font-size: 3.25rem; }
+  .member-body { margin-top: 1rem; }
+  .member .social { justify-content: center; margin-inline-start: 0; }
+}
+
 /* ---------- footer ---------- */
-/* Shorter on top than the section gap so the share bar is not stranded above it (only /
-   and /es/ have a footer). */
+/* Shorter on top than the section gap so the share bar is not stranded above it (/, /es/
+   and the two team pages have a footer; 404 does not). */
 footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
 
@@ -463,6 +530,9 @@ footer a { color: inherit; }
 
 /* ---------- phones ---------- */
 @media (max-width: 519px) {
+  /* The 44px icon boxes already leave air round each glyph; the gap would push "EQUIPO" past
+     the left margin on a 320px phone. */
+  .top-end { gap: 0; }
   .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .share { display: block; }
@@ -499,6 +569,9 @@ footer a { color: inherit; }
   /* Everything but the poster stays in the copy track — the 404 page shares this sheet and
      has no .copy wrapper, so auto-placement would otherwise spill its heading into track 2. */
   main > :not(.poster) { grid-column: 1; }
+  /* The team page has no poster: it takes the whole 64rem, three cards to a row. */
+  main.team { display: block; }
+  .team-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .poster-thumb { display: none; }
   .poster {
     display: block;

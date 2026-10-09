@@ -13,4 +13,16 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/"/>
   </url>
+  <url>
+    <loc>https://renaissance.rodeo/team</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/team"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/team"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/team"/>
+  </url>
+  <url>
+    <loc>https://renaissance.rodeo/es/team</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/team"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/team"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/team"/>
+  </url>
 </urlset>
