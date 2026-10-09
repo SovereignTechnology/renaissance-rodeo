@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f7edd8">
   <title>Boletos — Renaissance Rodeo</title>
-  <meta name="description" content="Los boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador, salen a la venta pronto. Únase a la lista de correo para enterarse primero.">
+  <meta name="description" content="El boleto de Bitcoin Histórico incluye la entrada a Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador. Los boletos VIP salen a la venta pronto: únase a la lista de correo para enterarse primero.">
   <link rel="canonical" href="https://renaissance.rodeo/es/tickets">
   <link rel="alternate" hreflang="en" href="https://renaissance.rodeo/tickets">
   <link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/tickets">
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Renaissance Rodeo">
   <meta property="og:title" content="Boletos — Renaissance Rodeo">
-  <meta property="og:description" content="Los boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador, salen a la venta pronto. Únase a la lista de correo para enterarse primero.">
+  <meta property="og:description" content="El boleto de Bitcoin Histórico incluye la entrada a Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador. Los boletos VIP salen a la venta pronto: únase a la lista de correo para enterarse primero.">
   <meta property="og:url" content="https://renaissance.rodeo/es/tickets">
   <meta property="og:image" content="https://renaissance.rodeo/img/og-es.png">
   <meta property="og:image:width" content="1200">
@@ -61,16 +61,24 @@
     </nav>
   </header>
 
-  <!-- Los boletos aún no están a la venta (README, "The tickets page"). Mientras tanto esta página
-       es el registro a la lista de correo de la portada, palabra por palabra, y envía a la misma
-       lista. Cuando abra la venta, aquí va el enlace para comprar. -->
+  <!-- README, "The tickets page". El boleto de Bitcoin Histórico incluye el rodeo; los boletos VIP
+       aún no están a la venta, así que mientras tanto la sección VIP es el registro a la lista de
+       correo de la portada, palabra por palabra. Cuando abra la venta, ahí va el enlace para comprar. -->
   <main id="main" class="wrap page" tabindex="-1">
     <h1>Boletos</h1>
-    <p class="soon">Próximamente</p>
+
+    <section class="included" aria-labelledby="included-h">
+      <img src="/img/bitcoin-historico.png" width="251" height="288" alt="">
+      <div>
+        <h2 id="included-h">¿Tiene boleto para Bitcoin Histórico?</h2>
+        <p>Incluye su entrada a Renaissance Rodeo el <time datetime="2026-11-13">13 de noviembre de 2026</time> en Ilopango, el día después de <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
+      </div>
+    </section>
 
     <section id="signup" aria-labelledby="signup-h">
-      <h2 id="signup-h">Entérese primero</h2>
-      <p>Los boletos para el <time datetime="2026-11-13">13 de noviembre de 2026</time> en Ilopango salen a la venta pronto. Únase a la lista de correo y le escribiremos en cuanto estén disponibles.</p>
+      <h2 id="signup-h">Boletos VIP</h2>
+      <p class="soon">Próximamente</p>
+      <p>Los boletos VIP salen a la venta pronto. Únase a la lista de correo y le escribiremos en cuanto estén disponibles.</p>
       <form class="signup" method="post" action="/api/subscribe" data-lang="es">
         <label for="email">Correo electrónico</label>
         <div class="row">

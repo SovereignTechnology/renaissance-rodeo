@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f7edd8">
   <title>Tickets — Renaissance Rodeo</title>
-  <meta name="description" content="Tickets for Renaissance Rodeo, 13 November 2026 in Ilopango, El Salvador, go on sale soon. Join the email list to hear first.">
+  <meta name="description" content="A Bitcoin Histórico ticket includes entry to Renaissance Rodeo, 13 November 2026 in Ilopango, El Salvador. VIP tickets go on sale soon: join the email list to hear first.">
   <link rel="canonical" href="https://renaissance.rodeo/tickets">
   <link rel="alternate" hreflang="en" href="https://renaissance.rodeo/tickets">
   <link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/tickets">
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Renaissance Rodeo">
   <meta property="og:title" content="Tickets — Renaissance Rodeo">
-  <meta property="og:description" content="Tickets for Renaissance Rodeo, 13 November 2026 in Ilopango, El Salvador, go on sale soon. Join the email list to hear first.">
+  <meta property="og:description" content="A Bitcoin Histórico ticket includes entry to Renaissance Rodeo, 13 November 2026 in Ilopango, El Salvador. VIP tickets go on sale soon: join the email list to hear first.">
   <meta property="og:url" content="https://renaissance.rodeo/tickets">
   <meta property="og:image" content="https://renaissance.rodeo/img/og-en.png">
   <meta property="og:image:width" content="1200">
@@ -61,16 +61,24 @@
     </nav>
   </header>
 
-  <!-- Tickets are not on sale yet (README, "The tickets page"). Until the shop opens this page is
-       the mailing-list signup from the home page, word for word, posting to the same list. When
-       sales open, the Buy link goes here. -->
+  <!-- README, "The tickets page". Bitcoin Histórico tickets include the rodeo; VIP tickets are not
+       on sale yet, so until the shop opens the VIP section is the mailing-list signup from the home
+       page, word for word, posting to the same list. When sales open, the Buy link goes there. -->
   <main id="main" class="wrap page" tabindex="-1">
     <h1>Tickets</h1>
-    <p class="soon">Coming soon</p>
+
+    <section class="included" aria-labelledby="included-h">
+      <img src="/img/bitcoin-historico.png" width="251" height="288" alt="">
+      <div>
+        <h2 id="included-h">Have a Bitcoin Histórico ticket?</h2>
+        <p>It includes your entry to Renaissance Rodeo on <time datetime="2026-11-13">13 November 2026</time> in Ilopango, the day after <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
+      </div>
+    </section>
 
     <section id="signup" aria-labelledby="signup-h">
-      <h2 id="signup-h">Be first to know</h2>
-      <p>Tickets for <time datetime="2026-11-13">13 November 2026</time> in Ilopango go on sale soon. Join the email list and we'll write the moment they do.</p>
+      <h2 id="signup-h">VIP tickets</h2>
+      <p class="soon">Coming soon</p>
+      <p>VIP tickets go on sale soon. Join the email list and we'll write the moment they do.</p>
       <form class="signup" method="post" action="/api/subscribe" data-lang="en">
         <label for="email">Email</label>
         <div class="row">
