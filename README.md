@@ -392,13 +392,9 @@ the input row (tested).
 ## The team page
 
 `/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team. They
-are linked as **Team** / **Equipo** in every page's header and footer (*Navigation*), and from the
-team strip on the home pages. The page is static, has no script, and needs nothing new in the CSP.
-
-**The home pages show the team too**: `section.team-strip`, after the partners, with the same
-initials squares, small, and the names only, three to a row, then "Meet the team". It must list
-the same people in the same order as the team page (tested), so **adding or removing someone means
-editing four files**: both team pages and both home pages.
+are linked as **Team** / **Equipo** in every page's header and footer (*Navigation*). The page is
+static, has no script, and needs nothing new in the CSP. (A team strip on the home pages was added
+in #20 and removed again the same day: the team lives on its own page only.)
 
 Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 
@@ -416,7 +412,7 @@ Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 The organisation line is plain text when there is no site to link (`Media &amp; Marketing`), and
 the line or the icon list is left out when there is nothing to show.
 
-**To add, remove or reorder someone, edit all four files the same way** and in the same commit. The
+**To add, remove or reorder someone, edit both files the same way** and in the same commit. The
 tests compare them: the same names in the same order and the same links in the same order in both
 languages; the square must hold the initials of the first two words of the name; every outbound
 link must be `https://` with `rel="noopener"`; every X icon must carry an `aria-label` ("… on X" /
@@ -630,7 +626,7 @@ mistake fails *open* or fails *silently*:
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages repeat the home signup form and strings; the sponsors pages repeat
-  the partner row; the home team strip matches the team page; the sitemap lists all eight pages;
+  the partner row; the sitemap lists all eight pages;
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
   `/team.html` redirect to `/team`, the two files list the same names and links in the same order,
   each square holds the name's initials, every outbound link is `https` + `noopener`, every X icon
