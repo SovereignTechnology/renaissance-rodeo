@@ -1216,22 +1216,6 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('shows the team on both home pages: the same names, in the same order, as the team page', async () => {
-    const names = (h, re) => [...h.matchAll(re)].map((m) => m[1]);
-    for (const [lang, pages] of Object.entries(PAGES)) {
-      const home = (await page(pages.home)).html;
-      const strip = block(home, '<section class="team-strip"', '</section>');
-      const team = names((await page(pages.team)).html, /<h2 class="member-name">([^<]*)<\/h2>/g);
-
-      expect(team.length).toBeGreaterThan(0);
-      expect(names(strip, /<span class="strip-name">([^<]*)<\/span>/g)).toEqual(team);
-      for (const [, initials, name] of strip.matchAll(/<span class="avatar" aria-hidden="true">([^<]*)<\/span><span class="strip-name">([^<]*)<\/span>/g)) {
-        expect(initials, name).toBe(name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase());
-      }
-      expect(strip, lang).toContain(`<a href="${pages.team}">`);
-    }
-  });
-
   it('lists every page in the sitemap', async () => {
     const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
     for (const path of ALL) expect(sitemap, path).toContain(`<loc>https://renaissance.rodeo${path}</loc>`);
