@@ -879,16 +879,17 @@ describe('static pages', () => {
     expect(bull.headers.get('content-type')).toBe('image/png');
   });
 
-  it('links X and Instagram from both pages, and credits the share card to @rodeo_sv', async () => {
-    for (const path of ['/', '/es/']) {
+  it('links X and Instagram from every page, and credits the share card to @rodeo_sv', async () => {
+    for (const path of ['/', '/es/', '/team', '/es/team']) {
       const res = await call(new Request(`${ORIGIN}${path}`));
       const html = await res.text();
 
       expect(html).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<meta name="twitter:site" content="@rodeo_sv">');
-      // The header's top-left bull mark was removed on purpose; the corner stays blank.
-      expect(html).not.toContain('class="mark"');
+      // The home pages' top-left bull mark was removed on purpose; the corner stays blank there.
+      // The team pages have no hero logo, so they carry the small mark (tested under "team page").
+      if (!path.endsWith('team')) expect(html).not.toContain('class="mark"');
       // Inline SVG, not an image load: the CSP stays exactly as it was.
       expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
     }
@@ -951,5 +952,117 @@ describe('static pages', () => {
     env.ASSETS = {};
     const misnamed = await call(new Request(`${ORIGIN}/nope`));
     expect(misnamed.status).toBe(500);
+  });
+});
+
+// README, "The team page". Two hand-written files carry the same cards, so most of what can go
+// wrong is drift between them: a person, a link or an order changed in one language only.
+describe('team page', () => {
+  const PAGES = { en: '/team', es: '/es/team' };
+
+  async function page(path) {
+    const res = await call(new Request(`${ORIGIN}${path}`));
+    return { res, html: await res.text() };
+  }
+  /** The cards and nothing else: from the grid's opening tag to the sponsorship line after it. */
+  const grid = (html) =>
+    html.slice(html.indexOf('<ul class="team-grid">'), html.indexOf('<p class="team-contact">'));
+  const names = (html) => [...grid(html).matchAll(/<h2 class="member-name">([^<]*)<\/h2>/g)].map((m) => m[1]);
+  const hrefs = (html) => [...grid(html).matchAll(/<a href="([^"]*)"/g)].map((m) => m[1]);
+
+  it('serves /team in English and /es/team in Spanish, with the site headers', async () => {
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const { res, html } = await page(path);
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toMatch(/^text\/html/);
+      expect(html).toContain(`<html lang="${lang}">`);
+      expect(html).toContain(`<link rel="canonical" href="https://renaissance.rodeo${path}">`);
+      expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
+    }
+  });
+
+  it('redirects the trailing-slash and .html spellings to the one address', async () => {
+    for (const path of Object.values(PAGES)) {
+      for (const variant of [`${path}/`, `${path}.html`]) {
+        const res = await call(new Request(`${ORIGIN}${variant}`, { redirect: 'manual' }));
+
+        expect(res.status, variant).toBe(307);
+        expect(new URL(res.headers.get('location'), ORIGIN).pathname, variant).toBe(path);
+      }
+    }
+  });
+
+  it('lists the same people, in the same order, with the same links, in both languages', async () => {
+    const en = (await page(PAGES.en)).html;
+    const es = (await page(PAGES.es)).html;
+
+    expect(names(en).length).toBeGreaterThan(0);
+    expect(names(es)).toEqual(names(en));
+    expect(hrefs(es)).toEqual(hrefs(en));
+  });
+
+  it('puts the initials of the first two words of the name in each square, hidden from screen readers', async () => {
+    for (const path of Object.values(PAGES)) {
+      const html = (await page(path)).html;
+      const cards = [
+        ...grid(html).matchAll(
+          /<span class="avatar" aria-hidden="true">([^<]*)<\/span>\s*<div class="member-body">\s*<h2 class="member-name">([^<]*)<\/h2>/g
+        ),
+      ];
+
+      // Every card matched, so none has an avatar that screen readers would read out.
+      expect(cards.length, path).toBe(names(html).length);
+      for (const [, initials, name] of cards) {
+        const expected = name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+        expect(initials, name).toBe(expected);
+      }
+    }
+  });
+
+  it('sends every outbound link over https with rel="noopener", and names every icon-only link', async () => {
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const outbound = [...html.matchAll(/<a href="(https?:[^"]*)"([^>]*)>/g)];
+
+      expect(outbound.length).toBeGreaterThan(0);
+      for (const [, href, attrs] of outbound) {
+        expect(href).toMatch(/^https:\/\//);
+        expect(attrs, href).toMatch(/rel="(me )?noopener"/);
+      }
+      // An X icon has no text of its own: its aria-label is all a screen reader gets.
+      for (const [, href, attrs] of grid(html).matchAll(/<a href="(https:\/\/x\.com\/[^"]*)"([^>]*)>/g)) {
+        expect(attrs, href).toMatch(lang === 'en' ? /aria-label="[^"]+ on X"/ : /aria-label="[^"]+ en X"/);
+      }
+    }
+  });
+
+  it('carries the small bull-and-rider mark top left, leading to the home page in its language', async () => {
+    for (const [path, home] of [[PAGES.en, '/'], [PAGES.es, '/es/']]) {
+      const html = (await page(path)).html;
+      const header = html.slice(html.indexOf('<header class="top wrap">'), html.indexOf('</header>'));
+
+      // First thing in the header, so it sits at the left edge; the big wordmark is gone.
+      expect(header).toMatch(
+        new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${home}" aria-label="[^"]+"><img src="/img/mark.png" width="36" height="36" alt=""></a>`)
+      );
+      expect(html).not.toContain('/img/logo.png');
+    }
+  });
+
+  it('is linked from both home pages and the sitemap, needs no script, and gives the sponsorship address', async () => {
+    expect((await page('/')).html).toContain('<a href="/team">Team</a>');
+    expect((await page('/es/')).html).toContain('<a href="/es/team">Equipo</a>');
+
+    for (const path of Object.values(PAGES)) {
+      const html = (await page(path)).html;
+
+      expect(html).toContain('<a href="mailto:sponsors@renaissance.rodeo">sponsors@renaissance.rodeo</a>');
+      expect(html).not.toContain('<script');
+    }
+
+    const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/team</loc>');
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/es/team</loc>');
   });
 });
