@@ -1230,6 +1230,39 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
+  it('tells Bitcoin Histórico ticket holders the rodeo is included, and puts VIP under "coming soon"', async () => {
+    const copy = {
+      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'VIP tickets'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Boletos VIP'],
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.tickets)).html;
+      const [question, answer, vip] = copy[lang];
+      const included = block(html, '<section class="included"', '</section>');
+
+      expect(included, lang).toContain(`<h2 id="included-h">${question}</h2>`);
+      expect(included, lang).toContain(answer);
+      expect(included, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>');
+      // The VIP heading, then "coming soon", then the signup form: in that order, after the box.
+      const signup = block(html, '<section id="signup"', '</section>');
+      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${vip}</h2>\\s*<p class="soon">`));
+      expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
+    }
+  });
+
+  it('sets the date and the place as two lines under the home page logo, before the poster thumbnail', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.home)).html;
+      const date = lang === 'en' ? '13 November 2026' : '13 de noviembre de 2026';
+
+      expect(html, lang).toContain(
+        `<p class="when"><time class="when-date" datetime="2026-11-13">${date}</time> <span class="when-place">Ilopango, El Salvador</span></p>`
+      );
+      expect(html.indexOf('<p class="when">'), lang).toBeGreaterThan(html.indexOf('<h1 id="hero-h">'));
+      expect(html.indexOf('<p class="when">'), lang).toBeLessThan(html.indexOf('class="poster-thumb"'));
+    }
+  });
+
   it('gives the sponsors pages the home page partner row and the sponsorship address', async () => {
     for (const pages of Object.values(PAGES)) {
       const home = (await page(pages.home)).html;
