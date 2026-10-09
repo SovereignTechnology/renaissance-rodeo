@@ -880,16 +880,16 @@ describe('static pages', () => {
   });
 
   it('links X and Instagram from every page, and credits the share card to @rodeo_sv', async () => {
-    for (const path of ['/', '/es/', '/team', '/es/team']) {
+    for (const path of ['/', '/es/', '/team', '/es/team', '/tickets', '/es/tickets', '/sponsors', '/es/sponsors']) {
       const res = await call(new Request(`${ORIGIN}${path}`));
       const html = await res.text();
 
       expect(html).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener"');
       expect(html).toContain('<meta name="twitter:site" content="@rodeo_sv">');
-      // The home pages' top-left bull mark was removed on purpose; the corner stays blank there.
-      // The team pages have no hero logo, so they carry the small mark (tested under "team page").
-      if (!path.endsWith('team')) expect(html).not.toContain('class="mark"');
+      // The home pages' top-left bull mark was removed on purpose: the hero logo carries the name.
+      // Every other page has no hero logo, so it carries the small mark (tested under "navigation").
+      if (path === '/' || path === '/es/') expect(html).not.toContain('class="mark"');
       // Inline SVG, not an image load: the CSP stays exactly as it was.
       expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
     }
@@ -1064,5 +1064,176 @@ describe('team page', () => {
     const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
     expect(sitemap).toContain('<loc>https://renaissance.rodeo/team</loc>');
     expect(sitemap).toContain('<loc>https://renaissance.rodeo/es/team</loc>');
+  });
+});
+
+// README, "Navigation", "The tickets page", "The sponsors page". Eight hand-written pages carry
+// the same page links twice each (header and footer), two of them copy the home page's signup
+// form and two its partner row, so most of what can go wrong is drift between copies.
+describe('navigation, tickets and sponsors', () => {
+  const PAGES = {
+    en: { home: '/', team: '/team', tickets: '/tickets', sponsors: '/sponsors' },
+    es: { home: '/es/', team: '/es/team', tickets: '/es/tickets', sponsors: '/es/sponsors' },
+  };
+  const LINKS = {
+    en: [['/team', 'Team'], ['/tickets', 'Tickets'], ['/sponsors', 'Sponsors']],
+    es: [['/es/team', 'Equipo'], ['/es/tickets', 'Boletos'], ['/es/sponsors', 'Patrocinadores']],
+  };
+  const ALL = Object.values(PAGES).flatMap((pages) => Object.values(pages));
+  const other = (lang) => (lang === 'en' ? 'es' : 'en');
+
+  async function page(path) {
+    const res = await call(new Request(`${ORIGIN}${path}`));
+    return { res, html: await res.text() };
+  }
+  /** From the first `open` to the next `close` after it; '' when `open` is absent. */
+  function block(html, open, close) {
+    const start = html.indexOf(open);
+    return start < 0 ? '' : html.slice(start, html.indexOf(close, start) + close.length);
+  }
+  /** Markup compared across files: indentation differs between them, nothing else may. */
+  const squash = (s) => s.replace(/\s+/g, ' ').trim();
+  /** The page links in one <nav>: plain internal links only (X and Instagram carry a rel). */
+  const navLinks = (html, open) =>
+    [...block(html, open, '</nav>').matchAll(/<a href="([^"]*)"( aria-current="page")?>([^<]*)<\/a>/g)].map(
+      ([, href, current, text]) => ({ href, current: Boolean(current), text })
+    );
+
+  it('serves /tickets, /sponsors and their Spanish twins in their language, with the site headers', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      for (const path of [pages.tickets, pages.sponsors]) {
+        const { res, html } = await page(path);
+
+        expect(res.status, path).toBe(200);
+        expect(res.headers.get('content-type')).toMatch(/^text\/html/);
+        expect(html).toContain(`<html lang="${lang}">`);
+        expect(html).toContain(`<link rel="canonical" href="https://renaissance.rodeo${path}">`);
+        expect(res.headers.get('content-security-policy')).toBe(env.TEST_HEADERS_CSP);
+
+        for (const variant of [`${path}/`, `${path}.html`]) {
+          const moved = await call(new Request(`${ORIGIN}${variant}`, { redirect: 'manual' }));
+          expect(moved.status, variant).toBe(307);
+          expect(new URL(moved.headers.get('location'), ORIGIN).pathname, variant).toBe(path);
+        }
+      }
+    }
+  });
+
+  it('puts the same page links in the header and the footer of every page, marking only the current one', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      for (const [key, path] of Object.entries(pages)) {
+        const html = (await page(path)).html;
+
+        for (const open of ['<nav class="site"', '<nav class="foot-nav"']) {
+          const found = navLinks(html, open);
+          expect(found.map(({ href, text }) => [href, text]), `${path} ${open}`).toEqual(LINKS[lang]);
+          expect(found.filter((l) => l.current).map((l) => l.href), `${path} ${open}`).toEqual(
+            key === 'home' ? [] : [path]
+          );
+        }
+        const foot = block(html, '<nav class="foot-nav"', '</nav>');
+        expect(foot).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener">X</a>');
+        expect(foot).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a>');
+      }
+    }
+  });
+
+  it('starts every subpage header with the mark leading home, and switches language to the same page', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      for (const [key, path] of Object.entries(pages)) {
+        const html = (await page(path)).html;
+        const header = block(html, '<header class="top wrap">', '</header>');
+        const twin = PAGES[other(lang)][key];
+
+        if (key === 'home') {
+          expect(header, path).not.toContain('class="mark"');
+        } else {
+          expect(header, path).toMatch(
+            new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${pages.home}" aria-label="[^"]+"><img src="/img/mark.png"`)
+          );
+        }
+        expect(block(header, '<nav class="lang"', '</nav>'), path).toContain(`<a href="${twin}" lang="${other(lang)}"`);
+        expect(block(html, '<footer', '</footer>'), path).toContain(`<a href="${twin}" lang="${other(lang)}"`);
+      }
+    }
+  });
+
+  it('sends every outbound link on every page over https with rel="noopener"', async () => {
+    for (const path of ALL) {
+      const html = (await page(path)).html;
+      const outbound = [...html.matchAll(/<a href="(https?:[^"]*)"([^>]*)>/g)];
+
+      expect(outbound.length, path).toBeGreaterThan(0);
+      for (const [, href, attrs] of outbound) {
+        expect(href, path).toMatch(/^https:\/\//);
+        expect(attrs, `${path} ${href}`).toMatch(/rel="(me )?noopener"/);
+      }
+    }
+  });
+
+  it('carries the Turnstile sitekey on exactly the four signup pages: one key, never a test key', async () => {
+    const keys = {};
+    for (const path of ALL) {
+      const found = [...(await page(path)).html.matchAll(/data-sitekey="([^"]*)"/g)].map((m) => m[1]);
+      if (found.length > 0) keys[path] = found;
+    }
+
+    expect(Object.keys(keys).sort()).toEqual(['/', '/es/', '/es/tickets', '/tickets']);
+    const all = Object.values(keys).flat();
+    expect(all).toHaveLength(4);
+    // Replacing the key in some files only is the failure that hides: the widget renders either way.
+    expect(new Set(all).size).toBe(1);
+    // Cloudflare's documented test sitekeys start 1x0, 2x0 or 3x0 and pass (or fail) every visitor.
+    expect(all[0]).not.toMatch(/^[123]x0/);
+  });
+
+  it('gives the tickets pages "coming soon" and the home page signup form, word for word', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const home = (await page(pages.home)).html;
+      const html = (await page(pages.tickets)).html;
+
+      expect(html).toContain(lang === 'en' ? '<p class="soon">Coming soon</p>' : '<p class="soon">Próximamente</p>');
+      expect(html).toContain(`<form class="signup" method="post" action="/api/subscribe" data-lang="${lang}">`);
+      // Same fields, honeypot, widget and messages as the home page; only indentation differs.
+      expect(squash(block(html, '<form class="signup"', '</form>'))).toBe(squash(block(home, '<form class="signup"', '</form>')));
+      expect(block(html, '<p class="success" id="signup-ok"', '</p>')).toBe(block(home, '<p class="success" id="signup-ok"', '</p>'));
+      const i18n = (h) => JSON.parse(block(h, '<script type="application/json" id="signup-i18n">', '</script>').replace(/^<script[^>]*>|<\/script>$/g, ''));
+      expect(i18n(html)).toEqual(i18n(home));
+      // signup.js must run before the Turnstile loader resolves the callback names it defines.
+      expect(html).toContain('<script src="/signup.js" defer></script>');
+      expect(html.indexOf('<script src="/signup.js"')).toBeLessThan(html.indexOf('turnstile/v0/api.js'));
+    }
+  });
+
+  it('gives the sponsors pages the home page partner row and the sponsorship address', async () => {
+    for (const pages of Object.values(PAGES)) {
+      const home = (await page(pages.home)).html;
+      const html = (await page(pages.sponsors)).html;
+
+      expect(squash(block(html, '<ul class="partners">', '</ul>'))).toBe(squash(block(home, '<ul class="partners">', '</ul>')));
+      expect(html).toContain('<a href="mailto:sponsors@renaissance.rodeo">sponsors@renaissance.rodeo</a>');
+      expect(html).not.toContain('<script');
+    }
+  });
+
+  it('shows the team on both home pages: the same names, in the same order, as the team page', async () => {
+    const names = (h, re) => [...h.matchAll(re)].map((m) => m[1]);
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const home = (await page(pages.home)).html;
+      const strip = block(home, '<section class="team-strip"', '</section>');
+      const team = names((await page(pages.team)).html, /<h2 class="member-name">([^<]*)<\/h2>/g);
+
+      expect(team.length).toBeGreaterThan(0);
+      expect(names(strip, /<span class="strip-name">([^<]*)<\/span>/g)).toEqual(team);
+      for (const [, initials, name] of strip.matchAll(/<span class="avatar" aria-hidden="true">([^<]*)<\/span><span class="strip-name">([^<]*)<\/span>/g)) {
+        expect(initials, name).toBe(name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase());
+      }
+      expect(strip, lang).toContain(`<a href="${pages.team}">`);
+    }
+  });
+
+  it('lists every page in the sitemap', async () => {
+    const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
+    for (const path of ALL) expect(sitemap, path).toContain(`<loc>https://renaissance.rodeo${path}</loc>`);
   });
 });
