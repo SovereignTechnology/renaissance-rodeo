@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f7edd8">
+  <title>Boletos — Renaissance Rodeo</title>
+  <meta name="description" content="Los boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador, salen a la venta pronto. Únase a la lista de correo para enterarse primero.">
+  <link rel="canonical" href="https://renaissance.rodeo/es/tickets">
+  <link rel="alternate" hreflang="en" href="https://renaissance.rodeo/tickets">
+  <link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/tickets">
+  <link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/tickets">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Renaissance Rodeo">
+  <meta property="og:title" content="Boletos — Renaissance Rodeo">
+  <meta property="og:description" content="Los boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador, salen a la venta pronto. Únase a la lista de correo para enterarse primero.">
+  <meta property="og:url" content="https://renaissance.rodeo/es/tickets">
+  <meta property="og:image" content="https://renaissance.rodeo/img/og-es.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Renaissance Rodeo — 13 de noviembre de 2026, Ilopango, El Salvador">
+  <meta property="og:locale" content="es_LA">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@rodeo_sv">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/img/icon-512.png">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/style.css">
+  <!-- Ambos diferidos, así se ejecutan en el orden del documento: primero signup.js, porque el
+       cargador de Turnstile busca en window los nombres data-*-callback de abajo al dibujar el
+       widget y descarta en silencio los que no encuentra. -->
+  <script src="/signup.js" defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ir al contenido</a>
+
+  <header class="top wrap">
+    <a class="mark" href="/es/" aria-label="Inicio de Renaissance Rodeo"><img src="/img/mark.png" width="36" height="36" alt=""></a>
+    <nav class="site" aria-label="Páginas">
+      <ul>
+        <li><a href="/es/team">Equipo</a></li>
+        <li><a href="/es/tickets" aria-current="page">Boletos</a></li>
+        <li><a href="/es/sponsors">Patrocinadores</a></li>
+      </ul>
+    </nav>
+    <ul class="social">
+      <li><a href="https://x.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo en X"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a></li>
+      <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo en Instagram"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></li>
+    </ul>
+    <nav class="lang" aria-label="Idioma">
+      <span aria-current="page">ES</span>
+      <span class="sep" aria-hidden="true">|</span>
+      <a href="/tickets" lang="en" hreflang="en">EN</a>
+    </nav>
+  </header>
+
+  <!-- Los boletos aún no están a la venta (README, "The tickets page"). Mientras tanto esta página
+       es el registro a la lista de correo de la portada, palabra por palabra, y envía a la misma
+       lista. Cuando abra la venta, aquí va el enlace para comprar. -->
+  <main id="main" class="wrap page" tabindex="-1">
+    <h1>Boletos</h1>
+    <p class="soon">Próximamente</p>
+
+    <section id="signup" aria-labelledby="signup-h">
+      <h2 id="signup-h">Entérese primero</h2>
+      <p>Los boletos para el <time datetime="2026-11-13">13 de noviembre de 2026</time> en Ilopango salen a la venta pronto. Únase a la lista de correo y le escribiremos en cuanto estén disponibles.</p>
+      <form class="signup" method="post" action="/api/subscribe" data-lang="es">
+        <label for="email">Correo electrónico</label>
+        <div class="row">
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required maxlength="254" placeholder="nombre@ejemplo.com">
+          <button type="submit">Unirme a la lista</button>
+        </div>
+        <p class="fine">Sin spam. Puede darse de baja en cualquier momento.</p>
+        <!-- Honeypot. Se llama rr_ref y no como un campo de libreta de direcciones (empresa,
+             organización): el autocompletado los rellena y el Worker tomaría al visitante por un bot. -->
+        <input class="hp" type="text" name="rr_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <!-- La sitekey de producción de Turnstile. Está en exactamente cuatro archivos (/, /es/,
+             /tickets, /es/tickets) y las pruebas exigen que coincidan (README, "Turnstile"). -->
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAE_nBKxDHDJBj9OH" data-appearance="interaction-only" data-theme="light" data-size="flexible" data-language="es" data-action="subscribe" data-error-callback="rrTurnstileError" data-timeout-callback="rrTurnstileTimeout" data-expired-callback="rrTurnstileExpired"></div>
+        <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
+        <noscript><p class="msg">Para inscribirse se necesita JavaScript: la verificación antispam se ejecuta en su navegador. Actívelo y recargue la página.</p></noscript>
+      </form>
+      <!-- Texto de éxito con la doble confirmación (double opt-in) de MailerLite APAGADA.
+           Con ella ENCENDIDA, usar la cadena success_confirm del JSON de abajo. -->
+      <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>¡Ya está en la lista! Le escribiremos en cuanto haya novedades.</p>
+      <script type="application/json" id="signup-i18n">{
+        "sending": "Enviando…",
+        "invalid": "Ese correo electrónico no parece válido. Revíselo e intente de nuevo.",
+        "challenge_pending": "Complete primero la verificación antispam e intente de nuevo. Si no aparece, recargue la página.",
+        "challenge_failed": "No se superó la verificación antispam. Intente de nuevo.",
+        "rate_limited": "Demasiados intentos. Espere un minuto e intente de nuevo.",
+        "bad_origin": "La solicitud fue bloqueada. Recargue la página e intente de nuevo.",
+        "unavailable": "El registro no está disponible por el momento. Intente de nuevo en unos minutos.",
+        "server_error": "Algo salió mal de nuestro lado. Intente de nuevo en un momento.",
+        "network": "Sin conexión. Revise su red e intente de nuevo.",
+        "success_confirm": "Ya casi: revise su bandeja de entrada y confirme su correo electrónico."
+      }</script>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="foot">
+      <nav class="foot-nav" aria-label="Sitio">
+        <ul>
+          <li><a href="/es/team">Equipo</a></li>
+          <li><a href="/es/tickets" aria-current="page">Boletos</a></li>
+          <li><a href="/es/sponsors">Patrocinadores</a></li>
+          <li><a href="https://x.com/rodeo_sv" rel="me noopener">X</a></li>
+          <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a></li>
+        </ul>
+      </nav>
+      <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/tickets" lang="en" hreflang="en">English</a></p>
+    </div>
+  </footer>
+</body>
+</html>

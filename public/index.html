@@ -65,20 +65,22 @@
   </section>
 
   <header class="top wrap">
-    <div class="top-end">
-      <nav class="site" aria-label="Pages">
-        <a href="/team">Team</a>
-      </nav>
-      <ul class="social">
-        <li><a href="https://x.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo on X"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a></li>
-        <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo on Instagram"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></li>
+    <nav class="site" aria-label="Pages">
+      <ul>
+        <li><a href="/team">Team</a></li>
+        <li><a href="/tickets">Tickets</a></li>
+        <li><a href="/sponsors">Sponsors</a></li>
       </ul>
-      <nav class="lang" aria-label="Language">
-        <span aria-current="page">EN</span>
-        <span class="sep" aria-hidden="true">|</span>
-        <a href="/es/" lang="es" hreflang="es">ES</a>
-      </nav>
-    </div>
+    </nav>
+    <ul class="social">
+      <li><a href="https://x.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo on X"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a></li>
+      <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener" aria-label="Renaissance Rodeo on Instagram"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></li>
+    </ul>
+    <nav class="lang" aria-label="Language">
+      <span aria-current="page">EN</span>
+      <span class="sep" aria-hidden="true">|</span>
+      <a href="/es/" lang="es" hreflang="es">ES</a>
+    </nav>
   </header>
 
   <main id="main" class="wrap" tabindex="-1">
@@ -129,6 +131,20 @@
         </ul>
       </section>
 
+      <!-- The organizing team in brief: the same people, in the same order, as /team (tested). -->
+      <section class="team-strip" aria-labelledby="team-h">
+        <h2 id="team-h">The organizing team</h2>
+        <ul class="strip">
+          <li><span class="avatar" aria-hidden="true">J</span><span class="strip-name">James</span></li>
+          <li><span class="avatar" aria-hidden="true">ZD</span><span class="strip-name">Zack Dorsey</span></li>
+          <li><span class="avatar" aria-hidden="true">TT</span><span class="strip-name">Tom Taber</span></li>
+          <li><span class="avatar" aria-hidden="true">AH</span><span class="strip-name">Andrea Hernández Tobar</span></li>
+          <li><span class="avatar" aria-hidden="true">C</span><span class="strip-name">Cam</span></li>
+          <li><span class="avatar" aria-hidden="true">W</span><span class="strip-name">Will</span></li>
+        </ul>
+        <p class="strip-more"><a href="/team">Meet the team</a></p>
+      </section>
+
       <section id="signup" aria-labelledby="signup-h">
         <h2 id="signup-h">Be first to know</h2>
         <p>Venue, times and tickets will be announced to the mailing list first.</p>
@@ -142,8 +158,8 @@
           <!-- Honeypot. Named rr_ref, not like an address-book field (organisation and the
                like): browser autofill fills those and the Worker would read the visitor as a bot. -->
           <input class="hp" type="text" name="rr_ref" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <!-- Turnstile TEST sitekey (always passes). The launch MR replaces it here and in
-               /es/index.html — the only two files it may appear in. -->
+          <!-- The production Turnstile sitekey. It is in exactly four files (/, /es/, /tickets,
+               /es/tickets) and the tests require all four to match (README, "Turnstile"). -->
           <div class="cf-turnstile" data-sitekey="0x4AAAAAAE_nBKxDHDJBj9OH" data-appearance="interaction-only" data-theme="light" data-size="flexible" data-language="en" data-action="subscribe" data-error-callback="rrTurnstileError" data-timeout-callback="rrTurnstileTimeout" data-expired-callback="rrTurnstileExpired"></div>
           <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
           <noscript><p class="msg">Signing up needs JavaScript — the spam check runs in your browser. Enable it and reload.</p></noscript>
@@ -207,7 +223,18 @@
   </main>
 
   <footer class="wrap">
-    <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/" lang="es" hreflang="es">Español</a></p>
+    <div class="foot">
+      <nav class="foot-nav" aria-label="Site">
+        <ul>
+          <li><a href="/team">Team</a></li>
+          <li><a href="/tickets">Tickets</a></li>
+          <li><a href="/sponsors">Sponsors</a></li>
+          <li><a href="https://x.com/rodeo_sv" rel="me noopener">X</a></li>
+          <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a></li>
+        </ul>
+      </nav>
+      <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/" lang="es" hreflang="es">Español</a></p>
+    </div>
     <button type="button" class="intro-replay" hidden>View intro</button>
   </footer>
 
