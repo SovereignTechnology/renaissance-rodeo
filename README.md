@@ -104,10 +104,11 @@ and nothing is sent. `vars` live only in `wrangler.jsonc`: `wrangler deploy` rep
 plain-text bindings with the file's (`keep_vars` defaults to false), so a value typed into the
 dashboard is deleted by the next deploy.
 
-**Double opt-in is listmonk's.** The list is double opt-in, so listmonk mails the confirmation link
-itself. The request body is `{email, lists: [id], status: "enabled", attribs: {lang}}`, `lang` being
+**The list is single opt-in (Cameron, 2026-10-11).** listmonk sends no confirmation mail; an address
+added by the Worker receives the next campaign. Turnstile stops scripted signups, but nothing stops a
+person typing someone else's address. The request body is `{email, lists: [id], status: "enabled", attribs: {lang}}`, `lang` being
 `es` for signups from the Spanish pages and `en` otherwise, so Spanish campaigns can be targeted with
-a subscriber query. `preconfirm_subscriptions` is never sent (it would skip consent), and neither is
+a subscriber query. `preconfirm_subscriptions` is never sent (a single opt-in list does not need it), and neither is
 `name` (listmonk derives one).
 
 **Response mapping** (`src/index.js`): 200 and 409 (address already exists) → `{ok:true}`; 400 and

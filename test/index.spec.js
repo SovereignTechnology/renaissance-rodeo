@@ -638,7 +638,7 @@ describe('listmonk', () => {
       attribs: { lang: 'en' },
     });
     expect(typeof lm[0].body.lists[0]).toBe('number');
-    // Double opt-in is listmonk's: preconfirming would skip consent. And
+    // The list is single opt-in, so there is nothing to preconfirm. And
     // listmonk derives the name itself.
     expect(lm[0].body).not.toHaveProperty('preconfirm_subscriptions');
     expect(lm[0].body).not.toHaveProperty('name');
