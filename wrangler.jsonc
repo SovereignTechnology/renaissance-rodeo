@@ -41,12 +41,16 @@
   "observability": { "enabled": true },
 
   // Public configuration, not credentials — inert without the API token.
-  // LISTMONK_LIST_ID is the numeric id of the double opt-in list in listmonk
+  // LISTMONK_LIST_ID is the numeric id of the main list in listmonk
   // (news.renaissance.rodeo). Keep it QUOTED: the Worker accepts only a string
   // of 1–9 digits with no leading zero, and answers 503 (with a log line naming
   // the variable, never its value) on anything else, including a bare number.
+  // LISTMONK_LIST_ID_ES is the Spanish list ("Renaissance Rodeo (ES)"): a signup
+  // from a Spanish page goes there INSTEAD of the main list. Same shape rule;
+  // it must differ from LISTMONK_LIST_ID. Remove it and everyone joins the main list.
   "vars": {
-    "LISTMONK_LIST_ID": "2"
+    "LISTMONK_LIST_ID": "2",
+    "LISTMONK_LIST_ID_ES": "3"
   }
 
   // No secret is here, and none may be added to "vars": a vars entry with the

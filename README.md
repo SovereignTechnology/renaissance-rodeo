@@ -96,6 +96,7 @@ credentials, both Cloudflare secrets set only through `scripts/set-secret.sh` (s
 | `LISTMONK_API_TOKEN` | secret; sent as `Authorization: token rodeo-worker:<token>` | API token of a listmonk API user that may only manage subscribers |
 | `LISTMONK_WORKER_HEADER` | secret; sent as `x-rodeo-worker` | shared header the gateway in front of listmonk requires before anything reaches it |
 | `LISTMONK_LIST_ID` | `wrangler.jsonc` → `vars` (`"2"`) | public configuration, inert without the token |
+| `LISTMONK_LIST_ID_ES` | `wrangler.jsonc` → `vars` (`"3"`), optional | the Spanish list; same shape, must differ from `LISTMONK_LIST_ID` |
 
 `LISTMONK_LIST_ID` must be a **quoted string** matching `LIST_ID_RE = /^[1-9][0-9]{0,8}$/`
 (`src/index.js`); it is sent as a number once it passes. A missing token or header, or a missing or
@@ -106,7 +107,13 @@ dashboard is deleted by the next deploy.
 
 **The list is single opt-in (Cameron, 2026-10-11).** listmonk sends no confirmation mail; an address
 added by the Worker receives the next campaign. Turnstile stops scripted signups, but nothing stops a
-person typing someone else's address. The request body is `{email, lists: [id], status: "enabled", attribs: {lang}}`, `lang` being
+person typing someone else's address.
+
+**Two lists, disjoint (Cameron, 2026-10-11).** A signup from a Spanish page goes on "Renaissance Rodeo
+(ES)" (`LISTMONK_LIST_ID_ES`) *instead of* "Renaissance Rodeo" (`LISTMONK_LIST_ID`), so a campaign sent in
+each language reaches everyone once; pick both lists to reach everyone with one mail. Someone already
+subscribed who signs up again on the other language's page stays where they are (listmonk answers 409).
+The request body is `{email, lists: [id], status: "enabled", attribs: {lang}}`, `lang` being
 `es` for signups from the Spanish pages and `en` otherwise, so Spanish campaigns can be targeted with
 a subscriber query. `preconfirm_subscriptions` is never sent (a single opt-in list does not need it), and neither is
 `name` (listmonk derives one).
