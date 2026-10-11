@@ -154,9 +154,8 @@
           <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
           <noscript><p class="msg">Para inscribirse se necesita JavaScript: la verificación antispam se ejecuta en su navegador. Actívelo y recargue la página.</p></noscript>
         </form>
-        <!-- Texto de éxito con la doble confirmación (double opt-in) de MailerLite APAGADA.
-             Con ella ENCENDIDA, usar la cadena success_confirm del JSON de abajo. -->
-        <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>¡Ya está en la lista! Le escribiremos en cuanto haya novedades.</p>
+        <!-- Texto de éxito: la lista usa doble confirmación (listmonk envía un enlace para confirmar). -->
+        <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>Ya casi: revise su bandeja de entrada y confirme su correo electrónico.</p>
         <script type="application/json" id="signup-i18n">{
           "sending": "Enviando…",
           "invalid": "Ese correo electrónico no parece válido. Revíselo e intente de nuevo.",
