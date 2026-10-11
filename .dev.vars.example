@@ -8,7 +8,9 @@
 DEV_MODE=true
 # Cloudflare's documented ALWAYS-PASSES test secret. Not a credential.
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
-# A THROWAWAY MailerLite key, never the production one: `npm run dev` binds all
-# interfaces and DEV_MODE disables the test-secret refusal, so anyone who can
-# reach the dev port could push auto-passing signups into that account.
-# MAILERLITE_API_KEY=
+# Never the production listmonk token or gateway header: `npm run dev` binds
+# all interfaces and DEV_MODE disables the test-secret refusal, so anyone who
+# can reach the dev port could push auto-passing signups into the live list.
+# Leave them unset to exercise the form up to the 503 the Worker returns.
+# LISTMONK_API_TOKEN=
+# LISTMONK_WORKER_HEADER=

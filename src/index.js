@@ -2,22 +2,26 @@
  * Renaissance Rodeo — one Worker serving the static site plus the mailing-list API.
  *
  *   POST /api/subscribe   same-origin -> rate limit -> size cap -> honeypot
- *                         -> Turnstile -> email -> MailerLite -> {ok}
+ *                         -> Turnstile -> email -> listmonk -> {ok}
  *   everything else       the static assets in public/ (404.html for misses)
  *
  * Rules this file exists to enforce:
  *   1. The client-side email check in signup.js is a UX hint. This is the gate.
  *   2. Subscriber addresses never reach a log line or an error body.
  *   3. The response to a signup is identical whether or not the address was
- *      already on the list — and whether or not MailerLite refused it — so the
+ *      already on the list — and whether or not listmonk refused it — so the
  *      form cannot be used to test membership or list history.
  *   4. Every security control fails CLOSED. DEV_MODE relaxes two of them and is
  *      set only in .dev.vars, which is gitignored and never deployed; on a
  *      production hostname it is a config error and refuses signups outright.
- *   5. MailerLite is the ONLY copy of the list — there is no local store. So
- *      the MailerLite call is awaited and a failure is answered as a retryable
+ *   5. listmonk is the ONLY copy of the list — there is no local store. So
+ *      the listmonk call is awaited and a failure is answered as a retryable
  *      error: a background sync that quietly lost an address would be worse
  *      than an honest "try again in a minute".
+ *
+ * The list lives in listmonk at news.renaissance.rodeo; the unsubscribe link
+ * is in each campaign. The list is double opt-in: listmonk mails the
+ * confirmation itself, so this Worker only ever adds an unconfirmed address.
  */
 
 const SECURITY_HEADERS = {
@@ -61,13 +65,20 @@ const JSON_HEADERS = {
 /** Largest signup body we will even parse. A real one is a few hundred bytes. */
 const MAX_BODY_BYTES = 4096;
 
-const MAILERLITE_API = 'https://connect.mailerlite.com/api';
+const LISTMONK_API = 'https://news.renaissance.rodeo/api';
 
 /**
- * The MailerLite call is awaited (rule 5), so this bounds how long a signup
+ * The listmonk API user the token belongs to. It is a subscribers-only API
+ * user, so the token can add addresses and nothing else. Public: the token
+ * (LISTMONK_API_TOKEN) is the credential, not the name.
+ */
+const LISTMONK_API_USER = 'rodeo-worker';
+
+/**
+ * The listmonk call is awaited (rule 5), so this bounds how long a signup
  * can hang — after it the person sees a retryable error instead of a spinner.
  */
-const MAILERLITE_TIMEOUT_MS = 10_000;
+const LISTMONK_TIMEOUT_MS = 10_000;
 
 /**
  * Same idea for the siteverify hop before it. A timeout is a fetch error,
@@ -79,14 +90,15 @@ const TURNSTILE_TIMEOUT_MS = 10_000;
 const TEST_SECRET_RE = /^[123]x0{10}/;
 
 /**
- * MailerLite group ids are 18-digit numbers. Anything else — the placeholder
- * left in wrangler.jsonc, '0', a bare JSON number — is a config error, not a
- * group. It must not reach upstream, where it comes back as a 422 that reads
- * like a bad address. Strings only: String() of a number that JSON has already
- * rounded is a different group, silently.
+ * listmonk list ids are small positive integers. Anything else — '0', a
+ * placeholder, whitespace, a bare JSON number — is a config error, not a
+ * list. It must not reach upstream, where it comes back as a 400 that reads
+ * like a bad address (and a 400 is answered as success, rule 3). Strings
+ * only, so the var in wrangler.jsonc has exactly one accepted spelling; it is
+ * sent as a number once it has passed.
  */
-const GROUP_ID_RE = /^[1-9][0-9]{5,19}$/;
-const isGroupId = (value) => typeof value === 'string' && GROUP_ID_RE.test(value);
+const LIST_ID_RE = /^[1-9][0-9]{0,8}$/;
+const isListId = (value) => typeof value === 'string' && LIST_ID_RE.test(value);
 
 /**
  * Hostnames the site is ever served on for real. DEV_MODE reaching one of
@@ -234,108 +246,86 @@ async function readSubmission(request) {
   return null;
 }
 
-/**
- * The key names of a MailerLite 422 body's "errors" object and nothing else.
- * The VALUES quote the offending input — the subscriber's address — so they
- * never come out of here (rule 2). Never throws.
- */
-async function errorKeys(res) {
-  try {
-    const data = await res.json();
-    const errors = data?.errors;
-    if (!errors || typeof errors !== 'object') return 'none';
-    const keys = Object.keys(errors).filter((k) => /^[a-z0-9_.]{1,40}$/.test(k));
-    return keys.length > 0 ? keys.join(',') : 'none';
-  } catch {
-    return 'unparseable';
-  }
-}
+/** The one "try again later" body for every upstream and config failure. */
+const unavailable = () => json({ ok: false, error: 'unavailable' }, 503);
 
 /**
- * Upsert one address into MailerLite and turn its answer into ours. Never
- * throws, never logs the address, and reads the response body only on a 422
- * (see errorKeys).
+ * Add one address to the listmonk list and turn its answer into ours. Never
+ * throws, never logs the address, and never reads a response body: listmonk's
+ * error messages can quote the input, i.e. the address (rule 2), and nothing
+ * in a success body is needed.
  *
- * POST /subscribers is a non-destructive upsert: 201 for a new address, 200
- * for one MailerLite already knew. Both are "subscribed" to us (rule 3).
- *
- * `status` is deliberately NOT sent. With the account's "double opt-in for
- * API" toggle on, omitting it makes a NEW subscriber get the confirmation
- * email while an EXISTING active one is left alone; sending
- * status:"unconfirmed" would demote actives, and "active" would skip consent.
+ * The list is double opt-in, so listmonk mails the confirmation itself.
+ * `preconfirm_subscriptions` is deliberately NOT sent (true would skip
+ * consent), and neither is `name` (listmonk derives one from the address).
+ * `status: 'enabled'` is the subscriber's account state, not the list
+ * subscription's, which stays unconfirmed until the link is clicked.
  */
-async function subscribeToMailerLite(email, lang, env) {
-  // Group ids are 18-digit numbers that JSON would round, so they travel as
-  // strings. The main one was validated by the caller (isGroupId); the
-  // Spanish one is optional, so a malformed value is logged and skipped
-  // rather than taking every Spanish signup offline.
-  const groups = [env.MAILERLITE_GROUP_ID];
-  if (lang === 'es' && env.MAILERLITE_GROUP_ID_ES !== undefined) {
-    if (isGroupId(env.MAILERLITE_GROUP_ID_ES)) {
-      // Spanish-page signups ALSO join the Spanish group, so Spanish campaigns
-      // can be targeted without custom fields. Everyone is in the main group.
-      groups.push(env.MAILERLITE_GROUP_ID_ES);
-    } else {
-      console.error('MAILERLITE_GROUP_ID_ES is malformed (must be a quoted 18-digit id); ignoring it');
-    }
-  }
+async function subscribeToListmonk(email, lang, env) {
+  // Validated by the caller (isListId), so Number() is exact here.
+  const listId = Number(env.LISTMONK_LIST_ID);
 
   let res;
   try {
-    res = await fetch(`${MAILERLITE_API}/subscribers`, {
+    res = await fetch(`${LISTMONK_API}/subscribers`, {
       method: 'POST',
       headers: {
-        authorization: `Bearer ${env.MAILERLITE_API_KEY}`,
         'content-type': 'application/json',
         accept: 'application/json',
+        // The gateway in front of listmonk refuses any request without this
+        // shared header; the token below is what listmonk itself checks.
+        'x-rodeo-worker': env.LISTMONK_WORKER_HEADER,
+        authorization: `token ${LISTMONK_API_USER}:${env.LISTMONK_API_TOKEN}`,
       },
       // The address travels in the body, never the URL, so a fetch error
       // message (which quotes the URL) cannot carry it into a log line.
-      // resubscribe: typing your address into the form is consent, so an
-      // address that unsubscribed earlier comes back on the list instead of
-      // getting our "subscribed" while staying off it. MailerLite may still
-      // refuse (abuse prevention) — that is a 422, and a 422 is a success to
-      // the visitor, below.
-      body: JSON.stringify({ email, groups, resubscribe: true }),
-      signal: AbortSignal.timeout(MAILERLITE_TIMEOUT_MS),
+      // attribs.lang lets Spanish campaigns be targeted by a query.
+      body: JSON.stringify({ email, lists: [listId], status: 'enabled', attribs: { lang } }),
+      signal: AbortSignal.timeout(LISTMONK_TIMEOUT_MS),
     });
   } catch (err) {
-    console.error('mailerlite: network failure:', err?.message ?? 'unknown error');
-    return json({ ok: false, error: 'unavailable' }, 503);
+    console.error('listmonk: network failure:', err?.message ?? 'unknown error');
+    return unavailable();
   }
 
-  if (res.status === 200 || res.status === 201) {
+  if (res.status === 200) {
     return subscribed();
   }
-  if (res.status === 422) {
-    // MailerLite refused the address: a domain with no MX, say — or one the
-    // account has history with (blocked, junk, a refused resubscribe). The
-    // second kind is exactly what rule 3 forbids revealing, so this is the
-    // SUCCESS body, not a 400; the visitor loses only a message the
-    // client-side hint already gives. The body is read here and only here,
-    // and only the key names of its "errors" object reach the log — the
-    // values quote the offending input, i.e. the address (rule 2).
-    console.error(
-      `mailerlite: HTTP 422 (upstream refused the address); error keys: ${await errorKeys(res)}`
-    );
+  if (res.status === 409) {
+    // The address already exists in listmonk. Rule 3: the same answer as a
+    // new one.
+    return subscribed();
+  }
+  if (res.status === 400 || res.status === 422) {
+    // listmonk refused the address (its own validation, a blocklisted
+    // domain). The second kind is account history, exactly what rule 3
+    // forbids revealing, so this is the SUCCESS body. The body is NOT read:
+    // its message can quote the address (rule 2). Only the status is logged.
+    console.error(`listmonk: HTTP ${res.status} (upstream refused the address)`);
     return subscribed();
   }
   if (res.status === 401 || res.status === 403) {
-    // Wrong or revoked key. The person cannot fix this, so it is "unavailable"
-    // to them and a loud line for us.
-    console.error(`mailerlite: the API key was rejected (HTTP ${res.status})`);
-    return json({ ok: false, error: 'unavailable' }, 503);
+    // Wrong or revoked token, or the gateway header is wrong. The person
+    // cannot fix this, so it is "unavailable" to them and a loud line for us.
+    console.error(`listmonk: credentials or gateway header rejected (HTTP ${res.status})`);
+    return unavailable();
+  }
+  if (res.status === 404) {
+    // The gateway answers a request without the right shared header as if
+    // the API did not exist.
+    console.error('listmonk: the gateway refused the request (HTTP 404; worker header mismatch?)');
+    return unavailable();
   }
   if (res.status === 429) {
-    // 120 requests/min upstream. Only a plain number is echoed from the header.
+    // Only a plain number is echoed from the header.
     const retryAfter = res.headers.get('retry-after') ?? '';
     console.error(
-      `mailerlite: throttled; retry-after=${/^[0-9]{1,6}$/.test(retryAfter) ? retryAfter : '?'}`
+      `listmonk: throttled (HTTP 429); retry-after=${/^[0-9]{1,6}$/.test(retryAfter) ? retryAfter : '?'}`
     );
-    return json({ ok: false, error: 'unavailable' }, 503);
+    return unavailable();
   }
-  console.error(`mailerlite: HTTP ${res.status}`);
-  return json({ ok: false, error: 'unavailable' }, 503);
+  console.error(`listmonk: HTTP ${res.status}`);
+  return unavailable();
 }
 
 async function handleSubscribe(request, env, url) {
@@ -417,20 +407,23 @@ async function handleSubscribe(request, env, url) {
     return json({ ok: false, error: 'invalid' }, 400);
   }
 
-  // Both are needed to do anything at all. Checked after the challenge so an
-  // unverified post never learns which of them is missing.
-  if (!env.MAILERLITE_API_KEY) {
-    console.error('MAILERLITE_API_KEY is not configured; refusing signups');
-    return json({ ok: false, error: 'unavailable' }, 503);
+  // All three are needed to do anything at all. Checked after the challenge
+  // so an unverified post never learns which of them is missing. Each log
+  // line names the variable, never its value.
+  for (const name of ['LISTMONK_API_TOKEN', 'LISTMONK_WORKER_HEADER']) {
+    if (typeof env[name] !== 'string' || env[name] === '') {
+      console.error(`${name} is not configured; refusing signups`);
+      return unavailable();
+    }
   }
-  if (!isGroupId(env.MAILERLITE_GROUP_ID)) {
-    // Shape, not truthiness: the wrangler.jsonc placeholder, '0' and a bare
-    // number all pass a truthiness check and then come back from MailerLite
-    // as a 422 that blames the visitor. The value is never logged.
+  if (!isListId(env.LISTMONK_LIST_ID)) {
+    // Shape, not truthiness: '0', a placeholder and a bare number all pass a
+    // truthiness check and then come back from listmonk as a 400 that is
+    // answered as success — every signup silently lost.
     console.error(
-      `MAILERLITE_GROUP_ID is ${env.MAILERLITE_GROUP_ID === undefined ? 'not configured' : 'malformed (must be a quoted 18-digit id)'}; refusing signups`
+      `LISTMONK_LIST_ID is ${env.LISTMONK_LIST_ID === undefined ? 'not configured' : 'malformed (must be a quoted positive integer)'}; refusing signups`
     );
-    return json({ ok: false, error: 'unavailable' }, 503);
+    return unavailable();
   }
 
   // The form says which page it is on. Anything but exactly 'es' is English:
@@ -439,7 +432,7 @@ async function handleSubscribe(request, env, url) {
   const lang = payload.lang === 'es' ? 'es' : 'en';
 
   // Awaited on purpose — see rule 5.
-  return subscribeToMailerLite(email, lang, env);
+  return subscribeToListmonk(email, lang, env);
 }
 
 export default {

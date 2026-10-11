@@ -5,7 +5,8 @@ set +x   # first thing, before any line that could hold the value: `bash -x` wou
 # never in shell history, and never left only in Cloudflare (which is write-only).
 #
 #   scripts/set-secret.sh TURNSTILE_SECRET                          # prompts; what you type is not echoed
-#   scripts/set-secret.sh MAILERLITE_API_KEY --from-file ~/.rr-secret.abc123
+#   scripts/set-secret.sh LISTMONK_API_TOKEN --from-file ~/.rr-secret.abc123
+#   scripts/set-secret.sh LISTMONK_WORKER_HEADER
 #
 # Steps, each gated on the previous one:
 #   1. sudo -n /usr/local/bin/secret-store renaissance-rodeo-<kebab-name> <0600 temp file>
@@ -21,16 +22,17 @@ set +x   # first thing, before any line that could hold the value: `bash -x` wou
 set -euo pipefail
 umask 077
 
-usage()  { printf 'usage: %s TURNSTILE_SECRET|MAILERLITE_API_KEY [--from-file PATH]\n' "$0" >&2; exit 64; }
+usage()  { printf 'usage: %s TURNSTILE_SECRET|LISTMONK_API_TOKEN|LISTMONK_WORKER_HEADER [--from-file PATH]\n' "$0" >&2; exit 64; }
 refuse() { printf 'set-secret: refusing: %s\n' "$*" >&2; exit 77; }
 
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 
 name="${1:-}"; [ -n "$name" ] || usage
 case "$name" in                       # allow-list: the item name is derived, never typed
-  TURNSTILE_SECRET)   item=renaissance-rodeo-turnstile-secret ;;
-  MAILERLITE_API_KEY) item=renaissance-rodeo-mailerlite-api-key ;;
-  *) refuse "unknown secret name '$name' (TURNSTILE_SECRET or MAILERLITE_API_KEY)" ;;
+  TURNSTILE_SECRET)       item=renaissance-rodeo-turnstile-secret ;;
+  LISTMONK_API_TOKEN)     item=renaissance-rodeo-listmonk-api-token ;;
+  LISTMONK_WORKER_HEADER) item=renaissance-rodeo-listmonk-worker-header ;;
+  *) refuse "unknown secret name '$name' (TURNSTILE_SECRET, LISTMONK_API_TOKEN or LISTMONK_WORKER_HEADER)" ;;
 esac
 shift
 src=''
