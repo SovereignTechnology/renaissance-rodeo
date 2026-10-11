@@ -5,16 +5,18 @@ import worker from '../src/index.js';
 const ORIGIN = 'http://example.com';
 const API = `${ORIGIN}/api/subscribe`;
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-const MAILERLITE_URL = 'https://connect.mailerlite.com/api/subscribers';
+const LISTMONK_URL = 'https://news.renaissance.rodeo/api/subscribers';
 
 /** Cloudflare's documented always-passes Turnstile test secret. Not a credential. */
 const TEST_SECRET = '1x0000000000000000000000000000000AA';
 /** Shaped unlike a test secret so the test-secret refusal does not fire. Not a credential. */
 const FAKE_SECRET = 'unit-test-turnstile-secret-not-a-real-credential';
-const GROUP = '111111111111111111';
-const GROUP_ES = '222222222222222222';
-/** Mirrors GROUP_ID_RE in src/index.js: a quoted 18-digit MailerLite group id. */
-const GROUP_ID_RE = /^[1-9][0-9]{5,19}$/;
+/** Not credentials: shaped so a leak into a log line or body is easy to spot. */
+const FAKE_TOKEN = 'unit-test-listmonk-token-not-a-real-credential';
+const FAKE_HEADER = 'unit-test-worker-header-not-a-real-credential';
+const LIST = '2';
+/** Mirrors LIST_ID_RE in src/index.js: a quoted listmonk list id. */
+const LIST_ID_RE = /^[1-9][0-9]{0,8}$/;
 
 const SUCCESS = { ok: true, status: 'subscribed' };
 
@@ -52,7 +54,7 @@ const at = (host) => ({ url: `https://${host}/api/subscribe`, origin: `https://$
 
 const HOPEFUL = { email: 'hopeful@example.com', 'cf-turnstile-response': 'stub-token' };
 
-// Outbound calls. Turnstile posts FormData, MailerLite posts JSON; both go
+// Outbound calls. Turnstile posts FormData, listmonk gets JSON; both go
 // through the global fetch, which is replaced per test. Never let the stub
 // itself throw by accident: passesTurnstile catches fetch errors and fails
 // closed, so a broken stub would look exactly like a rejected challenge.
@@ -84,13 +86,13 @@ const reply = (payload, status = 200) =>
     headers: { 'content-type': 'application/json' },
   });
 
-/** Turnstile passes; MailerLite answers whatever `mailerlite()` returns. */
-function stubTurnstileThen(mailerlite) {
-  stubFetch((url) => (url === SITEVERIFY ? reply({ success: true }) : mailerlite()));
+/** Turnstile passes; listmonk answers whatever `listmonk()` returns. */
+function stubTurnstileThen(listmonk) {
+  stubFetch((url) => (url === SITEVERIFY ? reply({ success: true }) : listmonk()));
 }
 
 const turnstileCalls = () => calls.filter((c) => c.url === SITEVERIFY);
-const mailerliteCalls = () => calls.filter((c) => c.url.startsWith('https://connect.mailerlite.com'));
+const listmonkCalls = () => calls.filter((c) => c.url.startsWith('https://news.renaissance.rodeo/'));
 
 /**
  * Rule 2 in src/index.js: a subscriber address never reaches a log line. Every
@@ -106,12 +108,13 @@ function expectLogWithoutAddress(spy) {
   expect(logged(spy)).not.toMatch(/hopeful|@/);
 }
 
-/** Everything a real signup needs: .dev.vars' two values plus a fake key and group. */
+/** Everything a real signup needs: .dev.vars' two values plus a fake token, header and list. */
 function configure() {
   env.DEV_MODE = 'true';
   env.TURNSTILE_SECRET = TEST_SECRET;
-  env.MAILERLITE_API_KEY = 'fake-key-for-tests';
-  env.MAILERLITE_GROUP_ID = GROUP;
+  env.LISTMONK_API_TOKEN = FAKE_TOKEN;
+  env.LISTMONK_WORKER_HEADER = FAKE_HEADER;
+  env.LISTMONK_LIST_ID = LIST;
 }
 
 const realLimiter = env.SUBSCRIBE_LIMIT;
@@ -122,9 +125,9 @@ beforeEach(() => {
   // file exists. Every test starts from nothing and sets only what it proves.
   delete env.DEV_MODE;
   delete env.TURNSTILE_SECRET;
-  delete env.MAILERLITE_API_KEY;
-  delete env.MAILERLITE_GROUP_ID;
-  delete env.MAILERLITE_GROUP_ID_ES;
+  delete env.LISTMONK_API_TOKEN;
+  delete env.LISTMONK_WORKER_HEADER;
+  delete env.LISTMONK_LIST_ID;
   if (realLimiter === undefined) delete env.SUBSCRIBE_LIMIT;
   else env.SUBSCRIBE_LIMIT = realLimiter;
   env.ASSETS = realAssets;
@@ -152,20 +155,19 @@ describe('wrangler.jsonc guard', () => {
     expect(typeof env.TEST_WRANGLER_VAR_KEYS).toBe('string');
     const keys = JSON.parse(env.TEST_WRANGLER_VAR_KEYS);
     expect(Array.isArray(keys)).toBe(true);
-    for (const forbidden of ['DEV_MODE', 'TURNSTILE_SECRET', 'MAILERLITE_API_KEY', 'MAILERLITE_WEBHOOK_SECRET']) {
+    for (const forbidden of ['DEV_MODE', 'TURNSTILE_SECRET', 'LISTMONK_API_TOKEN', 'LISTMONK_WORKER_HEADER']) {
       expect(keys, `${forbidden} must never be a var`).not.toContain(forbidden);
     }
   });
 
-  it('has every configured group id as a quoted 18-digit id — the placeholder fails', () => {
-    const ids = JSON.parse(env.TEST_WRANGLER_GROUP_IDS);
-    expect(Object.keys(ids).sort()).toEqual(['MAILERLITE_GROUP_ID', 'MAILERLITE_GROUP_ID_ES']);
-    for (const [name, value] of Object.entries(ids)) {
-      // Absent is the committed state: the whole vars block is a comment.
-      if (value === null) continue;
-      expect(typeof value, `${name} must be a quoted string`).toBe('string');
-      expect(value, `${name} is not a real group id (still the placeholder?)`).toMatch(GROUP_ID_RE);
-    }
+  it('configures LISTMONK_LIST_ID as a quoted positive integer', () => {
+    // Guard the guard: an absent binding would mean the config read failed.
+    expect(typeof env.TEST_WRANGLER_LIST_ID).toBe('string');
+    const id = JSON.parse(env.TEST_WRANGLER_LIST_ID);
+    // Required: without it every signup is a 503.
+    expect(id, 'LISTMONK_LIST_ID must be set in vars').not.toBeNull();
+    expect(typeof id, 'LISTMONK_LIST_ID must be a quoted string').toBe('string');
+    expect(id, 'LISTMONK_LIST_ID is not a list id').toMatch(LIST_ID_RE);
   });
 
   it('turns workers_dev off once routes are set', () => {
@@ -251,23 +253,23 @@ describe('request gate', () => {
         throw new Error('limiter down');
       },
     };
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
     const res = await call(signup(HOPEFUL));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(SUCCESS);
-    expect(mailerliteCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(1);
   });
 
   it('lets the signup through when the rate limiter binding is missing', async () => {
     configure();
     delete env.SUBSCRIBE_LIMIT;
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
     const res = await call(signup(HOPEFUL));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(SUCCESS);
-    expect(mailerliteCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(1);
   });
 
   it('refuses a body over the size cap without parsing it', async () => {
@@ -349,7 +351,7 @@ describe('DEV_MODE production guard', () => {
     it(`refuses signups with 503 when DEV_MODE is set on ${host}`, async () => {
       configure();
       const spy = watchErrorLog();
-      stubTurnstileThen(() => reply({}, 201));
+      stubTurnstileThen(() => reply({}, 200));
       const res = await call(signup(HOPEFUL, at(host)));
 
       expect(res.status).toBe(503);
@@ -363,12 +365,12 @@ describe('DEV_MODE production guard', () => {
 
   it('still relaxes the checks on a non-production hostname', async () => {
     configure();
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
     const res = await call(signup(HOPEFUL));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(SUCCESS);
-    expect(mailerliteCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(1);
   });
 
   it('does not fire on a production hostname when DEV_MODE is off', async () => {
@@ -376,19 +378,20 @@ describe('DEV_MODE production guard', () => {
     delete env.DEV_MODE;
     env.TURNSTILE_SECRET = FAKE_SECRET;
     stubFetch((url) =>
-      url === SITEVERIFY ? reply({ success: true, hostname: 'renaissance.rodeo' }) : reply({}, 201)
+      url === SITEVERIFY ? reply({ success: true, hostname: 'renaissance.rodeo' }) : reply({}, 200)
     );
     const res = await call(signup(HOPEFUL, at('renaissance.rodeo')));
 
     expect(res.status).toBe(200);
-    expect(mailerliteCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(1);
   });
 });
 
 describe('Turnstile fails closed', () => {
   it('returns 503 when TURNSTILE_SECRET is unset', async () => {
-    env.MAILERLITE_API_KEY = 'fake-key-for-tests';
-    env.MAILERLITE_GROUP_ID = GROUP;
+    env.LISTMONK_API_TOKEN = FAKE_TOKEN;
+    env.LISTMONK_WORKER_HEADER = FAKE_HEADER;
+    env.LISTMONK_LIST_ID = LIST;
     const res = await call(signup(HOPEFUL));
 
     expect(res.status).toBe(503);
@@ -420,7 +423,7 @@ describe('Turnstile fails closed', () => {
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ ok: false, error: 'challenge_failed' });
     expect(turnstileCalls()).toHaveLength(1);
-    expect(mailerliteCalls()).toHaveLength(0);
+    expect(listmonkCalls()).toHaveLength(0);
     // Only Cloudflare-shaped codes get through; the free-text one is dropped.
     expect(logged(spy)).toContain('turnstile siteverify rejected the token: invalid-input-response');
     expect(logged(spy)).not.toContain('bad value');
@@ -449,7 +452,7 @@ describe('Turnstile fails closed', () => {
 
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ ok: false, error: 'challenge_failed' });
-    expect(mailerliteCalls()).toHaveLength(0);
+    expect(listmonkCalls()).toHaveLength(0);
     expect(logged(spy)).toContain('turnstile siteverify HTTP 502');
     expect(logged(spy)).not.toContain('must-not-be-logged');
     expectLogWithoutAddress(spy);
@@ -478,7 +481,7 @@ describe('Turnstile fails closed', () => {
     expect(calls).toHaveLength(0);
 
     // The boundary itself is verified, so the cap is exactly where it says.
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
     const edge = await call(
       signup({ email: 'hopeful@example.com', 'cf-turnstile-response': 'x'.repeat(2048) })
     );
@@ -493,28 +496,28 @@ describe('Turnstile fails closed', () => {
     const spy = watchErrorLog();
 
     stubFetch((url) =>
-      url === SITEVERIFY ? reply({ success: true, hostname: 'evil.test' }) : reply({}, 201)
+      url === SITEVERIFY ? reply({ success: true, hostname: 'evil.test' }) : reply({}, 200)
     );
     const elsewhere = await call(signup(HOPEFUL));
     expect(elsewhere.status).toBe(403);
     expect(await elsewhere.json()).toEqual({ ok: false, error: 'challenge_failed' });
-    expect(mailerliteCalls()).toHaveLength(0);
+    expect(listmonkCalls()).toHaveLength(0);
 
     // No hostname at all is a mismatch too: the check must fail closed, not
     // vanish, if siteverify ever stops sending the field.
-    stubFetch((url) => (url === SITEVERIFY ? reply({ success: true }) : reply({}, 201)));
+    stubFetch((url) => (url === SITEVERIFY ? reply({ success: true }) : reply({}, 200)));
     const nowhere = await call(signup(HOPEFUL));
     expect(nowhere.status).toBe(403);
     expect(await nowhere.json()).toEqual({ ok: false, error: 'challenge_failed' });
-    expect(mailerliteCalls()).toHaveLength(0);
+    expect(listmonkCalls()).toHaveLength(0);
     expectLogWithoutAddress(spy);
 
     stubFetch((url) =>
-      url === SITEVERIFY ? reply({ success: true, hostname: 'example.com' }) : reply({}, 201)
+      url === SITEVERIFY ? reply({ success: true, hostname: 'example.com' }) : reply({}, 200)
     );
     const here = await call(signup(HOPEFUL));
     expect(here.status).toBe(200);
-    expect(mailerliteCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(1);
   });
 });
 
@@ -522,80 +525,97 @@ describe('email validation', () => {
   it('returns 400 on a bad address only after Turnstile has passed', async () => {
     configure();
     for (const email of ['not-an-email', 'two@@example.com', 'a@b', 'x y@example.com', '']) {
-      stubTurnstileThen(() => reply({}, 201));
+      stubTurnstileThen(() => reply({}, 200));
       const res = await call(signup({ email, 'cf-turnstile-response': 'stub-token' }));
 
       expect(res.status).toBe(400);
       expect(await res.json()).toEqual({ ok: false, error: 'invalid' });
       // The challenge is checked first, so a bad address still costs a
-      // solved challenge — and MailerLite never hears about it.
+      // solved challenge — and listmonk never hears about it.
       expect(turnstileCalls()).toHaveLength(1);
-      expect(mailerliteCalls()).toHaveLength(0);
+      expect(listmonkCalls()).toHaveLength(0);
     }
   });
 });
 
-describe('group id shape', () => {
+describe('list id shape', () => {
   // Truthiness is not a check: every one of these is truthy and every one is
-  // wrong. Upstream they would come back as a 422 that blames the visitor.
+  // wrong. Upstream they would come back as a 400, which is answered as
+  // success (rule 3) — every signup silently lost.
   for (const [label, value] of [
     ["'0'", '0'],
-    ['the old all-zero placeholder', '000000000000000000'],
-    ['the wrangler.jsonc placeholder', 'REPLACE_WITH_18_DIGIT_GROUP_ID'],
-    ['a whitespace-padded id', ` ${GROUP} `],
-    ['a small JSON number', 123],
-    ['an 18-digit JSON number', 123456789012345678],
+    ['a leading zero', '02'],
+    ['a whitespace-padded id', ` ${LIST} `],
+    ['a placeholder', 'REPLACE_WITH_LIST_ID'],
+    ['a ten-digit id', '1234567890'],
+    ['a negative id', '-2'],
+    ['a bare JSON number', 2],
   ]) {
-    it(`refuses MAILERLITE_GROUP_ID = ${label} with 503 and no MailerLite call`, async () => {
+    it(`refuses LISTMONK_LIST_ID = ${label} with 503 and no listmonk call`, async () => {
       configure();
-      env.MAILERLITE_GROUP_ID = value;
+      env.LISTMONK_LIST_ID = value;
       const spy = watchErrorLog();
-      stubTurnstileThen(() => reply({}, 201));
+      stubTurnstileThen(() => reply({}, 200));
       const res = await call(signup(HOPEFUL));
 
       expect(res.status).toBe(503);
       expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
       expect(turnstileCalls()).toHaveLength(1);
-      expect(mailerliteCalls()).toHaveLength(0);
-      expect(logged(spy)).toContain('MAILERLITE_GROUP_ID is malformed');
+      expect(listmonkCalls()).toHaveLength(0);
+      expect(logged(spy)).toContain('LISTMONK_LIST_ID is malformed');
       // The var is named, its value is not.
-      if (String(value).length > 3) expect(logged(spy)).not.toContain(String(value).trim());
+      if (String(value).trim().length > 3) expect(logged(spy)).not.toContain(String(value).trim());
       expectLogWithoutAddress(spy);
     });
   }
 
-  it('ignores a malformed MAILERLITE_GROUP_ID_ES, logs it, and still sends the main group', async () => {
+  it('returns 503 when LISTMONK_LIST_ID is unset, after the challenge and before any call', async () => {
     configure();
-    env.MAILERLITE_GROUP_ID_ES = 'REPLACE_WITH_18_DIGIT_GROUP_ID';
+    delete env.LISTMONK_LIST_ID;
     const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({}, 201));
-    const res = await call(signup({ ...HOPEFUL, lang: 'es' }));
+    stubTurnstileThen(() => reply({}, 200));
+    const res = await call(signup(HOPEFUL));
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual(SUCCESS);
-    expect(mailerliteCalls()[0].body.groups).toEqual([GROUP]);
-    expect(logged(spy)).toContain('MAILERLITE_GROUP_ID_ES is malformed');
-    expect(logged(spy)).not.toContain('REPLACE_WITH');
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+    expect(turnstileCalls()).toHaveLength(1);
+    expect(listmonkCalls()).toHaveLength(0);
+    expect(logged(spy)).toContain('LISTMONK_LIST_ID is not configured');
     expectLogWithoutAddress(spy);
-  });
-
-  it('sends a number-typed MAILERLITE_GROUP_ID_ES nowhere, not even stringified', async () => {
-    configure();
-    env.MAILERLITE_GROUP_ID_ES = 222222222222222222;
-    const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({}, 201));
-    const res = await call(signup({ ...HOPEFUL, lang: 'es' }));
-
-    expect(res.status).toBe(200);
-    expect(mailerliteCalls()[0].body.groups).toEqual([GROUP]);
-    expect(logged(spy)).toContain('MAILERLITE_GROUP_ID_ES is malformed');
   });
 });
 
-describe('MailerLite', () => {
-  it('makes exactly one POST with the normalised address, the group, resubscribe and no status', async () => {
+describe('listmonk credentials', () => {
+  for (const name of ['LISTMONK_API_TOKEN', 'LISTMONK_WORKER_HEADER']) {
+    for (const [label, apply] of [
+      ['unset', () => delete env[name]],
+      ['empty', () => (env[name] = '')],
+    ]) {
+      it(`returns 503 when ${name} is ${label}, after the challenge and before any call`, async () => {
+        configure();
+        apply();
+        const spy = watchErrorLog();
+        stubTurnstileThen(() => reply({}, 200));
+        const res = await call(signup(HOPEFUL));
+
+        expect(res.status).toBe(503);
+        expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+        expect(turnstileCalls()).toHaveLength(1);
+        expect(listmonkCalls()).toHaveLength(0);
+        expect(logged(spy)).toContain(`${name} is not configured`);
+        // Named, never valued: the other credential must not leak either.
+        expect(logged(spy)).not.toContain(FAKE_TOKEN);
+        expect(logged(spy)).not.toContain(FAKE_HEADER);
+        expectLogWithoutAddress(spy);
+      });
+    }
+  }
+});
+
+describe('listmonk', () => {
+  it('makes exactly one POST with the normalised address, the list as a number, status enabled and lang', async () => {
     configure();
-    stubTurnstileThen(() => reply({ data: { id: '1' } }, 201));
+    stubTurnstileThen(() => reply({ data: { id: 1 } }, 200));
 
     const res = await call(
       signup({ email: '  NewPerson@Example.COM ', lang: 'en', 'cf-turnstile-response': 'stub-token' })
@@ -604,75 +624,84 @@ describe('MailerLite', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(SUCCESS);
 
-    const ml = mailerliteCalls();
-    expect(ml).toHaveLength(1);
-    expect(ml[0].method).toBe('POST');
-    expect(ml[0].url).toBe(MAILERLITE_URL);
+    const lm = listmonkCalls();
+    expect(lm).toHaveLength(1);
+    expect(lm[0].method).toBe('POST');
+    expect(lm[0].url).toBe(LISTMONK_URL);
     // The address must never appear in the URL — a fetch error message carries
     // the URL straight into Workers Logs.
-    expect(ml[0].url).not.toContain('@');
-    expect(ml[0].headers.authorization).toBe('Bearer fake-key-for-tests');
-    expect(ml[0].headers['content-type']).toBe('application/json');
-    expect(ml[0].body).toEqual({ email: 'newperson@example.com', groups: [GROUP], resubscribe: true });
-    // `status` is deliberately absent (double opt-in is decided upstream).
-    expect(ml[0].body).not.toHaveProperty('status');
-    expect(typeof ml[0].body.groups[0]).toBe('string');
+    expect(lm[0].url).not.toContain('@');
+    expect(lm[0].body).toEqual({
+      email: 'newperson@example.com',
+      lists: [2],
+      status: 'enabled',
+      attribs: { lang: 'en' },
+    });
+    expect(typeof lm[0].body.lists[0]).toBe('number');
+    // Double opt-in is listmonk's: preconfirming would skip consent. And
+    // listmonk derives the name itself.
+    expect(lm[0].body).not.toHaveProperty('preconfirm_subscriptions');
+    expect(lm[0].body).not.toHaveProperty('name');
+  });
+
+  it('sends the gateway header, the token for the rodeo-worker API user, and JSON headers', async () => {
+    configure();
+    stubTurnstileThen(() => reply({}, 200));
+    const res = await call(signup(HOPEFUL));
+
+    expect(res.status).toBe(200);
+    const { headers } = listmonkCalls()[0];
+    expect(headers['x-rodeo-worker']).toBe(FAKE_HEADER);
+    expect(headers.authorization).toBe(`token rodeo-worker:${FAKE_TOKEN}`);
+    expect(headers['content-type']).toBe('application/json');
+    expect(headers.accept).toBe('application/json');
   });
 
   it('accepts a JSON body the same way as a form post', async () => {
     configure();
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
 
     const res = await call(
       signup({ email: 'Json@Example.com', 'cf-turnstile-response': 'stub-token' }, { contentType: 'application/json' })
     );
 
     expect(res.status).toBe(200);
-    expect(mailerliteCalls()[0].body).toEqual({ email: 'json@example.com', groups: [GROUP], resubscribe: true });
+    expect(listmonkCalls()[0].body).toEqual({
+      email: 'json@example.com',
+      lists: [2],
+      status: 'enabled',
+      attribs: { lang: 'en' },
+    });
   });
 
-  it('adds the Spanish group for lang=es when it is configured', async () => {
+  it('sends attribs.lang "es" for lang=es', async () => {
     configure();
-    env.MAILERLITE_GROUP_ID_ES = GROUP_ES;
-    stubTurnstileThen(() => reply({}, 201));
+    stubTurnstileThen(() => reply({}, 200));
 
     const res = await call(signup({ ...HOPEFUL, lang: 'es' }));
 
     expect(res.status).toBe(200);
-    expect(mailerliteCalls()[0].body.groups).toEqual([GROUP, GROUP_ES]);
-  });
-
-  it('adds nothing for lang=es when the Spanish group is unset', async () => {
-    configure();
-    const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({}, 201));
-
-    const res = await call(signup({ ...HOPEFUL, lang: 'es' }));
-
-    expect(res.status).toBe(200);
-    expect(mailerliteCalls()[0].body.groups).toEqual([GROUP]);
-    // Unset is not malformed: an optional var that is simply absent is quiet.
-    expect(spy).not.toHaveBeenCalled();
+    expect(listmonkCalls()[0].body.attribs).toEqual({ lang: 'es' });
+    expect(listmonkCalls()[0].body.lists).toEqual([2]);
   });
 
   it('treats anything but exactly "es" as English', async () => {
     configure();
-    env.MAILERLITE_GROUP_ID_ES = GROUP_ES;
     for (const lang of ['ES', 'es-SV', 'fr', '', undefined]) {
-      stubTurnstileThen(() => reply({}, 201));
+      stubTurnstileThen(() => reply({}, 200));
       const fields = lang === undefined ? HOPEFUL : { ...HOPEFUL, lang };
       const res = await call(signup(fields));
 
       expect(res.status).toBe(200);
-      expect(mailerliteCalls()[0].body.groups).toEqual([GROUP]);
+      expect(listmonkCalls()[0].body.attribs).toEqual({ lang: 'en' });
     }
   });
 
-  it('answers byte-identically for a new (201) and an existing (200) address', async () => {
+  it('answers byte-identically for a new address (200) and an existing one (409)', async () => {
     configure();
-    stubTurnstileThen(() => reply({ data: { id: '1', status: 'unconfirmed' } }, 201));
+    stubTurnstileThen(() => reply({ data: { id: 1 } }, 200));
     const created = await call(signup(HOPEFUL));
-    stubTurnstileThen(() => reply({ data: { id: '1', status: 'active' } }, 200));
+    stubTurnstileThen(() => reply({ message: 'E-mail already exists.' }, 409));
     const existing = await call(signup(HOPEFUL));
 
     expect(created.status).toBe(200);
@@ -680,64 +709,62 @@ describe('MailerLite', () => {
     expect(await existing.text()).toBe(await created.text());
   });
 
-  it('answers a 422 with the same success body as a 201, logging only the error keys', async () => {
-    // Rule 3: MailerLite may 422 for account-state reasons (blocked, junk, a
-    // refused resubscribe), so a visible difference would be a list-history
-    // oracle. The body is the byte-identical success; the log names the keys
-    // of the upstream "errors" object and never their values.
+  for (const status of [400, 422]) {
+    it(`answers a ${status} with the same success body as a 200, never reading or logging the upstream body`, async () => {
+      // Rule 3: listmonk may refuse an address for account-state reasons (a
+      // blocklisted domain), so a visible difference would be a list-history
+      // oracle. Rule 2: its message can quote the address, so the body is
+      // not read at all — only the status reaches the log.
+      configure();
+      const spy = watchErrorLog();
+      stubTurnstileThen(() => reply({ data: { id: 1 } }, 200));
+      const created = await call(signup(HOPEFUL));
+
+      let upstream;
+      stubTurnstileThen(() => {
+        upstream = reply({ message: 'Invalid email: hopeful@example.com is not deliverable.' }, status);
+        return upstream;
+      });
+      const refused = await call(signup(HOPEFUL));
+
+      expect(refused.status).toBe(200);
+      const text = await refused.text();
+      expect(JSON.parse(text)).toEqual(SUCCESS);
+      expect(text).toBe(await created.text());
+      expect(text).not.toContain('deliverable');
+      expect(upstream.bodyUsed, 'the listmonk error body must never be read').toBe(false);
+      expect(logged(spy)).toContain(`listmonk: HTTP ${status} (upstream refused the address)`);
+      expect(logged(spy)).not.toContain('deliverable');
+      expectLogWithoutAddress(spy);
+    });
+  }
+
+  for (const status of [401, 403]) {
+    it(`maps a rejected token or gateway header (${status}) to 503`, async () => {
+      configure();
+      const spy = watchErrorLog();
+      stubTurnstileThen(() => reply({ message: 'invalid API credentials' }, status));
+      const res = await call(signup(HOPEFUL));
+
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+      expect(logged(spy)).toContain(`listmonk: credentials or gateway header rejected (HTTP ${status})`);
+      expect(logged(spy)).not.toContain(FAKE_TOKEN);
+      expect(logged(spy)).not.toContain(FAKE_HEADER);
+      expectLogWithoutAddress(spy);
+    });
+  }
+
+  it('maps a gateway refusal (404) to 503', async () => {
     configure();
     const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({ data: { id: '1' } }, 201));
-    const created = await call(signup(HOPEFUL));
-
-    stubTurnstileThen(() =>
-      reply(
-        {
-          message: 'The email must be a valid email address.',
-          errors: { email: ['The email hopeful@example.com is not deliverable.'] },
-        },
-        422
-      )
-    );
-    const refused = await call(signup(HOPEFUL));
-
-    expect(refused.status).toBe(200);
-    const text = await refused.text();
-    expect(JSON.parse(text)).toEqual(SUCCESS);
-    expect(text).toBe(await created.text());
-    expect(text).not.toContain('hopeful');
-    expect(text).not.toContain('deliverable');
-    expect(logged(spy)).toContain('mailerlite: HTTP 422 (upstream refused the address); error keys: email');
-    expect(logged(spy)).not.toContain('deliverable');
-    expectLogWithoutAddress(spy);
-  });
-
-  it('logs "none" for a 422 whose keys are not MailerLite-shaped, and survives a non-JSON 422', async () => {
-    configure();
-    const spy = watchErrorLog();
-    stubTurnstileThen(() =>
-      reply({ errors: { 'hopeful@example.com': ['x'], 'Bad Key': ['y'] } }, 422)
-    );
-    const odd = await call(signup(HOPEFUL));
-    expect(odd.status).toBe(200);
-    expect(logged(spy)).toContain('error keys: none');
-
-    stubTurnstileThen(() => new Response('<html>not json</html>', { status: 422 }));
-    const html = await call(signup(HOPEFUL));
-    expect(html.status).toBe(200);
-    expect(await html.json()).toEqual(SUCCESS);
-    expect(logged(spy)).toContain('error keys: unparseable');
-    expectLogWithoutAddress(spy);
-  });
-
-  it('maps a rejected key (401) to 503', async () => {
-    configure();
-    const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({ message: 'Unauthenticated.' }, 401));
+    stubTurnstileThen(() => new Response('Not Found', { status: 404 }));
     const res = await call(signup(HOPEFUL));
 
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+    expect(logged(spy)).toContain('listmonk: the gateway refused the request');
+    expect(logged(spy)).not.toContain(FAKE_HEADER);
     expectLogWithoutAddress(spy);
   });
 
@@ -745,7 +772,7 @@ describe('MailerLite', () => {
     configure();
     const spy = watchErrorLog();
     stubTurnstileThen(
-      () => new Response('{"message":"Too Many Attempts."}', { status: 429, headers: { 'retry-after': '30' } })
+      () => new Response('{"message":"Too many requests"}', { status: 429, headers: { 'retry-after': '30' } })
     );
     const res = await call(signup(HOPEFUL));
 
@@ -760,7 +787,7 @@ describe('MailerLite', () => {
     const spy = watchErrorLog();
     stubTurnstileThen(
       () =>
-        new Response('{"message":"Too Many Attempts."}', {
+        new Response('{"message":"Too many requests"}', {
           status: 429,
           headers: { 'retry-after': 'hopeful@example.com' },
         })
@@ -780,6 +807,7 @@ describe('MailerLite', () => {
 
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+    expect(logged(spy)).toContain('listmonk: HTTP 500');
     expectLogWithoutAddress(spy);
   });
 
@@ -793,32 +821,8 @@ describe('MailerLite', () => {
 
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
+    expect(logged(spy)).toContain('listmonk: network failure: Network connection lost.');
     expectLogWithoutAddress(spy);
-  });
-
-  it('returns 503 when MAILERLITE_GROUP_ID is unset, after the challenge and before any call', async () => {
-    configure();
-    delete env.MAILERLITE_GROUP_ID;
-    const spy = watchErrorLog();
-    stubTurnstileThen(() => reply({}, 201));
-    const res = await call(signup(HOPEFUL));
-
-    expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
-    expect(turnstileCalls()).toHaveLength(1);
-    expect(mailerliteCalls()).toHaveLength(0);
-    expect(logged(spy)).toContain('MAILERLITE_GROUP_ID is not configured');
-  });
-
-  it('returns 503 when MAILERLITE_API_KEY is unset, before any call', async () => {
-    configure();
-    delete env.MAILERLITE_API_KEY;
-    stubTurnstileThen(() => reply({}, 201));
-    const res = await call(signup(HOPEFUL));
-
-    expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ ok: false, error: 'unavailable' });
-    expect(mailerliteCalls()).toHaveLength(0);
   });
 });
 

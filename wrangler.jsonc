@@ -40,23 +40,13 @@
 
   "observability": { "enabled": true },
 
-  // Public configuration, not credentials — inert without the API key.
-  // MailerLite group ids are 18-digit numbers: keep them QUOTED, a JSON number
-  // loses precision. MAILERLITE_GROUP_ID is required (the Worker answers 503
-  // without it); MAILERLITE_GROUP_ID_ES is optional — Spanish-page signups
-  // join it in addition to the main group, so Spanish campaigns can be
-  // targeted without custom fields.
-  //
-  // The Worker checks the SHAPE (a quoted string of 6–20 digits, no leading
-  // zero) and refuses to run on anything else — the placeholder it replaced was
-  // deliberately not a number, so an unedited uncomment failed `npm test` and
-  // the deploy loudly instead of sending MailerLite a group it cannot find.
-  //
-  // Groups "Renaissance Rodeo" and "Renaissance Rodeo (ES)", created 2026-09-22
-  // (list them with scripts/mailerlite-groups.sh).
+  // Public configuration, not credentials — inert without the API token.
+  // LISTMONK_LIST_ID is the numeric id of the double opt-in list in listmonk
+  // (news.renaissance.rodeo). Keep it QUOTED: the Worker accepts only a string
+  // of 1–9 digits with no leading zero, and answers 503 (with a log line naming
+  // the variable, never its value) on anything else, including a bare number.
   "vars": {
-    "MAILERLITE_GROUP_ID": "199289599917295168",
-    "MAILERLITE_GROUP_ID_ES": "199289600360843046"
+    "LISTMONK_LIST_ID": "2"
   }
 
   // No secret is here, and none may be added to "vars": a vars entry with the
@@ -64,11 +54,13 @@
   // And wrangler deletes dashboard-set vars on every deploy unless keep_vars
   // is set — so vars live only in this file, never in the dashboard.
   // test/index.spec.js asserts that vars carries none of DEV_MODE,
-  // TURNSTILE_SECRET or MAILERLITE_API_KEY. The two secrets are set out of
-  // band, and only ever through the script (it never puts the value on a
-  // command line, and stores a copy in the vault before Cloudflare sees it):
+  // TURNSTILE_SECRET, LISTMONK_API_TOKEN or LISTMONK_WORKER_HEADER. The three
+  // secrets are set out of band, and only ever through the script (it never
+  // puts the value on a command line, and stores a copy in the vault before
+  // Cloudflare sees it):
   //   scripts/set-secret.sh TURNSTILE_SECRET
-  //   scripts/set-secret.sh MAILERLITE_API_KEY
+  //   scripts/set-secret.sh LISTMONK_API_TOKEN
+  //   scripts/set-secret.sh LISTMONK_WORKER_HEADER
   // For local dev they go in .dev.vars (gitignored), alongside DEV_MODE=true —
   // which the Worker refuses to honour on a production hostname.
 }

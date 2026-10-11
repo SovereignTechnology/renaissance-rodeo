@@ -17,9 +17,9 @@ const cspFromHeaders =
     ?.replace(/^Content-Security-Policy:\s*/, '') ?? '';
 
 // The same trick for wrangler.jsonc, so the suite can refuse a config that
-// would deploy DEV_MODE or a secret as a var, an unedited group-id
-// placeholder, or routes without workers_dev turned off. The pool seeds `env`
-// from `vars` and every test deletes those keys first, so nothing in the
+// would deploy DEV_MODE or a secret as a var, a malformed list id, or routes
+// without workers_dev turned off. The pool seeds `env` from `vars` and every
+// test deletes those keys first, so nothing in the
 // tests themselves could notice a poisoned config — this is the only eye on
 // it. wrangler's own reader is used rather than a hand-rolled comment
 // stripper, so what the tests see is what `wrangler deploy` would send.
@@ -48,13 +48,10 @@ export default defineConfig({
         bindings: {
           TEST_HEADERS_CSP: cspFromHeaders,
           TEST_WRANGLER_VAR_KEYS: JSON.stringify(Object.keys(wranglerVars)),
-          // The two group ids as configured, or null when absent (the
-          // committed state: the whole vars block is a comment). Public
-          // configuration, not credentials.
-          TEST_WRANGLER_GROUP_IDS: JSON.stringify({
-            MAILERLITE_GROUP_ID: wranglerVars.MAILERLITE_GROUP_ID ?? null,
-            MAILERLITE_GROUP_ID_ES: wranglerVars.MAILERLITE_GROUP_ID_ES ?? null,
-          }),
+          // The listmonk list id as configured (null when absent), kept
+          // with its JSON type so a bare number is caught. Public
+          // configuration, not a credential.
+          TEST_WRANGLER_LIST_ID: JSON.stringify(wranglerVars.LISTMONK_LIST_ID ?? null),
           TEST_WRANGLER_ROUTES_COUNT: String(routesCount),
           TEST_WRANGLER_WORKERS_DEV: String(wranglerConfig.workers_dev),
         },

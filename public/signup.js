@@ -4,7 +4,7 @@
 // against window when it renders the widget and silently drops any it cannot
 // find, so the rrTurnstile* functions below must exist first.
 // Posts form-encoded to /api/subscribe on this origin; the Worker checks the
-// Turnstile token and forwards the address to MailerLite. Cloudflare's loader
+// Turnstile token and forwards the address to listmonk. Cloudflare's loader
 // renders the widget itself; this script only reads the token from it and
 // resets it when the server rejects a submission or the widget itself fails.
 (function () {

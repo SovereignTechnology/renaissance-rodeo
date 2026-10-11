@@ -4,7 +4,7 @@ Bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango,
 after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a home page plus
 Team, Tickets and Sponsors pages, each in English and Spanish. Venue, times and tickets are
 announced to the mailing list first, so the home and tickets pages collect email addresses: a form
-gated by Cloudflare Turnstile whose submissions go straight into a MailerLite group. There is
+gated by Cloudflare Turnstile whose submissions go straight into a listmonk list. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
 and answers a single API route. Live at <https://renaissance.rodeo>. The canonical source is on
 Nostr (see *Source history*); GitHub `SovereignTechnology/renaissance-rodeo` (public) is the deploy
@@ -19,18 +19,19 @@ mirror, and pushing to its `main` deploys the site.
 | `GET /team`, `GET /es/team` | `public/team.html`, `public/es/team.html` (see *The team page*); `/team/` and `/team.html` are 307s to `/team` from the assets layer, likewise for `/es/team` |
 | `GET /tickets`, `GET /es/tickets` | `public/tickets.html`, `public/es/tickets.html` (see *The tickets page*); slash and `.html` spellings redirect the same way |
 | `GET /sponsors`, `GET /es/sponsors` | `public/sponsors.html`, `public/es/sponsors.html` (see *The sponsors page*); likewise |
-| `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → MailerLite `POST /api/subscribers` → `{ok:true}` |
+| `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → listmonk `POST /api/subscribers` → `{ok:true}` |
 | everything else | `public/*` via the Worker's `ASSETS` binding (`style.css`, `signup.js`, `img/`, `fonts/`, `robots.txt`, `sitemap.xml`); unknown paths get `public/404.html` |
 
 Static files never reach the Worker code, so their headers come from `public/_headers`; API and
 404 responses get `SECURITY_HEADERS` from `src/index.js`. The two must stay byte-identical (tested).
 
 The Worker answers the same `{ok:true}` for a new address, an address already on the list, an
-address MailerLite refuses (422) and a honeypot hit — it is not a membership oracle. It never logs
-the address and never echoes MailerLite's response body. When a secret is missing, the group id is
-missing or malformed, or `DEV_MODE` is set on a production hostname, it returns `503 unavailable`
-and logs, rather than silently accepting signups it cannot deliver or did not verify. MailerLite is
-the only copy of the list; unsubscribes are MailerLite's own links in each campaign.
+address listmonk refuses (400/422) and a honeypot hit — it is not a membership oracle. It never
+logs the address and never reads listmonk's response body. When a secret is missing, the list id
+is missing or malformed, or `DEV_MODE` is set on a production hostname, it returns `503 unavailable`
+and logs, rather than silently accepting signups it cannot deliver or did not verify. The list lives
+in listmonk at `news.renaissance.rodeo` and is its only copy; the unsubscribe link is in each
+campaign.
 
 The honeypot input is `name="rr_ref"` — a name no browser autofill heuristic recognises. It used to
 be `company`, which Chromium and Firefox map to *organization* and fill from a saved address profile
@@ -56,13 +57,12 @@ network at `http://<this-machine>:8788`.
 ```
 DEV_MODE=true
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
-MAILERLITE_API_KEY=...          # a throwaway key, NOT the production one
 ```
 
-**Never put the production `MAILERLITE_API_KEY` in `.dev.vars`.** `npm run dev` binds all
-interfaces and `DEV_MODE=true` disables the test-secret refusal, so anyone who can reach the dev
-port could push auto-passing signups straight into the live MailerLite list. Leave the key unset to
-exercise the form up to the `503 unavailable` the Worker returns without it.
+**Never put the production `LISTMONK_API_TOKEN` or `LISTMONK_WORKER_HEADER` in `.dev.vars`.**
+`npm run dev` binds all interfaces and `DEV_MODE=true` disables the test-secret refusal, so anyone
+who can reach the dev port could push auto-passing signups straight into the live list. Leave both
+unset to exercise the form up to the `503 unavailable` the Worker returns without them.
 
 `DEV_MODE` relaxes exactly two production checks, both of which would otherwise make local testing
 impossible:
@@ -85,92 +85,39 @@ Two guards keep `DEV_MODE` out of production, because a stray `"DEV_MODE": "true
 - **Tests.** `vitest.config.mjs` reads `wrangler.jsonc` and the suite fails if `vars` contains
   `DEV_MODE` or any secret name (see *Tests*). A poisoned config cannot pass CI.
 
-## MailerLite
+## listmonk
 
-Two things come from MailerLite, and they live in different places:
+The list lives in listmonk at `news.renaissance.rodeo` (it replaced MailerLite in October 2026).
+The Worker posts each signup to `https://news.renaissance.rodeo/api/subscribers` with two
+credentials, both Cloudflare secrets set only through `scripts/set-secret.sh` (see *Secrets*):
 
 | What | Where | Why |
 |---|---|---|
-| API key | Cloudflare secret `MAILERLITE_API_KEY` (see *Secrets*) | credential |
-| group id(s) | `wrangler.jsonc` → `vars` | public configuration, inert without the key |
+| `LISTMONK_API_TOKEN` | secret; sent as `Authorization: token rodeo-worker:<token>` | API token of a listmonk API user that may only manage subscribers |
+| `LISTMONK_WORKER_HEADER` | secret; sent as `x-rodeo-worker` | shared header the gateway in front of listmonk requires before anything reaches it |
+| `LISTMONK_LIST_ID` | `wrangler.jsonc` → `vars` (`"2"`) | public configuration, inert without the token |
 
-**API key.** MailerLite → Integrations → API → generate a token. Store and set it as described under
-*Secrets*. The Worker sends it as `Authorization: Bearer` to `connect.mailerlite.com`.
+`LISTMONK_LIST_ID` must be a **quoted string** matching `LIST_ID_RE = /^[1-9][0-9]{0,8}$/`
+(`src/index.js`); it is sent as a number once it passes. A missing token or header, or a missing or
+malformed list id, answers `503 unavailable` with a log line naming the variable (never its value),
+and nothing is sent. `vars` live only in `wrangler.jsonc`: `wrangler deploy` replaces the Worker's
+plain-text bindings with the file's (`keep_vars` defaults to false), so a value typed into the
+dashboard is deleted by the next deploy.
 
-**Group ids.** Create the group (or two) in MailerLite, then uncomment the `vars` block in
-`wrangler.jsonc` and replace the placeholders:
+**Double opt-in is listmonk's.** The list is double opt-in, so listmonk mails the confirmation link
+itself. The request body is `{email, lists: [id], status: "enabled", attribs: {lang}}`, `lang` being
+`es` for signups from the Spanish pages and `en` otherwise, so Spanish campaigns can be targeted with
+a subscriber query. `preconfirm_subscriptions` is never sent (it would skip consent), and neither is
+`name` (listmonk derives one).
 
-```jsonc
-"vars": {
-  "MAILERLITE_GROUP_ID": "REPLACE_WITH_18_DIGIT_GROUP_ID",     // required — the Worker answers 503 without it
-  "MAILERLITE_GROUP_ID_ES": "REPLACE_WITH_18_DIGIT_GROUP_ID"   // optional — Spanish-page signups join it too
-}
-```
-
-A group id is an 18-digit number and must reach the Worker as a **quoted string** matching
-`GROUP_ID_RE = /^[1-9][0-9]{5,19}$/` (`src/index.js`). A JSON number loses precision above 2^53,
-so a bare number is refused rather than rounded; so are a leading zero, whitespace, and the
-placeholder. `MAILERLITE_GROUP_ID` failing the check → `503 unavailable` and a log line naming the
-variable (never its value). `MAILERLITE_GROUP_ID_ES` failing it → a log line and the variable is
-ignored, so a typo in the optional group never blocks signups. The placeholder fails on purpose: a
-block that was uncommented but not edited is refused loudly instead of sending every signup to a
-group of zeros and blaming the visitor's address.
-
-Every signup joins `MAILERLITE_GROUP_ID`; a signup from `/es/` additionally joins
-`MAILERLITE_GROUP_ID_ES` when it is set, so Spanish campaigns can be targeted without custom fields.
-`scripts/mailerlite-groups.sh` lists the account's groups with their ids; it reads the API key from
-a `0600` file (made as shown under *Secrets*) and never prints it. Ids are public and committed.
-The live groups are **Renaissance Rodeo** `199289599917295168` and **Renaissance Rodeo (ES)**
-`199289600360843046` (created 2026-09-22 through the API with the same key file).
-
-**`vars` live only in `wrangler.jsonc`.** `wrangler deploy` replaces the Worker's plain-text
-bindings with the file's (`keep_vars` defaults to false), so a group id typed into the dashboard's
-Variables UI is deleted by the next deploy — loudly, as a 503 with a log line, but deleted. Nothing
-about this Worker is configured in the dashboard.
-
-**Double opt-in.** MailerLite has a separate account toggle for API signups: *Account settings →
-Subscribe settings → "Double opt-in for API and integrations"*. The Worker never sends a `status`
-field, so the toggle alone decides what happens to a new address — and the page's success message
-must match it. The message is a page string (`#signup-ok`) in both HTML files:
-
-| Toggle | Subscriber | English success string | Spanish success string |
-|---|---|---|---|
-| **ON** (recommended) | gets MailerLite's confirmation email; an existing active subscriber is left alone | Almost there — check your inbox and confirm your email address. | Ya casi: revise su bandeja de entrada y confirme su correo electrónico. |
-| OFF | active immediately | You're on the list. We'll write when there's news. | ¡Ya está en la lista! Le escribiremos en cuanto haya novedades. |
-
-`status` must stay absent from the request: sending `status:"unconfirmed"` would demote existing
-active subscribers on every repeat signup. The Worker's JSON is identical for new and existing
-addresses in either mode; only the page copy changes.
-
-The request does carry `resubscribe: true`: typing your address into the form is consent, so an
-address that unsubscribed earlier comes back on the list instead of getting our success while
-staying off it. MailerLite may still refuse such an address (its abuse prevention) — that is a
-422, which the visitor sees as success, below.
-
-**Response mapping** (`src/index.js`): 200, 201 **and 422** → `{ok:true}`; 401/403 → `503` and
-`the API key was rejected` in the logs; 429 (MailerLite allows 120 requests/min) and anything
-else → `503 unavailable`. The MailerLite call is awaited, so a failure is shown to the person as a
-real error to retry, never swallowed.
-
-422 is a success on purpose. MailerLite documents 422 as "invalid data" but does not promise it is
-state-independent — an address the account has blocked or marked as junk may draw a 422 too — so
-answering `400 invalid` would let a submitter learn that an address has history with this list, at
-one Turnstile solve per probe. Rule 3 (no membership oracle) wins: the visitor loses only a message
-the client-side email check already gives. The trade-off is that a bad group id also produces a 422
-and is now invisible to visitors, which is why the shape check above exists: a malformed id is
-caught before deploy by the test and at runtime by the 503, not reported by visitors as "my email
-was rejected". The Worker logs
-`mailerlite: HTTP 422 (upstream refused the address); error keys: …` listing only the **key names**
-of MailerLite's `errors` object (`email`, `groups.0`, …, each filtered to `[a-z0-9_.]{1,40}`), never a
-value — the values quote the address. A well-formed id that belongs to no group in the account
-shows up there as `groups.0`, and as a group whose subscriber count stays at zero after the cutover
-signup (checklist step 3).
-
-**Sender domain (browser-only).** Sending from `@renaissance.rodeo` needs the domain authenticated
-in MailerLite: a DKIM CNAME, an SPF TXT and a verification TXT on the `renaissance.rodeo` zone, added
-in the Cloudflare dashboard (wrangler's token is zone-read only). The SPF part shares one record with
-Email Routing: see *Email* before editing it. MailerLite's own unsubscribe and tracking links stay on
-MailerLite's domain unless their paid domain alignment is bought.
+**Response mapping** (`src/index.js`): 200 and 409 (address already exists) → `{ok:true}`; 400 and
+422 (listmonk refused the address) → `{ok:true}` too, logging only the status — the body is never
+read, because listmonk's messages can quote the address; 401/403 → `503` and `credentials or gateway
+header rejected` in the logs; 404 → `503` and `the gateway refused the request` (a header mismatch);
+429 and anything else → `503`; a network error or the 10 s timeout → `503`, logging the error message
+only. The call is awaited, so a failure is shown to the person as a real error to retry, never
+swallowed. Answering a refusal as success is rule 3: a refusal can reflect the address's history with
+the list, and a visible difference would be a membership oracle.
 
 ## Turnstile
 
@@ -224,10 +171,10 @@ public values, not credentials.
 
 ## Secrets
 
-Exactly two: `TURNSTILE_SECRET` and `MAILERLITE_API_KEY`. Neither is in this repo, `.dev.vars` is
+Exactly three: `TURNSTILE_SECRET`, `LISTMONK_API_TOKEN` and `LISTMONK_WORKER_HEADER`. None is in this repo, `.dev.vars` is
 gitignored, and none may ever be added to `vars` in `wrangler.jsonc` — **a `vars` entry shadows the
 secret binding of the same name on deploy**, silently substituting the configured string. The test
-suite refuses a `wrangler.jsonc` that puts either name (or `DEV_MODE`) under `vars`, so the mistake
+suite refuses a `wrangler.jsonc` that puts any of them (or `DEV_MODE`) under `vars`, so the mistake
 cannot reach `main` green.
 
 `npx wrangler secret put` **fails if the Worker does not exist yet**, so run `npm run deploy` once
@@ -244,18 +191,20 @@ The recipe is one script, run in your own terminal, never inside an agent sessio
 
 ```sh
 scripts/set-secret.sh TURNSTILE_SECRET
-scripts/set-secret.sh MAILERLITE_API_KEY
+scripts/set-secret.sh LISTMONK_API_TOKEN
+scripts/set-secret.sh LISTMONK_WORKER_HEADER
 ```
 
-It accepts only those two names. Without `--from-file` it prompts `value: ` and reads with
+It accepts only those three names. Without `--from-file` it prompts `value: ` and reads with
 `IFS= read -rs` — nothing is echoed, nothing is on a command line, and an empty or
 whitespace-containing value is refused. The value goes into a `0600` temp file under `$HOME`
 (`mktemp "$HOME/.rr-secret.XXXXXX"`) and from there through three steps, each run only if the one
 before it succeeded:
 
 1. `sudo -n /usr/local/bin/secret-store renaissance-rodeo-<name> <file>` — a copy into the
-   Bitwarden `sovtech/shared` collection, item **`renaissance-rodeo-turnstile-secret`** or
-   **`renaissance-rodeo-mailerlite-api-key`**, so the value survives the laptop. Cloudflare is
+   Bitwarden `sovtech/shared` collection, item **`renaissance-rodeo-turnstile-secret`**,
+   **`renaissance-rodeo-listmonk-api-token`** or **`renaissance-rodeo-listmonk-worker-header`**, so
+   the value survives the laptop. Cloudflare is
    write-only (`wrangler secret list` prints names, nothing prints values), which is why this step
    comes first: a value that exists only in Cloudflare can never be read back, only replaced.
 2. `npx wrangler secret put <NAME> < <file>` — the Worker must already exist (above). `read` strips
@@ -273,18 +222,17 @@ value and runs under `set +x` and `umask 077`.
 
 `--from-file PATH` takes the value from an existing file instead of prompting. The file must be a
 regular file (not a symlink), owned by you, mode `0600`; it is removed alongside the temp file in
-step 3. This is how the MailerLite key flows, because the same file also feeds the group listing:
+step 3. For example:
 
 ```sh
-(umask 077; IFS= read -rs -p 'key: ' k && printf %s "$k" > ~/.rr-mailerlite)   # subshell: k dies with it
-scripts/mailerlite-groups.sh ~/.rr-mailerlite                  # ids for wrangler.jsonc
-scripts/set-secret.sh MAILERLITE_API_KEY --from-file ~/.rr-mailerlite
+(umask 077; IFS= read -rs -p 'token: ' k && printf %s "$k" > ~/.rr-listmonk)   # subshell: k dies with it
+scripts/set-secret.sh LISTMONK_API_TOKEN --from-file ~/.rr-listmonk
 ```
 
 That `printf` is safe: `"$k"` is expanded inside the subshell, and the history line holds the
 literal `"$k"`, not the value.
 
-`npm run secrets` (`wrangler secret list`) prints names only and must show exactly the two above.
+`npm run secrets` (`wrangler secret list`) prints names only and must show exactly the three above.
 
 ## Assets
 
@@ -443,8 +391,8 @@ your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histór
 entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
 **VIP tickets** / **Boletos VIP**, **Coming soon** / **Próximamente**, and the home page's signup
 form word for word: same fields, honeypot, Turnstile widget, messages and success line,
-posting to the same `/api/subscribe` and the same MailerLite list (`data-lang` puts Spanish-page
-signups in the Spanish group too). The tests compare the form, the success line and the message
+posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
+signups with `lang: es`). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
 When ticket sales open, the page gets a **Buy** link to the ticket shop; that work (self-hosted
@@ -600,7 +548,7 @@ Cutover checklist (done 2026-09-21; kept for any future domain move):
    before taking the hostnames; a piped shell takes them without asking.
 2. `curl -sI https://renaissance.rodeo/`, `https://www.renaissance.rodeo/` and
    `https://renaissance.rodeo/es/` — new page, `content-security-policy` present; `/es` → 307.
-3. One real signup lands in the MailerLite group (check the count, not the address).
+3. One real signup lands in the listmonk list (check the count, not the address).
 4. From the old checkout: `npx wrangler delete --name bitcoin-rodeo`, then
    `npx wrangler d1 delete rodeo-list -y` (0 rows, verified), then archive the old GitHub repo.
    Each step confirmed by hand first.
@@ -617,25 +565,24 @@ Runs in `workerd` via `@cloudflare/vitest-pool-workers` against the real `wrangl
 mistake fails *open* or fails *silently*:
 
 - **fail-closed**: 503 with no `TURNSTILE_SECRET`; 503 with a test secret outside `DEV_MODE`; 403
-  when siteverify says `success:false`; 503 when `MAILERLITE_API_KEY` is unset or
-  `MAILERLITE_GROUP_ID` is unset or malformed (the placeholder, a leading zero, a number); 503 on
-  MailerLite 429, 500 or a thrown `fetch`; 405 on `GET`; 403 cross-origin; 400 on a bad email after
-  Turnstile passes;
-- **the request shape**: the happy path makes exactly one POST to `connect.mailerlite.com/api/subscribers`
-  with the email lowercased, the group id as a string, **no `status` field** and no `@` in the URL;
-  `lang=es` adds `MAILERLITE_GROUP_ID_ES` when it is set and well-formed, and nothing when it is
-  not;
-- **no membership oracle**: a MailerLite 200 (existing), 201 (new) and 422 (refused upstream)
-  produce byte-identical bodies, and the 422 log line carries key names only; the honeypot
-  (`rr_ref`) returns 200 with zero outbound calls;
+  when siteverify says `success:false`; 503 when `LISTMONK_API_TOKEN` or `LISTMONK_WORKER_HEADER`
+  is unset or empty, or `LISTMONK_LIST_ID` is unset or malformed (zero, a leading zero, whitespace,
+  a number); 503 on listmonk 401, 403, 404, 429, 500 or a thrown `fetch`; 405 on `GET`; 403
+  cross-origin; 400 on a bad email after Turnstile passes;
+- **the request shape**: the happy path makes exactly one POST to
+  `news.renaissance.rodeo/api/subscribers` with the email lowercased, `lists: [2]` as a number,
+  `status: "enabled"`, `attribs.lang` `es` or `en`, no `preconfirm_subscriptions`, no `name`, no `@`
+  in the URL, the `x-rodeo-worker` header and `Authorization: token rodeo-worker:…`;
+- **no membership oracle**: a listmonk 200 (new), 409 (existing), 400 and 422 (refused upstream)
+  produce byte-identical bodies; on a refusal the upstream body is never read and only the status is
+  logged; the honeypot (`rr_ref`) returns 200 with zero outbound calls;
 - **CSP equality**: the `content-security-policy` on a Worker response equals the line in
   `public/_headers` (read by `vitest.config.mjs` and passed in as `TEST_HEADERS_CSP`);
 - **configuration**: `vitest.config.mjs` reads `wrangler.jsonc` with wrangler's own config reader
   (`unstable_readConfig`, so comments are handled) and passes the result in as `TEST_WRANGLER_*`
   bindings; the tests assert that `vars` contains none of `DEV_MODE`, `TURNSTILE_SECRET`,
-  `MAILERLITE_API_KEY`, `MAILERLITE_WEBHOOK_SECRET`; that any group id present is a string matching
-  `GROUP_ID_RE` (the committed file has the block commented out, which passes; an uncommented
-  placeholder fails); and that non-empty `routes` implies `workers_dev: false`;
+  `LISTMONK_API_TOKEN`, `LISTMONK_WORKER_HEADER`; that `LISTMONK_LIST_ID` is present and a string
+  matching `LIST_ID_RE`; and that non-empty `routes` implies `workers_dev: false`;
 - **static**: `/` is `lang="en"`, `/es/` is `lang="es"`, both carry the X and Instagram links,
   `twitter:site` and the share bar (and "No spam" under the input), an unknown path returns the 404 page;
 - **navigation, tickets, sponsors**: the four new pages are served in their language with the
@@ -686,24 +633,18 @@ npx wrangler email routing rules update renaissance.rodeo catch-all \
 
 DNS records themselves are edited in the dashboard: the wrangler login can only read the zone.
 
-**One SPF record, two senders.** The apex must carry exactly one `v=spf1` TXT record, with both
-includes:
+**One SPF record.** The apex must carry exactly one `v=spf1` TXT record. Cloudflare's
+`include:_spf.mx.cloudflare.net` covers Email Routing, which rewrites the envelope sender of
+forwarded mail to `renaissance.rodeo`; whatever sends the listmonk campaigns as
+`@renaissance.rodeo` goes into the **same** record. A second `v=spf1` record makes SPF fail for
+every sender. Check for a single `v=spf1` after any change with `dig +short TXT renaissance.rodeo`.
+The previous newsletter provider's `include:_spf.mlsend.com` and its `litesrv._domainkey` DKIM CNAME
+are no longer needed now that campaigns go through listmonk, and can be removed.
 
-```
-v=spf1 include:_spf.mx.cloudflare.net include:_spf.mlsend.com ~all
-```
-
-Cloudflare's include covers Email Routing, which rewrites the envelope sender of forwarded mail to
-`renaissance.rodeo`; MailerLite's covers campaigns. A second `v=spf1` record makes SPF fail for
-both. MailerLite's own setup writes `v=spf1 a mx include:_spf.mlsend.com ~all`; the `a` and `mx`
-terms authorise the Worker's addresses and Cloudflare's inbound mail servers, neither of which sends
-mail, so they are left out. Re-running MailerLite's automatic domain setup can put its record back:
-check for a single `v=spf1` afterwards with `dig +short TXT renaissance.rodeo`.
-
-DKIM keys coexist: `cf2024-1._domainkey` for Cloudflare, added from *Email → Email Routing →
-Settings*, and `litesrv._domainkey`, MailerLite's CNAME. There is no DMARC record yet. When
-MailerLite sending starts, add `_dmarc` TXT `v=DMARC1; p=none; rua=mailto:dmarc@renaissance.rodeo`,
-and the reports arrive through the catch-all.
+DKIM: `cf2024-1._domainkey` for Cloudflare, added from *Email → Email Routing → Settings*. There is
+no DMARC record yet. When campaign sending starts, add `_dmarc` TXT
+`v=DMARC1; p=none; rua=mailto:dmarc@renaissance.rodeo`, and the reports arrive through the
+catch-all.
 
 ## Cutover record
 
@@ -712,12 +653,12 @@ and the reports arrive through the catch-all.
   API gate; signups fail closed with `unavailable` because no secret is set yet).
 - `2026-09-21` — domains `renaissance.rodeo` + `www` moved from Worker `bitcoin-rodeo` to
   `renaissance-rodeo`; workers.dev hostname switched off. Signups stay `unavailable` until
-  `TURNSTILE_SECRET`, `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID` exist and the real sitekey
-  replaces the test one.
+  `TURNSTILE_SECRET`, the list credentials and the list id exist and the real sitekey replaces the
+  test one.
 - `2026-09-22` — Turnstile widget `renaissance-rodeo-signup` created from the terminal, real sitekey
   in both pages, `TURNSTILE_SECRET` set (Bitwarden copy first).
-- `2026-09-22` — MailerLite groups created, ids in `wrangler.jsonc` `vars`, `MAILERLITE_API_KEY`
-  set (Bitwarden `renaissance-rodeo-mailerlite-api-key` first). Every signup prerequisite exists.
+- `2026-09-22` — the first newsletter provider's lists, ids and key set (Bitwarden copy first).
+  Every signup prerequisite exists.
 - `2026-09-21` — old Worker `bitcoin-rodeo` and its D1 `rodeo-list` (0 subscribers) deleted. There
   is no second Worker to fall back to any more: roll back with `npx wrangler rollback` to an earlier
   version of `renaissance-rodeo`.
@@ -728,7 +669,7 @@ and the reports arrive through the catch-all.
 
 Nothing here is automated; each is a few minutes in a dashboard.
 
-- **MailerLite sender-domain authentication** — the DKIM CNAME, SPF TXT and verification TXT on the
-  `renaissance.rodeo` zone (see *MailerLite*).
+- **Old newsletter DNS records** — remove the previous provider's SPF include and DKIM CNAME from
+  the `renaissance.rodeo` zone (see *Email*).
 - **Workers Builds connection** — once, see *Deploying*. Until it exists, `main` is deployed by hand.
 - **SPF merge and Cloudflare DKIM** for Email Routing — see *Email*.
