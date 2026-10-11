@@ -153,9 +153,8 @@
           <p class="msg" id="signup-msg" role="alert" aria-live="assertive"></p>
           <noscript><p class="msg">Signing up needs JavaScript — the spam check runs in your browser. Enable it and reload.</p></noscript>
         </form>
-        <!-- Success copy for MailerLite double opt-in OFF. With it ON, use the
-             success_confirm string from the JSON below instead. -->
-        <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>You're on the list. We'll write when there's news.</p>
+        <!-- Success copy: the list is double opt-in (listmonk mails a confirmation link). -->
+        <p class="success" id="signup-ok" role="status" tabindex="-1" hidden>Almost there — check your inbox and confirm your email address.</p>
         <script type="application/json" id="signup-i18n">{
           "sending": "Joining…",
           "invalid": "That email address doesn't look right. Check it and try again.",
