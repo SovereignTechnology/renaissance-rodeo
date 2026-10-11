@@ -20,8 +20,8 @@
  *      than an honest "try again in a minute".
  *
  * The list lives in listmonk at news.renaissance.rodeo; the unsubscribe link
- * is in each campaign. The list is double opt-in: listmonk mails the
- * confirmation itself, so this Worker only ever adds an unconfirmed address.
+ * is in each campaign. The list is single opt-in (Cameron, 2026-10-11): no
+ * confirmation mail, an address added here receives the next campaign.
  */
 
 const SECURITY_HEADERS = {
@@ -255,11 +255,12 @@ const unavailable = () => json({ ok: false, error: 'unavailable' }, 503);
  * error messages can quote the input, i.e. the address (rule 2), and nothing
  * in a success body is needed.
  *
- * The list is double opt-in, so listmonk mails the confirmation itself.
- * `preconfirm_subscriptions` is deliberately NOT sent (true would skip
- * consent), and neither is `name` (listmonk derives one from the address).
- * `status: 'enabled'` is the subscriber's account state, not the list
- * subscription's, which stays unconfirmed until the link is clicked.
+ * The list is single opt-in: listmonk sends no confirmation mail, and its
+ * campaigns reach every subscriber of a single opt-in list who has not
+ * unsubscribed, whatever the subscription's confirmed flag says. So
+ * `preconfirm_subscriptions` is not needed and is not sent, and neither is
+ * `name` (listmonk derives one from the address). `status: 'enabled'` is the
+ * subscriber's account state.
  */
 async function subscribeToListmonk(email, lang, env) {
   // Validated by the caller (isListId), so Number() is exact here.
