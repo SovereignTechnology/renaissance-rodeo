@@ -15,6 +15,7 @@ const FAKE_SECRET = 'unit-test-turnstile-secret-not-a-real-credential';
 const FAKE_TOKEN = 'unit-test-listmonk-token-not-a-real-credential';
 const FAKE_HEADER = 'unit-test-worker-header-not-a-real-credential';
 const LIST = '2';
+const LIST_ES = '3';
 /** Mirrors LIST_ID_RE in src/index.js: a quoted listmonk list id. */
 const LIST_ID_RE = /^[1-9][0-9]{0,8}$/;
 
@@ -115,6 +116,7 @@ function configure() {
   env.LISTMONK_API_TOKEN = FAKE_TOKEN;
   env.LISTMONK_WORKER_HEADER = FAKE_HEADER;
   env.LISTMONK_LIST_ID = LIST;
+  env.LISTMONK_LIST_ID_ES = LIST_ES;
 }
 
 const realLimiter = env.SUBSCRIBE_LIMIT;
@@ -128,6 +130,7 @@ beforeEach(() => {
   delete env.LISTMONK_API_TOKEN;
   delete env.LISTMONK_WORKER_HEADER;
   delete env.LISTMONK_LIST_ID;
+  delete env.LISTMONK_LIST_ID_ES;
   if (realLimiter === undefined) delete env.SUBSCRIBE_LIMIT;
   else env.SUBSCRIBE_LIMIT = realLimiter;
   env.ASSETS = realAssets;
@@ -682,8 +685,44 @@ describe('listmonk', () => {
 
     expect(res.status).toBe(200);
     expect(listmonkCalls()[0].body.attribs).toEqual({ lang: 'es' });
-    expect(listmonkCalls()[0].body.lists).toEqual([2]);
+    // The Spanish list INSTEAD of the main one: the two are disjoint.
+    expect(listmonkCalls()[0].body.lists).toEqual([3]);
+    expect(typeof listmonkCalls()[0].body.lists[0]).toBe('number');
   });
+
+  it('puts a Spanish signup on the main list when no Spanish list is configured', async () => {
+    configure();
+    delete env.LISTMONK_LIST_ID_ES;
+    stubTurnstileThen(() => reply({}, 200));
+    const res = await call(signup({ ...HOPEFUL, lang: 'es' }));
+
+    expect(res.status).toBe(200);
+    expect(listmonkCalls()[0].body.lists).toEqual([2]);
+    expect(listmonkCalls()[0].body.attribs).toEqual({ lang: 'es' });
+  });
+
+  for (const [label, value] of [
+    ['empty', ''],
+    ['zero', '0'],
+    ['a placeholder', 'REPLACE_WITH_LIST_ID'],
+    ['a bare JSON number', 3],
+    ['the main list again', LIST],
+  ]) {
+    it(`refuses LISTMONK_LIST_ID_ES = ${label} with 503 and no listmonk call, on either page`, async () => {
+      configure();
+      env.LISTMONK_LIST_ID_ES = value;
+      for (const lang of ['en', 'es']) {
+        const spy = watchErrorLog();
+        stubTurnstileThen(() => reply({}, 200));
+        const res = await call(signup({ ...HOPEFUL, lang }));
+
+        expect(res.status).toBe(503);
+        expect(listmonkCalls()).toHaveLength(0);
+        expect(logged(spy)).toContain('LISTMONK_LIST_ID_ES is malformed');
+        expectLogWithoutAddress(spy);
+      }
+    });
+  }
 
   it('treats anything but exactly "es" as English', async () => {
     configure();
@@ -694,6 +733,7 @@ describe('listmonk', () => {
 
       expect(res.status).toBe(200);
       expect(listmonkCalls()[0].body.attribs).toEqual({ lang: 'en' });
+      expect(listmonkCalls()[0].body.lists).toEqual([2]);
     }
   });
 
