@@ -263,8 +263,12 @@ const unavailable = () => json({ ok: false, error: 'unavailable' }, 503);
  * subscriber's account state.
  */
 async function subscribeToListmonk(email, lang, env) {
-  // Validated by the caller (isListId), so Number() is exact here.
-  const listId = Number(env.LISTMONK_LIST_ID);
+  // Both ids were validated by the caller (isListId), so Number() is exact.
+  // Spanish-page signups go on the Spanish list INSTEAD of the main one
+  // (Cameron, 2026-10-11): the two lists are disjoint, so a campaign in each
+  // language reaches everyone exactly once. Without a Spanish list configured
+  // everyone goes on the main list.
+  const listId = Number(lang === 'es' && env.LISTMONK_LIST_ID_ES !== undefined ? env.LISTMONK_LIST_ID_ES : env.LISTMONK_LIST_ID);
 
   let res;
   try {
@@ -423,6 +427,18 @@ async function handleSubscribe(request, env, url) {
     // answered as success — every signup silently lost.
     console.error(
       `LISTMONK_LIST_ID is ${env.LISTMONK_LIST_ID === undefined ? 'not configured' : 'malformed (must be a quoted positive integer)'}; refusing signups`
+    );
+    return unavailable();
+  }
+  // Optional. But once set it must be a real, different list: a malformed id
+  // would come back from listmonk as a 400 answered as success, and the main
+  // list's id here would quietly merge the two audiences again.
+  if (
+    env.LISTMONK_LIST_ID_ES !== undefined &&
+    (!isListId(env.LISTMONK_LIST_ID_ES) || env.LISTMONK_LIST_ID_ES === env.LISTMONK_LIST_ID)
+  ) {
+    console.error(
+      'LISTMONK_LIST_ID_ES is malformed (must be a quoted positive integer, different from LISTMONK_LIST_ID); refusing signups'
     );
     return unavailable();
   }
