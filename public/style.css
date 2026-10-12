@@ -541,6 +541,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   letter-spacing: .04em;
   user-select: none;
 }
+/* Basis 0, not auto: a long name or org line must shrink beside the square, not wrap under it
+   now that the card can wrap (the bio takes the next line). */
+.member-body { flex: 1 1 0; min-width: 0; }
 .member-name { font: 400 1.25rem / 1.2 var(--font-display); }
 .member-org { margin-top: .25rem; }
 /* The short bio, last in the card: on phones it drops under the square and name at full width. */
