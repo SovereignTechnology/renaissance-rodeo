@@ -528,7 +528,7 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   padding: 0;
   list-style: none;
 }
-.member { display: flex; align-items: center; gap: 1.25rem; }
+.member { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.25rem; }
 .avatar {
   display: grid;
   place-items: center;
@@ -543,6 +543,8 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 .member-name { font: 400 1.25rem / 1.2 var(--font-display); }
 .member-org { margin-top: .25rem; }
+/* The short bio, last in the card: on phones it drops under the square and name at full width. */
+.member-bio { flex-basis: 100%; text-wrap: pretty; }
 /* Pull the 44px tap target left so the X glyph lines up with the text above it. */
 .member .social { margin-inline-start: -12px; }
 .team-contact { margin-top: var(--gap-section); }
@@ -551,6 +553,7 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   .member { display: block; text-align: center; }
   .avatar { width: min(100%, 12rem); margin-inline: auto; font-size: 3.25rem; }
   .member-body { margin-top: 1rem; }
+  .member-bio { margin-top: .75rem; }
   .member .social { justify-content: center; margin-inline-start: 0; }
 }
 

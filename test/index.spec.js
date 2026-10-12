@@ -1046,6 +1046,21 @@ describe('team page', () => {
     expect(hrefs(es)).toEqual(hrefs(en));
   });
 
+  it('gives the same people a bio in both languages, never an empty one', async () => {
+    const withBio = (html) =>
+      grid(html)
+        .split('<li class="member">')
+        .slice(1)
+        .map((card) => [card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1], card.match(/<p class="member-bio">([^<]*)<\/p>/)?.[1]])
+        .filter(([, bio]) => bio !== undefined);
+    const en = withBio((await page(PAGES.en)).html);
+    const es = withBio((await page(PAGES.es)).html);
+
+    expect(en.length).toBeGreaterThan(0);
+    expect(es.map(([name]) => name)).toEqual(en.map(([name]) => name));
+    for (const [name, bio] of [...en, ...es]) expect(bio.trim(), name).not.toBe('');
+  });
+
   it('puts the initials of the first two words of the name in each square, hidden from screen readers', async () => {
     for (const path of Object.values(PAGES)) {
       const html = (await page(path)).html;

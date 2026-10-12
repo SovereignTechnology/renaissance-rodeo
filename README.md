@@ -371,11 +371,15 @@ Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
     <p class="member-org"><a href="https://origenganadero.com/" rel="noopener">Origen Ganadero</a></p>
     <ul class="social"> … one <li> per X link, the icon from the header, aria-label "Tom Taber on X" … </ul>
   </div>
+  <p class="member-bio">A few sentences about the person, plain text.</p>   <!-- optional -->
 </li>
 ```
 
 The organisation line is plain text when there is no site to link (`Media &amp; Marketing`), and
-the line or the icon list is left out when there is nothing to show.
+the line, the icon list or the bio is left out when there is nothing to show. The bio is a sibling
+of `.member-body`, not inside it, so that on phones it runs full width under the square. It is
+translated, not copied, in the Spanish file, and the tests require the same people to have one in
+both.
 
 **To add, remove or reorder someone, edit both files the same way** and in the same commit. The
 tests compare them: the same names in the same order and the same links in the same order in both
