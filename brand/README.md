@@ -14,6 +14,13 @@ under the SAME name, re-run the script, and commit both.
 | `partners/bitcoin-historico-gold-lockup.png` | emblem + wordmark lockup, 400×126 (swap-in if the emblem alone reads thin) | bitcoinhistorico.com theme cache |
 | `partners/bitpoker-black.png` | BitPoker SV spade mark, black on transparent, 766×901 | cut out of the club's 1664×928 export, which had a checkerboard *baked into the pixels* (no alpha) — see below |
 | `poster.jpg` | the announcement poster, 1080×1920 (9:16) | designer export, 2026-09-21 |
+| `team/andrea.jpg` | Andrea Hernández Tobar's headshot, 1280×1600 (4:5) | photo, 2026-10-14 |
+| `team/tom.jpg` | Tom Taber's headshot, 1280×1600 (4:5) | photo, 2026-10-14 |
+| `team/cam.jpg` | Cam's headshot, 814×1106 | photo, 2026-10-14 |
+
+The three `team/` sources are cover-cropped to a 256×256 square (`img/team-<name>.jpg`) by
+`build_team()` — a centred crop that keeps the head and hat. Replace a source under the same name
+when a better shot arrives; the crop anchor is the source's framing, so re-frame there if needed.
 
 `partners/bitpoker-black.png` was made once from that export (`1790054125.png`) and committed; the
 build script only accepts transparent sources, so the cut-out is the source. The recipe, for when a

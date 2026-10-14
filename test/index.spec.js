@@ -1061,21 +1061,38 @@ describe('team page', () => {
     for (const [name, bio] of [...en, ...es]) expect(bio.trim(), name).not.toBe('');
   });
 
-  it('puts the initials of the first two words of the name in each square, hidden from screen readers', async () => {
+  it('gives every card a square: the person\'s photo, or their initials hidden from screen readers', async () => {
     for (const path of Object.values(PAGES)) {
       const html = (await page(path)).html;
-      const cards = [
-        ...grid(html).matchAll(
-          /<span class="avatar" aria-hidden="true">([^<]*)<\/span>\s*<div class="member-body">\s*<h2 class="member-name">([^<]*)<\/h2>/g
-        ),
-      ];
+      const cards = grid(html).split('<li class="member">').slice(1);
 
-      // Every card matched, so none has an avatar that screen readers would read out.
+      // Every card has a square, so none is missing an avatar that screen readers would read out.
       expect(cards.length, path).toBe(names(html).length);
-      for (const [, initials, name] of cards) {
-        const expected = name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase();
-        expect(initials, name).toBe(expected);
+      for (const card of cards) {
+        const name = card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1];
+        const avatar = card.match(/<span class="avatar" aria-hidden="true">([\s\S]*?)<\/span>/);
+        expect(avatar, name).not.toBeNull();
+        const inner = avatar[1];
+        const img = inner.match(/^<img src="(\/img\/[a-z-]+\.jpg)" width="(\d+)" height="(\d+)" alt="">$/);
+        if (img) {
+          // A photo: self-hosted, square, empty alt (the aria-hidden square already hides it).
+          const [, src, width, height] = img;
+          expect(src, name).toMatch(/^\/img\/team-[a-z]+\.jpg$/);
+          expect(width, name).toBe(height);
+          expect(Number(width), name).toBeGreaterThanOrEqual(128);
+        } else {
+          const expected = name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+          expect(inner, name).toBe(expected);
+        }
       }
+    }
+  });
+
+  it('serves every team photo as a self-hosted JPEG', async () => {
+    for (const src of ['/img/team-andrea.jpg', '/img/team-cam.jpg', '/img/team-tom.jpg']) {
+      const res = await call(new Request(`${ORIGIN}${src}`));
+      expect(res.status, src).toBe(200);
+      expect(res.headers.get('content-type'), src).toBe('image/jpeg');
     }
   });
 
