@@ -77,6 +77,7 @@ declare -A EXPECT=(
   [team-andrea.jpg]=256x256
   [team-cam.jpg]=256x256
   [team-tom.jpg]=256x256
+  [team-zack.jpg]=256x256
 )
 # The poster is the one opaque photograph-like asset: byte ceilings instead of colour assertions.
 POSTER_MAX_JPG=$((600 * 1024))
@@ -84,7 +85,7 @@ POSTER_MAX_WEBP=$((400 * 1024))
 POSTER_MAX_THUMB=$((60 * 1024))
 # Team headshots: brand/team/<name>.jpg → public/img/team-<name>.jpg. Square cover crop (keeps the
 # head and hat), resized to TEAM_SIZE so it covers the 8rem square at 2×. Byte ceiling only.
-TEAM_PHOTOS='andrea cam tom'
+TEAM_PHOTOS='andrea cam tom zack'
 TEAM_SIZE=256
 TEAM_MAX_JPG=$((60 * 1024))
 # Favicon family: output name → canvas size → bull size (bull centred on an opaque cream square)
@@ -428,7 +429,7 @@ size_table() {
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
            "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png \
            "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg \
-           "$IMG"/team-andrea.jpg "$IMG"/team-cam.jpg "$IMG"/team-tom.jpg; do
+           "$IMG"/team-andrea.jpg "$IMG"/team-cam.jpg "$IMG"/team-tom.jpg "$IMG"/team-zack.jpg; do
     printf '%-24s %-10s %9s\n' "${f#"$PUBLIC"/}" "$(identify -format '%wx%h' "${f}[0]")" "$(stat -c %s "$f")"
   done
   printf '%-24s %-10s %9s\n' 'total' '' "$(cat "$IMG"/* "$PUBLIC"/favicon.ico | wc -c)"

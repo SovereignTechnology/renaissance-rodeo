@@ -1073,11 +1073,11 @@ describe('team page', () => {
         const avatar = card.match(/<span class="avatar" aria-hidden="true">([\s\S]*?)<\/span>/);
         expect(avatar, name).not.toBeNull();
         const inner = avatar[1];
-        const img = inner.match(/^<img src="(\/img\/[a-z-]+\.jpg)" width="(\d+)" height="(\d+)" alt="">$/);
+        const img = inner.match(/^<img src="(\/img\/[a-z-]+\.jpg(?:\?v=2)?)" width="(\d+)" height="(\d+)" alt="">$/);
         if (img) {
           // A photo: self-hosted, square, empty alt (the aria-hidden square already hides it).
           const [, src, width, height] = img;
-          expect(src, name).toMatch(/^\/img\/team-[a-z]+\.jpg$/);
+          expect(src, name).toMatch(/^\/img\/team-[a-z]+\.jpg(?:\?v=2)?$/);
           expect(width, name).toBe(height);
           expect(Number(width), name).toBeGreaterThanOrEqual(128);
         } else {
@@ -1089,7 +1089,7 @@ describe('team page', () => {
   });
 
   it('serves every team photo as a self-hosted JPEG', async () => {
-    for (const src of ['/img/team-andrea.jpg', '/img/team-cam.jpg', '/img/team-tom.jpg']) {
+    for (const src of ['/img/team-andrea.jpg', '/img/team-cam.jpg', '/img/team-tom.jpg', '/img/team-zack.jpg']) {
       const res = await call(new Request(`${ORIGIN}${src}`));
       expect(res.status, src).toBe(200);
       expect(res.headers.get('content-type'), src).toBe('image/jpeg');
@@ -1120,7 +1120,7 @@ describe('team page', () => {
 
       // First thing in the header, so it sits at the left edge; the big wordmark is gone.
       expect(header).toMatch(
-        new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${home}" aria-label="[^"]+"><img src="/img/mark.png" width="36" height="36" alt=""></a>`)
+        new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${home}" aria-label="[^"]+"><img src="/img/mark\\.png(?:\\?v=2)?" width="36" height="36" alt=""></a>`)
       );
       expect(html).not.toContain('/img/logo.png');
     }
@@ -1250,7 +1250,7 @@ describe('navigation, tickets and sponsors', () => {
           expect(header, path).not.toContain('class="mark"');
         } else {
           expect(header, path).toMatch(
-            new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${pages.home}" aria-label="[^"]+"><img src="/img/mark.png"`)
+            new RegExp(`^<header class="top wrap">\\s*<a class="mark" href="${pages.home}" aria-label="[^"]+"><img src="/img/mark\\.png(?:\\?v=2)?"`)
           );
         }
         expect(block(header, '<nav class="lang"', '</nav>'), path).toContain(`<a href="${twin}" lang="${other(lang)}"`);

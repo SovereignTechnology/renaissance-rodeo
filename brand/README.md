@@ -15,7 +15,8 @@ under the SAME name, re-run the script, and commit both.
 | `partners/bitpoker-black.png` | BitPoker SV spade mark, black on transparent, 766×901 | cut out of the club's 1664×928 export, which had a checkerboard *baked into the pixels* (no alpha) — see below |
 | `poster.jpg` | the announcement poster, 1080×1920 (9:16) | designer export, 2026-09-21 |
 | `team/andrea.jpg` | Andrea Hernández Tobar's headshot, 1280×1600 (4:5) | photo, 2026-10-14 |
-| `team/tom.jpg` | Tom Taber's headshot, 1280×1600 (4:5) | photo, 2026-10-14 |
+| `team/tom.jpg` | Tom Taber's headshot, 1284×1600 (4:5) | photo, 2026-10-14 (brighter pick) |
+| `team/zack.jpg` | Zack Dorsey's headshot, 792×990 | photo, 2026-10-14 |
 | `team/cam.jpg` | Cam's headshot, 814×1106 | photo, 2026-10-14 |
 
 The three `team/` sources are cover-cropped to a 256×256 square (`img/team-<name>.jpg`) by

@@ -279,14 +279,12 @@ unless the URL changes.
    stem; the script prefers SVG and then emits icons at every size without upscaling — ask the
    designer for SVG).
 2. `npm run assets`, then look at the outputs at 1×.
-3. Bump the `?v=` query on every reference to the changed file — in **both** HTML files (`src`,
-   `srcset`, icons, preload, `og:image`) **and** in `style.css` (`@font-face url()`). **Today no
-   reference carries `?v=` at all** — the shipped URLs are the implicit `v1`, and the `_headers`
-   and `style.css` comments describe the convention, not the current state. So the first
-   replacement must **add** `?v=2` to every `img/` and `fonts/` reference in both HTML files and
-   `style.css` (all of them, in that one commit, so the whole tree is on the scheme from then on);
-   later replacements increment the number on the changed file's references only. The asset layer
-   ignores the query when matching a file, so nothing else changes.
+3. Bump the `?v=` query on the changed file's references — in every HTML file (`src`, `srcset`,
+   icons, preload, `og:image`) **and** in `style.css` (`@font-face url()`). The tree went onto the
+   scheme on 2026-10-14 (the team-photo change added `?v=2` to every `img/` and `fonts/` reference),
+   so **increment the number on the changed file's references only** — a second replacement of
+   `team-tom.jpg` becomes `?v=3`. The asset layer ignores the query when matching a file, so nothing
+   else changes. `/favicon.ico` is not under `img/` and keeps its bare URL.
 
    ```sh
    grep -rn 'fonts/\|img/' public/     # lists every reference
