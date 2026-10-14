@@ -20,8 +20,9 @@
 #
 # Every re-inked output is asserted to hold exactly ONE opaque colour (the ink) with
 # alpha intact; every icon is asserted to be fully opaque; every output is asserted to
-# have the exact pixel size the HTML declares. Any mismatch fails loudly. The one
-# photographic asset (the announcement poster) is opaque by nature and gets byte ceilings.
+# have the exact pixel size the HTML declares. Any mismatch fails loudly. The photographic
+# assets (the announcement poster and the team headshots) are opaque by nature and get byte
+# ceilings instead of colour assertions.
 set -euo pipefail
 
 # ---------------------------------------------------------------- configuration
@@ -73,11 +74,19 @@ declare -A EXPECT=(
   [poster.jpg]=1080x1920
   [poster.webp]=1080x1920
   [poster-thumb.jpg]=320x569
+  [team-andrea.jpg]=256x256
+  [team-cam.jpg]=256x256
+  [team-tom.jpg]=256x256
 )
 # The poster is the one opaque photograph-like asset: byte ceilings instead of colour assertions.
 POSTER_MAX_JPG=$((600 * 1024))
 POSTER_MAX_WEBP=$((400 * 1024))
 POSTER_MAX_THUMB=$((60 * 1024))
+# Team headshots: brand/team/<name>.jpg → public/img/team-<name>.jpg. Square cover crop (keeps the
+# head and hat), resized to TEAM_SIZE so it covers the 8rem square at 2×. Byte ceiling only.
+TEAM_PHOTOS='andrea cam tom'
+TEAM_SIZE=256
+TEAM_MAX_JPG=$((60 * 1024))
 # Favicon family: output name → canvas size → bull size (bull centred on an opaque cream square)
 ICONS='favicon-32.png:32:24 apple-touch-icon.png:180:136 icon-192.png:192:144 icon-512.png:512:352'
 
@@ -345,6 +354,21 @@ build_poster() {
   assert_opaque "$OUT_IMG/poster.jpg"; assert_opaque "$OUT_IMG/poster-thumb.jpg"
 }
 
+# Team headshots (README, "The team page"): one square JPEG per person, cover-cropped to keep the
+# head and hat. Opaque by nature — no re-inking, no alpha. The crop is centred because every source
+# is framed head-and-shoulders; if a future photo needs a different anchor, do it in the source.
+build_team() {
+  local name src
+  for name in $TEAM_PHOTOS; do
+    src="$BRAND/team/$name.jpg"
+    [ -f "$src" ] || die "missing $src"
+    no_upscale "$src" "$TEAM_SIZE" "$TEAM_SIZE"
+    convert "$src" -resize "${TEAM_SIZE}x${TEAM_SIZE}^" -gravity center -extent "${TEAM_SIZE}x${TEAM_SIZE}" \
+            -strip -interlace JPEG -sampling-factor 4:2:0 -quality 82 "$OUT_IMG/team-$name.jpg"
+    assert_opaque "$OUT_IMG/team-$name.jpg"
+  done
+}
+
 # ---------------------------------------------------------------- verify (also `check` mode)
 # verify <dir> — <dir> holds img/* and favicon.ico: the staging dir during a build (nothing
 # reaches public/ until this passes there), public/ itself for `check` and after promotion.
@@ -360,6 +384,10 @@ verify() {
   [ "$(stat -c %s "$img/poster.jpg")" -le "$POSTER_MAX_JPG" ] || die "poster.jpg is over $((POSTER_MAX_JPG / 1024)) KB"
   [ "$(stat -c %s "$img/poster.webp")" -le "$POSTER_MAX_WEBP" ] || die "poster.webp is over $((POSTER_MAX_WEBP / 1024)) KB"
   [ "$(stat -c %s "$img/poster-thumb.jpg")" -le "$POSTER_MAX_THUMB" ] || die "poster-thumb.jpg is over $((POSTER_MAX_THUMB / 1024)) KB"
+  for name in $TEAM_PHOTOS; do
+    assert_opaque "$img/team-$name.jpg"
+    [ "$(stat -c %s "$img/team-$name.jpg")" -le "$TEAM_MAX_JPG" ] || die "team-$name.jpg is over $((TEAM_MAX_JPG / 1024)) KB"
+  done
   assert_png8_max_colors "$img/og-en.png" 64
   assert_png8_max_colors "$img/og-es.png" 64
   [ "$(identify -format '%[opaque]' "$img/logo.webp")" = false ] || die "logo.webp lost its alpha"
@@ -399,7 +427,8 @@ size_table() {
   for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/bull.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
            "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png \
-           "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg; do
+           "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg \
+           "$IMG"/team-andrea.jpg "$IMG"/team-cam.jpg "$IMG"/team-tom.jpg; do
     printf '%-24s %-10s %9s\n' "${f#"$PUBLIC"/}" "$(identify -format '%wx%h' "${f}[0]")" "$(stat -c %s "$f")"
   done
   printf '%-24s %-10s %9s\n' 'total' '' "$(cat "$IMG"/* "$PUBLIC"/favicon.ico | wc -c)"
@@ -449,6 +478,7 @@ main() {
       build_bitcoin_historico
       build_bitpoker
       build_poster
+      build_team
       verify "$OUT"
       promote
       verify "$PUBLIC"

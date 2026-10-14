@@ -365,7 +365,7 @@ Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
 
 ```html
 <li class="member">
-  <span class="avatar" aria-hidden="true">TT</span>          <!-- photo placeholder: initials -->
+  <span class="avatar" aria-hidden="true"><img src="/img/team-tom.jpg" width="256" height="256" alt=""></span>
   <div class="member-body">
     <h2 class="member-name">Tom Taber</h2>
     <p class="member-org"><a href="https://origenganadero.com/" rel="noopener">Origen Ganadero</a></p>
@@ -383,18 +383,20 @@ both.
 
 **To add, remove or reorder someone, edit both files the same way** and in the same commit. The
 tests compare them: the same names in the same order and the same links in the same order in both
-languages; the square must hold the initials of the first two words of the name; every outbound
-link must be `https://` with `rel="noopener"`; every X icon must carry an `aria-label` ("… on X" /
-"… en X"). Translate the organisation line when it is a description (`Medios y marketing`), never
-a name.
+languages; the square must hold either the person's photo or the initials of the first two words of
+the name; every outbound link must be `https://` with `rel="noopener"`; every X icon must carry an
+`aria-label` ("… on X" / "… en X"). Translate the organisation line when it is a description
+(`Medios y marketing`), never a name.
 
 **Only list people who have agreed to be listed.** This repository is public and the site deploys on
 merge, so a name in a commit is published — whether or not the card is visible, and even if the
 commit is reverted. Keep unconfirmed people out of commits, branch names and PR text entirely.
 
-**Photos** replace the initials square later: an `<img>` with `width`/`height`, built from a source
-in `brand/` by `scripts/build-assets.sh` like every other image (never a hotlinked or `data:` URL —
-`img-src 'self'`). Until then the square is ink with the initials in Bevan.
+**Photos** live inside the square as an `<img>` with `width`/`height` and an empty `alt` (the
+`aria-hidden` square already hides it): a self-hosted JPEG built from a source in `brand/team/` by
+`scripts/build-assets.sh` like every other image — never a hotlinked or `data:` URL (`img-src
+'self'`). The build cover-crops each source to a 256×256 square (`img/team-<name>.jpg`). A person
+without a photo yet keeps the ink square with their initials in Bevan.
 
 ## The tickets page
 
