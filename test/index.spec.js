@@ -1051,7 +1051,7 @@ describe('team page', () => {
       grid(html)
         .split('<li class="member">')
         .slice(1)
-        .map((card) => [card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1], card.match(/<p class="member-bio">([^<]*)<\/p>/)?.[1]])
+        .map((card) => [card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1], card.match(/<p class="member-bio">([\s\S]*?)<\/p>/)?.[1]])
         .filter(([, bio]) => bio !== undefined);
     const en = withBio((await page(PAGES.en)).html);
     const es = withBio((await page(PAGES.es)).html);
