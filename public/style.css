@@ -262,25 +262,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 
 /* ---------- sections ---------- */
 .copy > section + section { margin-top: var(--gap-section); }
-/* Decorative divider between the sections of the copy column: a hairline that fades at both
-   ends with a small red diamond in its centre, like a rule in an old print. The share bar is
-   the foot of the signup's ending, so it stays undecorated. */
-.copy > section + section:not(.share) { position: relative; padding-top: clamp(1.75rem, 4vw, 2.5rem); }
-.copy > section + section:not(.share)::before {
-  content: "";
-  position: absolute;
-  top: calc(var(--gap-section) / -2);
-  left: 50%;
-  width: min(18rem, 70%);
-  height: 14px;
-  transform: translate(-50%, -50%);
-  background:
-    /* the diamond: a square rotated 45°, sized by the padded box (no clipping) */
-    conic-gradient(from 45deg at 50% 50%, var(--red) 90deg, transparent 0) 50% 50% / 8px 8px no-repeat,
-    /* the hairline, broken around the diamond and fading at both ends */
-    linear-gradient(90deg, transparent, rgb(14 29 45 / .35) 20%, rgb(14 29 45 / .35) 80%, transparent) 0 calc(50% - 4px) / calc(50% - 10px) 1px no-repeat,
-    linear-gradient(90deg, transparent, rgb(14 29 45 / .35) 20%, rgb(14 29 45 / .35) 80%, transparent) 100% calc(50% - 4px) / calc(50% - 10px) 1px no-repeat;
-}
 .about p { margin-block: 1.1em; overflow-wrap: break-word; }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
@@ -569,11 +550,14 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   flex: none;
   width: 5.5rem;
   aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
   background: var(--ink);
   color: var(--cream);
   font: 400 1.75rem / 1 var(--font-display);
   letter-spacing: .04em;
   user-select: none;
+  box-shadow: 0 4px 14px rgb(14 29 45 / .18);
 }
 /* A photo fills the square edge to edge; an initials square is left as the ink block. */
 .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -640,8 +624,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
    footer). The page links again, then X and Instagram as words, then the copyright line; the
    intro's replay button (home pages only) holds the bottom right. */
 footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
-/* A thin double rule above the footer, echoing the dividers in the copy column. */
-footer.wrap { border-top: 1px solid rgb(14 29 45 / .25); box-shadow: 0 -5px 0 -4px rgb(14 29 45 / .25); }
 footer a { color: inherit; }
 .foot { display: grid; gap: .75rem; }
 .foot-nav ul {
@@ -806,6 +788,9 @@ footer a { color: inherit; }
   html { scroll-behavior: smooth; }
   .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease; }
   .intro-join { transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
+  /* Team photos lift gently on hover. */
+  .avatar img { transition: transform .35s ease; }
+  .avatar:hover img { transform: scale(1.04); }
   /* Scroll fade-up: the sections of the copy column rise into place as they enter the view.
      Scroll-driven animation ranges need no script; where animation-timeline is unsupported
      the @supports block never matches and nothing changes. The hero sits above the fold on
