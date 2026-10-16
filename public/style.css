@@ -72,11 +72,12 @@ html, body {
   color: var(--ink);
   font: var(--text-body) / var(--lh-body) var(--font-body);
 }
-/* A subtle cream-to-sand wash behind the whole page (the intro overlay paints its own
-   black over it; html keeps the flat --cream as the fallback). */
+/* A warm cream-to-sand wash behind the whole page, kept in the darker part of the range so
+   it never reads as stark white (the intro overlay paints its own black over it; html keeps
+   the flat --cream as the fallback). */
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--paper) 0%, var(--cream) 34rem, #f1e4cb 100%);
+  background: linear-gradient(180deg, var(--cream) 0%, #ecdec2 55%, #e2cfa9 100%);
   background-attachment: fixed;
 }
 /* The root size is the body size (20–23px), not 16px, so 1rem here is 20–23px and every rem
@@ -237,11 +238,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   width: 30%;
   max-width: 8.5rem;
   margin: .25rem 0 .75rem 1.25rem;
-  border: 3px solid var(--paper);
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 8px 24px rgb(0 0 0 / .18);
 }
-.poster-thumb img { border-radius: 3px; }
 .poster-thumb img { width: 100%; }
 .hero::after { content: ""; display: block; clear: both; }
 .poster { display: none; }
@@ -397,8 +394,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   max-width: 100%;
   width: auto;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgb(14 29 45 / .08), 0 6px 18px rgb(14 29 45 / .1);
 }
 .partners .cap {
   display: block;
@@ -408,8 +403,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   line-height: 1.45;
 }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
-/* The mark lifts a little under the pointer (the transform rule lives in "motion"). */
-.partners a:hover img { box-shadow: 0 2px 4px rgb(14 29 45 / .1), 0 12px 28px rgb(14 29 45 / .16); }
 
 /* ---------- poster viewer (<dialog>) ---------- */
 /* Scoped to [open]: a bare .lightbox{display:grid} would undo the UA's display:none on the
@@ -578,8 +571,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   aspect-ratio: 1;
   background: var(--ink);
   color: var(--cream);
-  border-radius: 8px;
-  overflow: hidden;
   font: 400 1.75rem / 1 var(--font-display);
   letter-spacing: .04em;
   user-select: none;
@@ -633,8 +624,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   padding: 1.25rem;
   background: var(--paper);
   border: var(--border) solid var(--ink);
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgb(14 29 45 / .08);
 }
 .included img { flex: none; width: 4.5rem; height: auto; }
 .included h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
@@ -803,20 +792,12 @@ footer a { color: inherit; }
   }
   .poster a { display: block; }
   /* Both max-constraints together keep the 9:16 ratio: on a short laptop viewport the height
-     cap wins and the width follows, on a tall one the column width wins. A paper mat frames
-     the poster like a print on a wall; the shadow sits on the mat, not the image. */
-  .poster a {
-    padding: 6px;
-    background: var(--paper);
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 14px 36px rgb(0 0 0 / .2);
-  }
+     cap wins and the width follows. */
   .poster img {
     max-width: 100%;
     max-height: calc(100vh - 3rem);
     width: auto;
     height: auto;
-    border-radius: 4px;
   }
 }
 
@@ -825,9 +806,6 @@ footer a { color: inherit; }
   html { scroll-behavior: smooth; }
   .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease; }
   .intro-join { transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
-  /* Partner marks lift a touch under the pointer; the shadow change itself is static CSS. */
-  .partners img { transition: transform .2s ease, box-shadow .2s ease; }
-  .partners a:hover img { transform: translateY(-4px) scale(1.03); }
   /* Scroll fade-up: the sections of the copy column rise into place as they enter the view.
      Scroll-driven animation ranges need no script; where animation-timeline is unsupported
      the @supports block never matches and nothing changes. The hero sits above the fold on
