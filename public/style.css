@@ -392,9 +392,10 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   letter-spacing: .06em;
   color: var(--muted);
 }
-/* The date line below the tagline gets its own <br>; skip one blank line only when the
-   caption is clipped to one line (home page partner grid), where the gap adds air. */
-.partners li:not(.bh) .cap > br, .copy .partners .cap > br, .partners .cap .tagline + br { display: none; }
+/* Hide the <br> directly after the tagline: the tagline is already a block, so that break
+   would only add a blank line before the date. Scoped to that one <br> so every other
+   caption break still starts a new line — BitPoker SV's name above its description. */
+.partners .cap .tagline + br { display: none; }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
 
 /* ---------- poster viewer (<dialog>) ---------- */
