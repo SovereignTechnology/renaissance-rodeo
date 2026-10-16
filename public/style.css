@@ -72,13 +72,6 @@ html, body {
   color: var(--ink);
   font: var(--text-body) / var(--lh-body) var(--font-body);
 }
-/* A subtle cream-to-sand wash behind the whole page (the intro overlay paints its own
-   black over it; html keeps the flat --cream as the fallback). */
-body {
-  min-height: 100vh;
-  background: linear-gradient(180deg, var(--paper) 0%, var(--cream) 34rem, #f1e4cb 100%);
-  background-attachment: fixed;
-}
 /* The root size is the body size (20–23px), not 16px, so 1rem here is 20–23px and every rem
    in this sheet (type, column widths, gaps, the poster) comes out about 1.3× its 16px-based
    value. At 100% zoom on a desktop that read too large. --scale shrinks the root, so all of
@@ -237,11 +230,8 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   width: 30%;
   max-width: 8.5rem;
   margin: .25rem 0 .75rem 1.25rem;
-  border: 3px solid var(--paper);
-  border-radius: 6px;
   box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 8px 24px rgb(0 0 0 / .18);
 }
-.poster-thumb img { border-radius: 3px; }
 .poster-thumb img { width: 100%; }
 .hero::after { content: ""; display: block; clear: both; }
 .poster { display: none; }
@@ -265,25 +255,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 
 /* ---------- sections ---------- */
 .copy > section + section { margin-top: var(--gap-section); }
-/* Decorative divider between the sections of the copy column: a hairline that fades at both
-   ends with a small red diamond in its centre, like a rule in an old print. The share bar is
-   the foot of the signup's ending, so it stays undecorated. */
-.copy > section + section:not(.share) { position: relative; padding-top: clamp(1.75rem, 4vw, 2.5rem); }
-.copy > section + section:not(.share)::before {
-  content: "";
-  position: absolute;
-  top: calc(var(--gap-section) / -2);
-  left: 50%;
-  width: min(18rem, 70%);
-  height: 14px;
-  transform: translate(-50%, -50%);
-  background:
-    /* the diamond: a square rotated 45°, sized by the padded box (no clipping) */
-    conic-gradient(from 45deg at 50% 50%, var(--red) 90deg, transparent 0) 50% 50% / 8px 8px no-repeat,
-    /* the hairline, broken around the diamond and fading at both ends */
-    linear-gradient(90deg, transparent, rgb(14 29 45 / .35) 20%, rgb(14 29 45 / .35) 80%, transparent) 0 calc(50% - 4px) / calc(50% - 10px) 1px no-repeat,
-    linear-gradient(90deg, transparent, rgb(14 29 45 / .35) 20%, rgb(14 29 45 / .35) 80%, transparent) 100% calc(50% - 4px) / calc(50% - 10px) 1px no-repeat;
-}
 .about p { margin-block: 1.1em; overflow-wrap: break-word; }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
@@ -303,7 +274,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   background: var(--paper);
   color: var(--ink);
   border: var(--border) solid var(--ink);
-  border-radius: 6px;
+  border-radius: var(--radius);
   font: 400 max(1.25rem, 16px) / 1 var(--font-body);
 }
 .signup input::placeholder { color: var(--muted); opacity: 1; }
@@ -317,15 +288,13 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   background: var(--red);
   color: var(--cream);
   border: var(--border) solid var(--red);
-  border-radius: 6px;
+  border-radius: var(--radius);
   font: 600 var(--text-button) / 1 var(--font-body);
   text-transform: uppercase;
   letter-spacing: .06em;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgb(163 14 2 / .28);
 }
-.signup button:hover { background: var(--red-deep); border-color: var(--red-deep); transform: translateY(-2px); box-shadow: 0 6px 16px rgb(163 14 2 / .32); }
-.signup button:active { transform: translateY(0); box-shadow: 0 2px 6px rgb(163 14 2 / .28); }
+.signup button:hover { background: var(--red-deep); border-color: var(--red-deep); }
 .signup button:disabled { opacity: .6; cursor: default; }
 /* Honeypot: off-screen, never display:none (bots skip fields they can see are
    hidden; humans and screen readers never reach it — tabindex=-1, aria-hidden). */
@@ -392,14 +361,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   align-items: center;
   text-decoration: none;
 }
-.partners img {
-  max-height: 8rem;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgb(14 29 45 / .08), 0 6px 18px rgb(14 29 45 / .1);
-}
+.partners img { max-height: 8rem; max-width: 100%; width: auto; height: auto; }
 .partners .cap {
   display: block;
   align-self: start;
@@ -408,8 +370,6 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   line-height: 1.45;
 }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
-/* The mark lifts a little under the pointer (the transform rule lives in "motion"). */
-.partners a:hover img { box-shadow: 0 2px 4px rgb(14 29 45 / .1), 0 12px 28px rgb(14 29 45 / .16); }
 
 /* ---------- poster viewer (<dialog>) ---------- */
 /* Scoped to [open]: a bare .lightbox{display:grid} would undo the UA's display:none on the
@@ -504,14 +464,13 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   background: var(--red);
   color: var(--cream);
   border: var(--border) solid var(--red);
-  border-radius: 6px;
+  border-radius: var(--radius);
   font: 600 var(--text-button) / 1 var(--font-body);
   text-transform: uppercase;
   letter-spacing: .06em;
   text-decoration: none;
-  box-shadow: 0 2px 6px rgb(0 0 0 / .35);
 }
-.intro-join:hover { background: var(--red-deep); border-color: var(--red-deep); transform: translateY(-2px); }
+.intro-join:hover { background: var(--red-deep); border-color: var(--red-deep); }
 .intro-enter {
   display: inline-flex;
   align-items: center;
@@ -578,8 +537,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   aspect-ratio: 1;
   background: var(--ink);
   color: var(--cream);
-  border-radius: 8px;
-  overflow: hidden;
   font: 400 1.75rem / 1 var(--font-display);
   letter-spacing: .04em;
   user-select: none;
@@ -633,8 +590,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
   padding: 1.25rem;
   background: var(--paper);
   border: var(--border) solid var(--ink);
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgb(14 29 45 / .08);
 }
 .included img { flex: none; width: 4.5rem; height: auto; }
 .included h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
@@ -651,8 +606,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
    footer). The page links again, then X and Instagram as words, then the copyright line; the
    intro's replay button (home pages only) holds the bottom right. */
 footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
-/* A thin double rule above the footer, echoing the dividers in the copy column. */
-footer.wrap { border-top: 1px solid rgb(14 29 45 / .25); box-shadow: 0 -5px 0 -4px rgb(14 29 45 / .25); }
 footer a { color: inherit; }
 .foot { display: grid; gap: .75rem; }
 .foot-nav ul {
@@ -803,42 +756,20 @@ footer a { color: inherit; }
   }
   .poster a { display: block; }
   /* Both max-constraints together keep the 9:16 ratio: on a short laptop viewport the height
-     cap wins and the width follows, on a tall one the column width wins. A paper mat frames
-     the poster like a print on a wall; the shadow sits on the mat, not the image. */
-  .poster a {
-    padding: 6px;
-    background: var(--paper);
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 14px 36px rgb(0 0 0 / .2);
-  }
+     cap wins and the width follows, on a tall one the column width wins. */
   .poster img {
     max-width: 100%;
     max-height: calc(100vh - 3rem);
     width: auto;
     height: auto;
-    border-radius: 4px;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .15), 0 14px 36px rgb(0 0 0 / .2);
   }
 }
 
 /* ---------- motion, only where the visitor has not asked for less ---------- */
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
-  .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease; }
-  .intro-join { transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
-  /* Partner marks lift a touch under the pointer; the shadow change itself is static CSS. */
-  .partners img { transition: transform .2s ease, box-shadow .2s ease; }
-  .partners a:hover img { transform: translateY(-4px) scale(1.03); }
-  /* Scroll fade-up: the sections of the copy column rise into place as they enter the view.
-     Scroll-driven animation ranges need no script; where animation-timeline is unsupported
-     the @supports block never matches and nothing changes. The hero sits above the fold on
-     arrival, so it is left out — its logo must not fade in mid-read. */
-  @supports (animation-timeline: view()) {
-    .copy > section:not(.hero) {
-      animation: fade-up both ease-out;
-      animation-timeline: view();
-      animation-range: entry 0% entry 55%;
-    }
-  }
+  .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease; }
   /* Intro fades. The durations are mirrored in intro.js (FADE_IN / FADE_OUT / LEAVE); the
      page's own fade-up runs as html.has-intro comes off. */
   .intro-slide { transition: opacity .6s ease, visibility 0s linear .6s; }
@@ -846,10 +777,4 @@ footer a { color: inherit; }
   .intro-slide.is-cut.is-on { transition-duration: .25s; }
   .intro { transition: opacity .8s ease; }
   body > :not(.intro) { transition: opacity .6s ease; }
-}
-
-/* The scroll fade-up above. */
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(1.25rem); }
-  to   { opacity: 1; transform: none; }
 }
