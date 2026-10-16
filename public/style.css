@@ -383,6 +383,18 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   font-size: var(--text-small);
   line-height: 1.45;
 }
+/* The "day before" tagline under Bitcoin Histórico's name: its own line, set in small
+   caps with letter-spacing so it reads as a label rather than body copy. */
+.partners .tagline {
+  display: block;
+  margin-top: .2em;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+/* The date line below the tagline gets its own <br>; skip one blank line only when the
+   caption is clipped to one line (home page partner grid), where the gap adds air. */
+.partners li:not(.bh) .cap > br, .copy .partners .cap > br, .partners .cap .tagline + br { display: none; }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
 
 /* ---------- poster viewer (<dialog>) ---------- */
