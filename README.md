@@ -1,5 +1,7 @@
 # Renaissance Rodeo
 
+> **Source of truth:** [`nostr://npub1s0vtechh66tx7vrwdud8zfyheu9zca7swwfrzd4qu2a4f93mxs6qvn9adx/git.sovit.xyz/renaissance-rodeo`](https://gitworkshop.dev/npub1s0vtechh66tx7vrwdud8zfyheu9zca7swwfrzd4qu2a4f93mxs6qvn9adx/git.sovit.xyz/renaissance-rodeo) — issues and pull requests live there. This GitHub repository is the deploy mirror; push to the Nostr remote, not here.
+
 Bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador, the day
 after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a home page plus
 Team, Tickets and Sponsors pages, each in English and Spanish. Venue, times and tickets are
