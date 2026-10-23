@@ -1288,12 +1288,12 @@ describe('navigation, tickets and sponsors', () => {
     expect(all[0]).not.toMatch(/^[123]x0/);
   });
 
-  it('gives the tickets pages "coming soon" and the home page signup form, word for word', async () => {
+  it('gives the tickets pages the home page signup form, word for word, and no "coming soon"', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
       const home = (await page(pages.home)).html;
       const html = (await page(pages.tickets)).html;
 
-      expect(html).toContain(lang === 'en' ? '<p class="soon">Coming soon</p>' : '<p class="soon">Próximamente</p>');
+      expect(html).not.toContain('class="soon"');
       expect(html).toContain(`<form class="signup" method="post" action="/api/subscribe" data-lang="${lang}">`);
       // Same fields, honeypot, widget and messages as the home page; only indentation differs.
       expect(squash(block(html, '<form class="signup"', '</form>'))).toBe(squash(block(home, '<form class="signup"', '</form>')));
@@ -1306,23 +1306,63 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('tells Bitcoin Histórico ticket holders the rodeo is included, and puts VIP under "coming soon"', async () => {
+  it('tells Bitcoin Histórico ticket holders the rodeo is included, then offers the signup form for news', async () => {
     const copy = {
-      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'VIP tickets'],
-      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Boletos VIP'],
+      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'Stay in the loop'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Novedades'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const [question, answer, vip] = copy[lang];
+      const [question, answer, news] = copy[lang];
       const included = block(html, '<section class="included"', '</section>');
 
       expect(included, lang).toContain(`<h2 id="included-h">${question}</h2>`);
       expect(included, lang).toContain(answer);
       expect(included, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>');
-      // The VIP heading, then "coming soon", then the signup form: in that order, after the box.
+      // The news heading comes straight before the signup form, after the box.
       const signup = block(html, '<section id="signup"', '</section>');
-      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${vip}</h2>\\s*<p class="soon">`));
+      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${news}</h2>\\s*<p>`));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
+    }
+  });
+
+  it('sells VIP at $100 and regular entry at $10 through the shop, with the BITCOIN21 code, after the box', async () => {
+    const copy = {
+      en: { heading: 'Buy tickets', tiers: ['VIP', 'Regular entry'], code: '21% off VIP until 8 November', cta: 'Buy tickets' },
+      es: { heading: 'Comprar boletos', tiers: ['VIP', 'Entrada regular'], code: '21 % de descuento en VIP hasta el 8 de noviembre', cta: 'Comprar boletos' },
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.tickets)).html;
+      const { heading, tiers, code, cta } = copy[lang];
+      const buy = block(html, '<section id="buy"', '</section>');
+
+      expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
+      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$100</span></li>`);
+      expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$10</span></li>`);
+      expect(buy, lang).toContain('<strong>BITCOIN21</strong>');
+      expect(buy, lang).toContain(code);
+      // One https link to the shop's event page, opened with noopener (README, "The tickets page").
+      expect(buy, lang).toContain(`<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a>`);
+      expect(buy.match(/<a /g), lang).toHaveLength(1);
+      expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="buy"'));
+      expect(html.indexOf('<section id="buy"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
+    }
+  });
+
+  it('tells DUI holders they need no ticket, after the prices and before the signup form', async () => {
+    const copy = {
+      en: ['Free entry with a DUI', 'No ticket needed. Show your DUI at the gate.'],
+      es: ['Entrada gratuita con DUI', 'No necesita boleto. Presente su DUI en la entrada.'],
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.tickets)).html;
+      const [heading, line] = copy[lang];
+      const dui = block(html, '<section class="dui"', '</section>');
+
+      expect(dui, lang).toContain(`<h2 id="dui-h">${heading}</h2>`);
+      expect(dui, lang).toContain(`<p>${line}</p>`);
+      expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
+      expect(html.indexOf('<section class="dui"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
     }
   });
 

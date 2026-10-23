@@ -602,8 +602,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 
 /* ---------- tickets and sponsors (/tickets, /sponsors and the /es/ twins) ---------- */
-/* Text pages in the 36rem copy column. Tickets: a red "Coming soon" under the h1, then the same
-   signup form as the home page. Sponsors: the partner row, then how to become a sponsor. */
+/* Text pages in the 36rem copy column. Tickets: the Bitcoin Histórico box, prices and the Buy link,
+   the DUI notice, then the same signup form as the home page. (.soon is no longer used by any
+   page.) Sponsors: the partner row, then how to become a sponsor. */
 .soon {
   margin-top: .5rem;
   color: var(--red);
@@ -625,6 +626,39 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .included img { flex: none; width: 4.5rem; height: auto; }
 .included h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
 .included p { margin-top: .5rem; }
+/* Prices and the Buy link (README, "The tickets page"). The link repeats the signup button's look
+   but is an <a>, so it sizes to its text instead of filling a flex row. */
+#buy { margin-top: 1.75rem; }
+#buy h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
+.prices { list-style: none; margin: .75rem 0 0; padding: 0; }
+.prices li { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem 0; border-bottom: 1px solid var(--muted); }
+.prices .price { font: 400 var(--text-date) / 1.3 var(--font-display); }
+#buy p { margin-top: .75rem; }
+.buy {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control);
+  padding: 0 1.5rem;
+  background: var(--red);
+  color: var(--cream);
+  border: var(--border) solid var(--red);
+  border-radius: 6px;
+  font: 600 var(--text-button) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgb(163 14 2 / .28);
+}
+.buy:hover { background: var(--red-deep); border-color: var(--red-deep); box-shadow: 0 6px 16px rgb(163 14 2 / .32); }
+/* "Free entry with a DUI": the .included box without the emblem, so text only. */
+.dui {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background: var(--paper);
+  border: var(--border) solid var(--ink);
+}
+.dui h2 { font: 400 clamp(1.125rem, 1rem + .6vw, 1.375rem) / 1.2 var(--font-display); }
+.dui p { margin-top: .5rem; }
 .page #signup { margin-top: var(--gap-section); }
 #signup .soon { margin-top: .25rem; }
 #signup .soon + p { margin-top: .75rem; }
@@ -730,6 +764,7 @@ footer a { color: inherit; }
   .included img { width: 3rem; }
   .included > div { display: contents; }
   .included p { grid-column: 1 / -1; margin-top: 0; }
+  .dui { padding: 1rem; }
   .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .share { display: block; }

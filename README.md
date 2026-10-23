@@ -404,15 +404,18 @@ without a photo yet keeps the ink square with their initials in Bevan.
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
 your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
 entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
-**VIP tickets** / **Boletos VIP**, **Coming soon** / **Próximamente**, and the home page's signup
-form word for word: same fields, honeypot, Turnstile widget, messages and success line,
-posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
+**Buy tickets** / **Comprar boletos**: VIP $100, regular entry $10, the `BITCOIN21` code (21% off
+VIP until 8 November) and one Buy link to `https://tickets.renaissance.rodeo/rodeo/2026/`. Then a
+text-only box: **Free entry with a DUI** / **Entrada gratuita con DUI**. DUI holders need no ticket
+and show the DUI at the gate, so this is page copy only and not a product in the ticket shop. Then
+**Stay in the loop** / **Novedades** with the home page's signup form word for word: same fields,
+honeypot, Turnstile widget, messages and success line, posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
 signups with `lang: es`). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
-When ticket sales open, the page gets a **Buy** link to the ticket shop; that work (self-hosted
-pretix at `tickets.renaissance.rodeo`, paid through a BTCPay store of its own) is scoped in
-GitHub issue #21.
+Deploy the Buy link only once the shop is open: a closed pretix shop answers 403 "Shop offline".
+The shop (self-hosted pretix at `tickets.renaissance.rodeo`, paid through a BTCPay store of its
+own) is scoped in GitHub issue #21.
 
 ## The sponsors page
 
@@ -607,7 +610,7 @@ mistake fails *open* or fails *silently*:
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
-  put VIP under "coming soon" and repeat the home signup form and strings; the home date lockup is
+  show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
   two lines under the logo; the sponsors pages repeat
   the partner row; the sitemap lists all eight pages;
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
