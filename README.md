@@ -416,9 +416,8 @@ honeypot, Turnstile widget, messages and success line, posting to the same `/api
 signups with `lang: es`). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
-Deploy the Buy link only once the shop is open: a closed pretix shop answers 403 "Shop offline".
-The shop (self-hosted pretix at `tickets.renaissance.rodeo`, paid through a BTCPay store of its
-own) is scoped in GitHub issue #21.
+Deploy the Buy link only once the shop is open: a closed shop answers 403 "Shop offline".
+The shop lives at `tickets.renaissance.rodeo`; its infrastructure is scoped in GitHub issue #21.
 
 ## The sponsors page
 
