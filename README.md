@@ -417,7 +417,7 @@ signups with `lang: es`). The tests compare the form, the success line and the m
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
 Deploy the Buy link only once the shop is open: a closed shop answers 403 "Shop offline".
-The shop lives at `tickets.renaissance.rodeo`; its infrastructure is scoped in GitHub issue #21.
+The shop lives at `tickets.renaissance.rodeo`.
 
 ## The sponsors page
 
