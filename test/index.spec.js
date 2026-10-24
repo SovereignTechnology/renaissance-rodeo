@@ -1326,24 +1326,29 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('sells VIP at $100 and regular entry at $10 through the shop, with the BITCOIN21 code, after the box', async () => {
+  it('sells VIP at $100 and regular entry at $10 through the shop, bitcoin only, after the box', async () => {
     const copy = {
-      en: { heading: 'Buy tickets', tiers: ['VIP', 'Regular entry'], code: '21% off VIP until 8 November', cta: 'Buy tickets' },
-      es: { heading: 'Comprar boletos', tiers: ['VIP', 'Entrada regular'], code: '21 % de descuento en VIP hasta el 8 de noviembre', cta: 'Comprar boletos' },
+      en: { heading: 'Buy tickets', tiers: ['VIP', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.' },
+      es: { heading: 'Comprar boletos', tiers: ['VIP', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.' },
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const { heading, tiers, code, cta } = copy[lang];
+      const { heading, tiers, only, cta, note } = copy[lang];
       const buy = block(html, '<section id="buy"', '</section>');
 
       expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
       expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$100</span></li>`);
       expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$10</span></li>`);
-      expect(buy, lang).toContain('<strong>BITCOIN21</strong>');
-      expect(buy, lang).toContain(code);
-      // One https link to the shop's event page, opened with noopener (README, "The tickets page").
+      expect(buy, lang).toContain(`<p><strong>${only}</strong></p>`);
+      // The BITCOIN21 promotion is no longer on the page (Cameron, 2026-10-23).
+      expect(buy, lang).not.toContain('BITCOIN21');
+      expect(buy, lang).toContain(note);
+      // Exactly two links (README, "The tickets page"): the shop's event page over https with noopener, and
+      // the team's address under it.
       expect(buy, lang).toContain(`<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a>`);
-      expect(buy.match(/<a /g), lang).toHaveLength(1);
+      expect(buy, lang).toContain('<a href="mailto:hello@renaissance.rodeo">hello@renaissance.rodeo</a>');
+      expect(buy.match(/<a /g), lang).toHaveLength(2);
+      expect(buy.indexOf('class="buy"'), lang).toBeLessThan(buy.indexOf('mailto:'));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="buy"'));
       expect(html.indexOf('<section id="buy"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
     }

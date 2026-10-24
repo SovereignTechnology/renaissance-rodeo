@@ -404,8 +404,11 @@ without a photo yet keeps the ink square with their initials in Bevan.
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
 your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
 entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
-**Buy tickets** / **Comprar boletos**: VIP $100, regular entry $10, the `BITCOIN21` code (21% off
-VIP until 8 November) and one Buy link to `https://tickets.renaissance.rodeo/rodeo/2026/`. Then a
+**Buy tickets** / **Comprar boletos**: VIP $100, regular entry $10, **Bitcoin Only** / **Solo Bitcoin**
+(the `BITCOIN21` line came off the page 2026-10-23; the code itself lives in the shop), one Buy link to
+`https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line saying tickets arrive by email,
+with `hello@renaissance.rodeo` as the address for questions (no mailbox: the mail catch-all delivers it to
+the team, and the shop sends the same address as its Reply-To). Those are the section's only two links. Then a
 text-only box: **Free entry with a DUI** / **Entrada gratuita con DUI**. DUI holders need no ticket
 and show the DUI at the gate, so this is page copy only and not a product in the ticket shop. Then
 **Stay in the loop** / **Novedades** with the home page's signup form word for word: same fields,

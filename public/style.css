@@ -634,6 +634,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .prices li { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem 0; border-bottom: 1px solid var(--muted); }
 .prices .price { font: 400 var(--text-date) / 1.3 var(--font-display); }
 #buy p { margin-top: .75rem; }
+/* Under the Buy button: how tickets arrive and where to write (hello@ reaches the team through the mail
+   catch-all; the shop sends the same address as its Reply-To). Quieter than the copy above it. */
+#buy .buy-note { font-size: var(--text-small); color: var(--muted); }
 .buy {
   display: inline-flex;
   align-items: center;
