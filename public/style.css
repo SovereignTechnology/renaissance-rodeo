@@ -602,9 +602,10 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 
 /* ---------- tickets and sponsors (/tickets, /sponsors and the /es/ twins) ---------- */
-/* Text pages in the 36rem copy column. Tickets: the Bitcoin Histórico box, prices and the Buy link,
-   the DUI notice, then the same signup form as the home page. (.soon is no longer used by any
-   page.) Sponsors: the partner row, then how to become a sponsor. */
+/* Text pages in the 36rem copy column. Tickets: the Bitcoin Histórico box, the DUI notice, then a red
+   "Coming soon" under the VIP heading and the same signup form as the home page. (Sales are paused: the
+   price list and Buy button rules below are kept for when they reopen.) Sponsors: the partner row, then
+   how to become a sponsor. */
 .soon {
   margin-top: .5rem;
   color: var(--red);
