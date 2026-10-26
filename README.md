@@ -403,21 +403,22 @@ without a photo yet keeps the ink square with their initials in Bevan.
 
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
 your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
-entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
-**Buy tickets** / **Comprar boletos**: VIP $221, regular entry $21, **Bitcoin Only** / **Solo Bitcoin**
-(no discount code is shown on the page; it lives in the shop), one Buy link to
-`https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line saying tickets arrive by email,
-with `hello@renaissance.rodeo` as the address for questions (no mailbox: the mail catch-all delivers it to
-the team, and the shop sends the same address as its Reply-To). Those are the section's only two links. Then a
+entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then a
 text-only box: **Free entry with a DUI** / **Entrada gratuita con DUI**. DUI holders need no ticket
 and show the DUI at the gate, so this is page copy only and not a product in the ticket shop. Then
-**Stay in the loop** / **Novedades** with the home page's signup form word for word: same fields,
-honeypot, Turnstile widget, messages and success line, posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
+**VIP tickets** / **Boletos VIP**, **Coming soon** / **Próximamente**, and the home page's signup
+form word for word: same fields, honeypot, Turnstile widget, messages and success line,
+posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
 signups with `lang: es`). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
-Deploy the Buy link only once the shop is open: a closed shop answers 403 "Shop offline".
-The shop lives at `tickets.renaissance.rodeo`.
+**Sales are paused (2026-10-24)** while the prices are decided: the pages show no prices and no Buy
+link, and a test keeps it that way. The ticket shop at `tickets.renaissance.rodeo` was linked from
+2026-10-23. To reopen, revert the commit that paused it (`git log -S'keeps ticket sales off'`): that
+brings back the Buy section (prices, Bitcoin Only, the one Buy link to
+`https://tickets.renaissance.rodeo/rodeo/2026/`, the tickets-by-email line with
+`hello@renaissance.rodeo`) and its tests. Do that only once the shop is open again: a closed shop
+answers 403 "Shop offline".
 
 ## The sponsors page
 
@@ -612,7 +613,8 @@ mistake fails *open* or fails *silently*:
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
-  show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
+  the DUI notice, then put VIP under "coming soon" and repeat the home signup form and strings, with
+  no prices and no link to the shop while sales are paused; the home date lockup is
   two lines under the logo; the sponsors pages repeat
   the partner row; the sitemap lists all eight pages;
 - **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and

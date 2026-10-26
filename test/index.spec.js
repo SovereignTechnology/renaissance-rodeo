@@ -1288,12 +1288,12 @@ describe('navigation, tickets and sponsors', () => {
     expect(all[0]).not.toMatch(/^[123]x0/);
   });
 
-  it('gives the tickets pages the home page signup form, word for word, and no "coming soon"', async () => {
+  it('gives the tickets pages "coming soon" and the home page signup form, word for word', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
       const home = (await page(pages.home)).html;
       const html = (await page(pages.tickets)).html;
 
-      expect(html).not.toContain('class="soon"');
+      expect(html).toContain(lang === 'en' ? '<p class="soon">Coming soon</p>' : '<p class="soon">Próximamente</p>');
       expect(html).toContain(`<form class="signup" method="post" action="/api/subscribe" data-lang="${lang}">`);
       // Same fields, honeypot, widget and messages as the home page; only indentation differs.
       expect(squash(block(html, '<form class="signup"', '</form>'))).toBe(squash(block(home, '<form class="signup"', '</form>')));
@@ -1306,55 +1306,41 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('tells Bitcoin Histórico ticket holders the rodeo is included, then offers the signup form for news', async () => {
+  it('tells Bitcoin Histórico ticket holders the rodeo is included, and puts VIP under "coming soon"', async () => {
     const copy = {
-      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'Stay in the loop'],
-      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Novedades'],
+      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'VIP tickets'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Boletos VIP'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const [question, answer, news] = copy[lang];
+      const [question, answer, vip] = copy[lang];
       const included = block(html, '<section class="included"', '</section>');
 
       expect(included, lang).toContain(`<h2 id="included-h">${question}</h2>`);
       expect(included, lang).toContain(answer);
       expect(included, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>');
-      // The news heading comes straight before the signup form, after the box.
+      // The VIP heading, then "coming soon", then the signup form: in that order, after the box.
       const signup = block(html, '<section id="signup"', '</section>');
-      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${news}</h2>\\s*<p>`));
+      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${vip}</h2>\\s*<p class="soon">`));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
     }
   });
 
-  it('sells VIP at $221 and regular entry at $21 through the shop, bitcoin only, after the box', async () => {
-    const copy = {
-      en: { heading: 'Buy tickets', tiers: ['VIP', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.' },
-      es: { heading: 'Comprar boletos', tiers: ['VIP', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.' },
-    };
+  it('keeps ticket sales off the tickets pages while the prices are decided', async () => {
+    // Sales are paused (2026-10-24): no prices, no Buy section and no link to the shop. When they reopen,
+    // revert the commit that added this test (README, "The tickets page").
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const { heading, tiers, only, cta, note } = copy[lang];
-      const buy = block(html, '<section id="buy"', '</section>');
 
-      expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
-      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$221</span></li>`);
-      expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$21</span></li>`);
-      expect(buy, lang).toContain(`<p><strong>${only}</strong></p>`);
-      // No discount code on the page (Cameron, 2026-10-23 and again 2026-10-26): it lives in the shop.
-      expect(buy, lang).not.toContain('BITCOIN');
-      expect(buy, lang).toContain(note);
-      // Exactly two links (README, "The tickets page"): the shop's event page over https with noopener, and
-      // the team's address under it.
-      expect(buy, lang).toContain(`<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a>`);
-      expect(buy, lang).toContain('<a href="mailto:hello@renaissance.rodeo">hello@renaissance.rodeo</a>');
-      expect(buy.match(/<a /g), lang).toHaveLength(2);
-      expect(buy.indexOf('class="buy"'), lang).toBeLessThan(buy.indexOf('mailto:'));
-      expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="buy"'));
-      expect(html.indexOf('<section id="buy"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
+      expect(html, lang).not.toContain('id="buy"');
+      expect(html, lang).not.toContain('class="buy"');
+      expect(html, lang).not.toContain('tickets.renaissance.rodeo');
+      expect(html, lang).not.toContain('BITCOIN21');
+      expect(html, lang).not.toMatch(/\$\s?\d/);
     }
   });
 
-  it('tells DUI holders they need no ticket, after the prices and before the signup form', async () => {
+  it('tells DUI holders they need no ticket, after the Bitcoin Histórico box and before the signup form', async () => {
     const copy = {
       en: ['Free entry with a DUI', 'No ticket needed. Show your DUI at the gate.'],
       es: ['Entrada gratuita con DUI', 'No necesita boleto. Presente su DUI en la entrada.'],
