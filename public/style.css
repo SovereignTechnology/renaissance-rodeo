@@ -391,8 +391,8 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 /* Three marks in one row at every width. Each link is a two-row grid: a fixed-height logo
    slot (the mark fits inside it, centred, so three different aspect ratios sit on one line)
    and the caption. On phones the slot shrinks and the captions go screen-reader-only.
-   Club Cocal is held back until it is confirmed (Cameron, 2026-10-28); bringing it back as the
-   second of four, two a row, is a revert of the commit that took it out. */
+   Club Cocal is held back until it is confirmed (Cameron, 2026-10-28); README "The sponsors
+   page" says how it comes back (second of four, two a row). */
 .partners {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

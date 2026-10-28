@@ -494,8 +494,14 @@ There are **two tiers** (Cameron, 2026-10-24):
 - **`ul.partners`**: the main sponsors, three in one row: Bitcoin Histórico, Origen Ganadero and BitPoker SV.
   On phones the home page keeps the row with the captions screen-reader-only, and the about and sponsors
   pages stack them with every caption. **Club Cocal (`clubcocal.com`) is held back until it is confirmed**
-  (Cameron, 2026-10-28): it was second of four, two a row, on staging; its logo and build step stay
-  (`public/img/clubcocal.png`, linked from no page), so bringing it back is a revert of the commit that took it out.
+  (Cameron, 2026-10-28). Its logo and build step stay (`public/img/clubcocal.png`, 900×141, linked from no
+  page). To bring it back as it was on staging (second of four, two a row): an `<li class="cc">` second in
+  `ul.partners` on the six pages, linking `https://clubcocal.com/` with that image (`alt=""`) and the caption
+  **Club Cocal** / "Real estate in El Salvador, plus a beachfront clubhouse and event venue in Surf City."
+  (Spanish: "Bienes raíces en El Salvador, además de un club frente al mar y sede de eventos en Surf City.");
+  its name second again in the home pages' screen-reader heading; `.partners` two columns
+  (`repeat(2, minmax(0, 1fr))`), `max-width: 40rem`, `margin: 0 auto`, with `max-width: none` on
+  `.partners.tier-2`; and the main-sponsors test back to four.
 - **`ul.partners.tier-2`**: The Bitcoin Hardware Store (`tbhs.sv`), BitDriver (`bitdriver.taxi`) and
   Beef Back Better (`beefbackbetter.com`, added 2026-10-26), right under it. It sits below a hairline with
   no label, and its marks are smaller and side by side (three across; two-up on phones with the third
