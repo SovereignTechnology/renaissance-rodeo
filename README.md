@@ -3,9 +3,9 @@
 > **Source of truth:** [`nostr://npub1s0vtechh66tx7vrwdud8zfyheu9zca7swwfrzd4qu2a4f93mxs6qvn9adx/git.sovit.xyz/renaissance-rodeo`](https://gitworkshop.dev/npub1s0vtechh66tx7vrwdud8zfyheu9zca7swwfrzd4qu2a4f93mxs6qvn9adx/git.sovit.xyz/renaissance-rodeo) — issues and pull requests live there. This GitHub repository is the deploy mirror; push to the Nostr remote, not here.
 
 Bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador, the day
-after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a home page plus
-Team, Tickets and Sponsors pages, each in English and Spanish. Venue, times and tickets are
-announced to the mailing list first, so the home and tickets pages collect email addresses: a form
+after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a short home page
+plus About, Tickets and Sponsors pages, each in English and Spanish. Times, transport and
+directions are announced to the mailing list first, so the home and tickets pages collect email addresses: a form
 gated by Cloudflare Turnstile whose submissions go straight into a listmonk list. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
 and answers a single API route. Live at <https://renaissance.rodeo>. The canonical source is on
@@ -18,7 +18,8 @@ mirror, and pushing to its `main` deploys the site.
 |---|---|
 | `GET /` | `public/index.html` (English) |
 | `GET /es/` | `public/es/index.html` (Spanish); `/es` is a 307 to `/es/` from the assets layer |
-| `GET /team`, `GET /es/team` | `public/team.html`, `public/es/team.html` (see *The team page*); `/team/` and `/team.html` are 307s to `/team` from the assets layer, likewise for `/es/team` |
+| `GET /about`, `GET /es/about` | `public/about.html`, `public/es/about.html` (see *The about page*); `/about/` and `/about.html` are 307s to `/about` from the assets layer, likewise for `/es/about` |
+| `GET /team`, `GET /es/team` | 301 to `/about#team`, `/es/about#team` (`public/_redirects`), with their `/` and `.html` spellings: the team page became the About page's team section on 2026-10-24 |
 | `GET /tickets`, `GET /es/tickets` | `public/tickets.html`, `public/es/tickets.html` (see *The tickets page*); slash and `.html` spellings redirect the same way |
 | `GET /sponsors`, `GET /es/sponsors` | `public/sponsors.html`, `public/es/sponsors.html` (see *The sponsors page*); likewise |
 | `POST /api/subscribe` | `src/index.js`: same-origin → per-IP rate limit (5/60 s, `SUBSCRIBE_LIMIT`, fails open) → 4 KB size cap → honeypot (`rr_ref`) → Turnstile siteverify (fails closed) → email normalise → listmonk `POST /api/subscribers` → `{ok:true}` |
@@ -258,13 +259,15 @@ literal `"$k"`, not the value.
   not shipped;
 - recolours `partners/origen-ganadero.svg` to ink and widens its hairline strokes, and re-inks
   `partners/bitcoin-historico-white.png` to `bitcoin-historico.png` and `partners/bitpoker-black.png`
-  to `bitpoker.png`;
-- re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (the intro's closing card, where CSS
-  inverts it to cream on black; the same trick turns the three partner marks cream, so the intro
-  ships no second copy of any image);
+  to `bitpoker.png`; and, for the second sponsor tier, `partners/tbhs.png` to `tbhs.png` (357×192),
+  `partners/bitdriver-black.png` to `bitdriver.png` (480×120) and `partners/beefbackbetter-black.png` to
+  `beefbackbetter.png` (277×288); and `partners/clubcocal.png` to `clubcocal.png` (900×141), the
+  wordmark of the fourth main sponsor;
+- re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (it was the opening sequence's closing
+  card; the sequence was removed on 2026-10-24 and the file is kept as a brand asset, like `mark.png`);
 - encodes the announcement poster `poster.jpg` (1080×1920) as `poster.jpg` + `poster.webp` (the desktop
-  column and the tap-to-open viewer) and `poster-thumb.jpg` (320 wide, the phone thumbnail beside the
-  hero lines), each under a byte ceiling. The viewer is a native `<dialog>` driven by `public/poster.js`;
+  column and the tap-to-open viewer) and `poster-thumb.jpg` (480 wide, the phone and tablet thumbnail
+  beside the activity list), each under a byte ceiling. The viewer is a native `<dialog>` driven by `public/poster.js`;
   without JavaScript the same links open the JPEG;
 - fetches the three fonts and their licences from fontsource and checks their byte counts.
 
@@ -299,7 +302,7 @@ unless the URL changes.
 Every page except `404.html` has the same header and footer, in its language:
 
 ```
-desktop   [mark]  TEAM  TICKETS  SPONSORS  [X] [Instagram]                EN | ES
+desktop   [mark]  ABOUT  TICKETS  SPONSORS  [X] [Instagram]               EN | ES
 phone     [mark] [menu]                                                  EN | ES
 ```
 
@@ -316,12 +319,17 @@ phone     [mark] [menu]                                                  EN | ES
   outside or on the button again, with **no script**. The browser hides a popover until it is
   opened; from 1024px `style.css` shows it in the bar instead, and hides the button. A browser
   without popovers never hides it, gets no button, and shows the links on a row under the bar.
-- **Footer** (`.foot-nav`): the same page links as words, then X and Instagram as words, then the
-  copyright line with the other-language link. The home pages keep the intro's replay button at
-  the bottom right.
+- **Footer** (`.foot-nav`): the same page links in the header's voice (uppercase), then the copyright
+  line with the other-language link. No X or Instagram there (Cameron, 2026-10-26); they stay in the
+  header. From 1024px the links and the copyright share **one line**, links left and copyright right;
+  on phones they stack (Cameron, 2026-10-27).
+- **One navigation voice** (Cameron, 2026-10-27): the header links, the language switch, the footer links
+  and the About page's jump links all set their text from `--nav-size` and `--nav-track` in `style.css`
+  (Cormorant 600, uppercase, tracked), go red on hover and underline the page or section you are on, so the
+  three navs cannot drift apart.
 - The page you are on is marked `aria-current="page"` (underlined) in both lists. The home pages
   mark none.
-- Spanish labels: **Equipo**, **Boletos**, **Patrocinadores**; the Spanish pages are `/es/team`,
+- Spanish labels: **Acerca de**, **Boletos**, **Patrocinadores**; the Spanish pages are `/es/about`,
   `/es/tickets`, `/es/sponsors`.
 
 **Adding a page to the list** means editing the header and the footer of all eight pages. The
@@ -334,9 +342,9 @@ one button pointing at it.
 X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons after the page
 links, drawn in `currentColor` (`.social` in `style.css`): no row of their own, no image file,
 nothing for `img-src` or `npm run assets`. Each icon link carries `rel="me noopener"` and an
-`aria-label` in the page's language; the footer repeats both as words. `<meta name="twitter:site"
-content="@rodeo_sv">` credits the share card on X. A handle change touches the header and footer
-of all eight pages (tested); `404.html` has no social links.
+`aria-label` in the page's language; the footer does not repeat them. `<meta name="twitter:site"
+content="@rodeo_sv">` credits the share card on X. A handle change touches the header of all
+eight pages (tested); `404.html` has no social links.
 
 The copy ends, after the signup, with an article-style **Share / Follow** block (`section.share`):
 
@@ -354,20 +362,76 @@ If the page URL or title changes, update the section's `data-*` values **and** t
 `href`s in both HTML files. "No spam. Unsubscribe any time." sits inside the form, directly under
 the input row (tested).
 
-## The team page
+## The home page
 
-`/team` (`public/team.html`) and `/es/team` (`public/es/team.html`) list the organizing team. They
-are linked as **Team** / **Equipo** in every page's header and footer (*Navigation*). The page is
-static, has no script, and needs nothing new in the CSP. (A team strip on the home pages was added
-in #20 and removed again the same day: the team lives on its own page only.)
+`/` and `/es/` are short on purpose (Cameron, 2026-10-24): the logo and the date lockup, a red
+**Buy tickets** / **Comprar boletos** button centred under it that goes **straight to the ticket shop**
+(`https://tickets.renaissance.rodeo/rodeo/2026/`), and "The day after Bitcoin Histórico" centred
+under it. Then one sentence about the day that names every activity (*It will be a full afternoon of
+rodeo entertainment, including bull riding, barrel racing, …*; Cameron wants it to cover everything),
+the **activity list** (below), and **Learn more about Renaissance Rodeo →** / **Conozca más sobre
+Renaissance Rodeo →**, a plain text link to `/about` whose arrow is an inline SVG (the font subset has
+no U+2192). Then the partner rows, the signup form (pitched at times, transport and directions to
+the venue), the share bar, and the poster column on desktop. The full story lives on the About page.
 
-Each person is one `<li class="member">` in `ul.team-grid`, in the order shown:
+**The activity list** (`ul.activities`, 12 items in Cameron's order: bull riding … country) is on
+the home page and again after the About page's event text, identical (tested). Items are written in
+sentence case and uppercased by CSS, each with a small red diamond. On phones and tablets the home
+page sets it in a row beside the poster thumbnail, `[poster | list]`, one column, so its twelve lines
+stand about as tall as the thumbnail and neither leaves a gap (the thumbnail used to float in the
+hero beside one line of text). On phones the list drops the uppercase and a size, or most items would
+wrap in that narrow column. From 64rem the thumbnail hides (the poster has its own column) and the
+list runs in two columns (three on the wider about page). The sentence keeps "animal fairs", which the list does not have.
+
+**There is no opening sequence any more** (removed 2026-10-24, with its "View intro" pill, at
+Cameron's request): no `intro.js`, no overlay, no intro CSS. It is in the history before that date.
+
+## The about page
+
+`/about` (`public/about.html`) and `/es/about` (`public/es/about.html`) replaced the team page on
+2026-10-24 (the files were `git mv`ed, so their history is the team page's). They are linked as
+**About** / **Acerca de** in every page's header and footer (*Navigation*), and from the home page's
+learn-more line. The old `/team` addresses answer 301 to `/about#team` (`public/_redirects`, which
+miniflare honours too, fragment included). The page is static, has no script, and needs nothing new
+in the CSP.
+
+```
+h1        About Renaissance Rodeo / Acerca de Renaissance Rodeo
+nav.jump  The event · Team · Sponsors      (El evento · Equipo · Patrocinadores)
+#event    the three paragraphs that used to be the home page's About text
+#team     The organizing team: the lede and the cards (below)
+#sponsors Sponsors and partners: the home page's partner row, captions shown, then a line
+          with sponsors@renaissance.rodeo
+```
+
+- **Jump links.** `nav.jump` is a row of three links (the header's voice, a small red diamond between
+  them, centred on desktop) that sticks to the top of the screen. A tap
+  scrolls smoothly (`html { scroll-behavior: smooth }`, only without a reduced-motion preference)
+  and lands the section heading just under the row (`scroll-margin-top`). Where CSS scroll
+  markers exist (Chrome 140+: `scroll-target-group` + `:target-current`) the link of the section in
+  view is underlined, as the current page is in the header; elsewhere the link of the
+  section you jumped to is (`:has(#team:target)`, behind `@supports not selector(:target-current)`).
+  `:target-current` has its own rule and is never in the header's selector list: a browser that does not
+  know it drops a whole rule that names it. No script.
+  Below 768px the three share the row equally and the type shrinks from the header's size just enough to
+  keep the Spanish labels on one row (measured widths are in the CSS comment); if the row still cannot fit
+  (a 320px phone) it slides sideways instead of wrapping. Its background is the body's
+  fixed wash, so it is invisible where it sits and still covers what scrolls under it.
+- **The scroll fade-up is not used here**: the sections are jump targets, and a section still
+  translated by the animation when the browser scrolls to it lands 1.25rem off, under the row.
+- **Desktop** (64rem up): no poster column; the page takes the full width, the event text keeps a
+  reading measure, the cards run in two columns, and the main sponsors sit two across, centred.
+- **The partner row is the home page's** (tested): a new partner goes into both home pages, both
+  about pages and both sponsors pages.
+
+Each person is one `<li class="member">` in `ul.team-grid` inside `section#team`, in the order shown
+(the name is an `h3` under the section's `h2`):
 
 ```html
 <li class="member">
   <span class="avatar" aria-hidden="true"><img src="/img/team-tom.jpg" width="256" height="256" alt=""></span>
   <div class="member-body">
-    <h2 class="member-name">Tom Taber</h2>
+    <h3 class="member-name">Tom Taber</h3>
     <p class="member-org"><a href="https://origenganadero.com/" rel="noopener">Origen Ganadero</a></p>
     <ul class="social"> … one <li> per X link, the icon from the header, aria-label "Tom Taber on X" … </ul>
   </div>
@@ -403,61 +467,50 @@ without a photo yet keeps the ink square with their initials in Bevan.
 
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
 your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
-entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then a
+entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
+**Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $221 (the shop sells 50), regular entry $21, **Bitcoin Only** / **Solo Bitcoin**
+(no discount code is shown on the page; it lives in the shop), one Buy link to
+`https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line saying tickets arrive by email,
+with `hello@renaissance.rodeo` as the address for questions (no mailbox: the mail catch-all delivers it to
+the team, and the shop sends the same address as its Reply-To). Those are the section's only two links. Then a
 text-only box: **Free entry with a DUI** / **Entrada gratuita con DUI**. DUI holders need no ticket
 and show the DUI at the gate, so this is page copy only and not a product in the ticket shop. Then
-**VIP tickets** / **Boletos VIP**, **Coming soon** / **Próximamente**, and the home page's signup
-form word for word: same fields, honeypot, Turnstile widget, messages and success line,
-posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
+**Stay in the loop** / **Novedades** with the home page's signup form word for word: same fields,
+honeypot, Turnstile widget, messages and success line, posting to the same `/api/subscribe` and the same listmonk list (`data-lang` tags Spanish-page
 signups with `lang: es`). The tests compare the form, the success line and the message
 strings with the home page's, so a change to one form must be made in all four signup pages.
 
-**Sales are paused (2026-10-24)** while the prices are decided: the pages show no prices and no Buy
-link, and a test keeps it that way. The ticket shop at `tickets.renaissance.rodeo` was linked from
-2026-10-23. To reopen, revert the commit that paused it (`git log -S'keeps ticket sales off'`): that
-brings back the Buy section (prices, Bitcoin Only, the one Buy link to
-`https://tickets.renaissance.rodeo/rodeo/2026/`, the tickets-by-email line with
-`hello@renaissance.rodeo`) and its tests. Do that only once the shop is open again: a closed shop
-answers 403 "Shop offline".
+Deploy the Buy link only once the shop is open: a closed shop answers 403 "Shop offline".
+The shop lives at `tickets.renaissance.rodeo`.
 
 ## The sponsors page
 
-`/sponsors` and `/es/sponsors` carry the home page's partner row (tested to match it) with every
-caption shown, stacked on phones, then **Become a sponsor** with `sponsors@renaissance.rodeo`
-(the zone's catch-all forwards it, see *Email*). A new partner goes into both home pages and both
-sponsors pages, and its logo through `brand/` and `npm run assets` like every other image.
+`/sponsors` and `/es/sponsors` carry the home page's partner rows (tested to match it) with every
+caption shown, then **Become a sponsor** with `sponsors@renaissance.rodeo` (the zone's catch-all
+forwards it, see *Email*). The About page's sponsors section carries the same rows.
 
-## The opening sequence
+There are **two tiers** (Cameron, 2026-10-24):
 
-**It never plays on arrival.** `/` and `/es/` open on the cream site; the sequence sits behind the
-**View intro** pill at the bottom right of the page, which is `hidden` until `intro.js` unhides it
-(it only works with JS, so it only shows with JS). Click it and the screen goes black: five short
-text frames fade in front and centre, then the three partner marks, then a quick cut to the
-bull-and-rider with **Join the waitlist** (lands on the form with the email field focused) and
-**Continue to the site**. That last card holds until the visitor acts. Skip (top right) or Esc ends
-it; a tap, a horizontal swipe or the ← → keys step through the frames, forward and back.
+- **`ul.partners`**: the main sponsors, three in one row: Bitcoin Histórico, Origen Ganadero and BitPoker SV.
+  On phones the home page keeps the row with the captions screen-reader-only, and the about and sponsors
+  pages stack them with every caption. **Club Cocal (`clubcocal.com`) is held back until it is confirmed**
+  (Cameron, 2026-10-28): it was second of four, two a row, on staging; its logo and build step stay
+  (`public/img/clubcocal.png`, linked from no page), so bringing it back is a revert of the commit that took it out.
+- **`ul.partners.tier-2`**: The Bitcoin Hardware Store (`tbhs.sv`), BitDriver (`bitdriver.taxi`) and
+  Beef Back Better (`beefbackbetter.com`, added 2026-10-26), right under it. It sits below a hairline with
+  no label, and its marks are smaller and side by side (three across; two-up on phones with the third
+  centred under them).
 
-- `public/intro.js` is **deferred** — with no autoplay there is nothing to land before first paint,
-  so it costs the page nothing. (It was synchronous in `<head>` while it autoplayed, to put
-  `.has-intro` on `<html>` before the cream could flash; that is gone.) The button plays it
-  whatever the motion preference — an explicit ask — and there is no once-per-session memory and
-  no fragment carve-out, because nothing starts by itself. Without JS the overlay is
-  `display:none` and the pill stays hidden.
-- The text frames are static markup in `section.intro` (right after the skip link in each page):
-  copy written for the screen, shorter than the About section, one `.intro-slide` per frame with
-  `<br>` for the line breaks. Then the `.partners` marks are cloned in, then the closing card.
-- Timing lives at the top of `intro.js`: a text frame holds `1200 ms + 210 ms × words` between a
-  0.9 s fade-in and a 0.6 s fade-out, the marks hold 4 s, the cut to the closing card is 0.25 s.
-  The CSS durations in `style.css` ("intro" block and the motion query) mirror those constants.
-- While it plays, everything else in `<body>` is `inert` and `theme-color` is black; both are
-  restored as it leaves, and focus goes back to the View intro button when it ends.
+Every mark is re-inked to the page ink. Both rows live in six files: both home pages, both about pages
+and both sponsors pages. A new sponsor goes into the right row in all six, and its logo through
+`brand/` and `npm run assets` like every other image.
 
 ## Fonts and licences
 
 | Font | Use | Licence |
 |---|---|---|
 | Bevan 400 | date, signup heading, 404 numeral | OFL 1.1 — `public/fonts/LICENSE-bevan.txt` |
-| Cormorant Garamond 400 / 600 | the body font — copy, buttons, labels, language switch, `<strong>`, and the intro frames | OFL 1.1 — `public/fonts/LICENSE-cormorant-garamond.txt` |
+| Cormorant Garamond 400 / 600 | the body font — copy, buttons, labels, language switch, `<strong>`, the activity list | OFL 1.1 — `public/fonts/LICENSE-cormorant-garamond.txt` |
 | Dust West | the wordmark, **inside the logo images only** | personal-use only; forbids conversion — never installed, shipped or embedded as a font |
 
 The WOFF2 files are fontsource 5.3.0 latin subsets (Bevan 21,008 B; Cormorant Garamond 400 22,876 B;
@@ -477,8 +530,8 @@ The root font size is the body size (20–23px), so `1rem` in `style.css` is 20�
 16px, and every rem-based length (type, column widths, gaps, the poster) comes out about 1.3× its
 16px reading. At 100% zoom on a desktop that read too large; 75% browser zoom looked right. So
 `--scale` multiplies the root size: `1` below 64rem (1024px), `.75` from 64rem up. Everything
-measured in rem shrinks together, the full-screen poster viewer and the intro (sized in `vw`/`dvh`)
-still fill the screen, and px sizes (icons, 44px tap targets, borders, the focus ring) stay as they
+measured in rem shrinks together, the full-screen poster viewer (sized in `vw`/`dvh`)
+still fills the screen, and px sizes (icons, 44px tap targets, borders, the focus ring) stay as they
 are. To tune desktop, change the one `.75`; phones and tablets are not touched by it.
 
 ## Deploying
@@ -519,6 +572,25 @@ npm run deploy         # wrangler deploy
 
 Deploy manually only from a clean, up-to-date `main`. Anything else puts code in production that is
 not in `main`, and the next push to `main` silently replaces it.
+
+### Staging
+
+`staging.renaissance.rodeo` is a second Worker, **`renaissance-rodeo-staging`** (`env.staging` in
+`wrangler.jsonc`), where a branch is looked at and approved before it is merged and goes live
+(Cameron, 2026-10-24). Deploy it by hand from the branch under review:
+
+```sh
+npx wrangler deploy --env staging
+```
+
+Workers Builds deploys only the top-level Worker, so nothing reaches staging by itself and nothing
+deployed to staging reaches production. The environment inherits `main`, `compatibility_date` and
+`assets`; `vars` and `ratelimits` are set empty and no secret is ever put on it, so its signup form
+answers `503 unavailable` and can never write to the live listmonk list (the Turnstile widget does
+not list the staging hostname either). The tests hold it to its name, its one hostname and its empty
+`vars`, so a staging block can never claim a production domain. The first deploy attaches the custom
+domain (DNS record and certificate) the same way the production cutover did. The pages' canonical
+links point at production, so search engines treat staging as a copy.
 
 ### CI
 
@@ -613,15 +685,27 @@ mistake fails *open* or fails *silently*:
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
-  the DUI notice, then put VIP under "coming soon" and repeat the home signup form and strings, with
-  no prices and no link to the shop while sales are paused; the home date lockup is
+  show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
   two lines under the logo; the sponsors pages repeat
   the partner row; the sitemap lists all eight pages;
-- **team**: `/team` and `/es/team` are served in their language with the site CSP, `/team/` and
-  `/team.html` redirect to `/team`, the two files list the same names and links in the same order,
-  each square holds the name's initials, every outbound link is `https` + `noopener`, every X icon
-  is labelled, the header opens with the bull-and-rider mark linking home in the page's language,
-  neither page loads a script, and both home pages and the sitemap link them.
+- **about**: `/about` and `/es/about` are served in their language with the site CSP, `/about/` and
+  `/about.html` redirect to `/about`, every spelling of the old `/team` addresses answers 301 to
+  `#team`, the two files list the same names and links in the same order, each square holds the
+  photo or the name's initials, every outbound link is `https` + `noopener`, every X icon is
+  labelled, the header opens with the bull-and-rider mark linking home in the page's language,
+  neither page loads a script, the jump links point at `#event`, `#team` and `#sponsors` in page
+  order, the event section holds the three paragraphs including the home page's line, the sponsors
+  section repeats the home partner row, and both home pages and the sitemap link them;
+- **home**: the About section is the sentence, the `[poster | list]` row and the link to `/about`, in
+  that order, and the hero carries the Buy tickets button to the shop and no thumbnail; there is no
+  opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
+- **activities**: twelve items, identical on the home and about pages per language, in sentence case;
+- **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `origenganadero.com` then `bitpokersv.com`
+  (classes `bh`, `og`, `bp`) identically on the home, about and sponsors pages, and no page names Club Cocal yet;
+- **sponsor tier 2**: the same `ul.partners.tier-2` right after the partner row on the home, about
+  and sponsors pages, linking `tbhs.sv`, `bitdriver.taxi` then `beefbackbetter.com`, and the three logos served as PNG;
+- **staging**: `env.staging` is `renaissance-rodeo-staging` on `staging.renaissance.rodeo` only,
+  `workers_dev` off, with no `vars` and no rate limiter.
 
 The test runtime pins an older `compatibilityDate` than `wrangler.jsonc` because the `workerd`
 bundled with the pool refuses newer dates; see the comment in `vitest.config.mjs`.

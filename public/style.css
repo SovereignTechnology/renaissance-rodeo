@@ -1,8 +1,7 @@
 /* Renaissance Rodeo — the one stylesheet, shared by /, /es/ and /404.html.
    Two inks on cream, one 36rem column of copy, two media queries (a phone
    tweak at ≤519px; from 64rem up the poster gets a sticky column beside the
-   copy, and --scale shrinks the whole page to .75), and the black opening sequence (the "intro" block; /intro.js drives
-   it, only on / and /es/). Bevan for the date and headings, Cormorant Garamond
+   copy, and --scale shrinks the whole page to .75). Bevan for the date and headings, Cormorant Garamond
    for everything else. Font files live in /fonts/ and are referenced ONLY here
    (plus the two preloads in each page); when a font file is replaced, bump its
    ?v= query here and in the preloads. The tree is on ?v=2 since 2026-10-14. */
@@ -48,6 +47,10 @@
   --text-date: clamp(1.125rem, .95rem + 1vw, 1.5rem);
   --text-h2: clamp(1.625rem, 1.25rem + 1.8vw, 2.25rem);
   --text-button: 1.1875rem;
+  /* One navigation voice: the top bar, the language switch, the footer links and the About page's
+     jump links all set their text with these two (uppercase, Cormorant 600, tracked). */
+  --nav-size: 1.0625rem;
+  --nav-track: .06em;
   --lh-body: 1.45;
   --gap-section: clamp(2.5rem, 7vw, 4.5rem);
   --control: 3rem;
@@ -73,8 +76,7 @@ html, body {
   font: var(--text-body) / var(--lh-body) var(--font-body);
 }
 /* A warm cream-to-sand wash behind the whole page, kept in the darker part of the range so
-   it never reads as stark white (the intro overlay paints its own black over it; html keeps
-   the flat --cream as the fallback). */
+   it never reads as stark white (html keeps the flat --cream as the fallback). */
 body {
   min-height: 100vh;
   background: linear-gradient(180deg, var(--cream) 0%, #ecdec2 55%, #e2cfa9 100%);
@@ -87,7 +89,7 @@ body {
    back into itself. px sizes (icons, 44px tap targets, borders, the focus ring) stay put. */
 html { font-size: calc(var(--text-body) * var(--scale)); }
 img { display: block; max-width: 100%; height: auto; }
-h1, h2, p { margin: 0; }
+h1, h2, h3, p { margin: 0; }
 strong { font-weight: 600; }
 a {
   color: var(--ink);
@@ -157,9 +159,9 @@ a {
   display: flex;
   align-items: center;
   margin-inline-start: auto;
-  font: 600 1.0625rem / 1 var(--font-body);
+  font: 600 var(--nav-size) / 1 var(--font-body);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: var(--nav-track);
 }
 .lang a, .lang [aria-current] {
   display: inline-flex;
@@ -197,9 +199,9 @@ a {
   margin: 0;
   padding: 0;
   list-style: none;
-  font: 600 1.0625rem / 1 var(--font-body);
+  font: 600 var(--nav-size) / 1 var(--font-body);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: var(--nav-track);
 }
 .site a {
   display: inline-flex;
@@ -231,16 +233,10 @@ a {
 /* ---------- hero ---------- */
 main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .hero h1 img { width: 100%; }
-/* Phone poster: a thumbnail floated right of the two hero lines under the date, so it costs no
-   height. The desktop column (.poster) is display:none here and takes over from 64rem up. */
-.poster-thumb {
-  float: right;
-  width: 30%;
-  max-width: 8.5rem;
-  margin: .25rem 0 .75rem 1.25rem;
-}
-.poster-thumb img { width: 100%; }
-.hero::after { content: ""; display: block; clear: both; }
+/* Phone and tablet poster: a thumbnail beside the activity list (see "activities"). The desktop
+   column (.poster) is display:none here and takes over from 64rem up. */
+.poster-thumb { display: block; }
+.poster-thumb img { width: 100%; box-shadow: 0 6px 18px rgb(14 29 45 / .18); }
 .poster { display: none; }
 /* Date and place: a lockup under the logo, two centred lines of Bevan sized to the column (cqi,
    so it scales with the logo above it at every width; a browser without container units keeps
@@ -255,9 +251,11 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   letter-spacing: .05em;
 }
 .when-date, .when-place { display: block; }
-.when + .poster-thumb { margin-top: 1rem; }
-.after { margin-top: 1rem; }
-.note { margin-top: .25rem; color: var(--muted); }
+.after { margin-top: 1rem; text-align: center; }
+/* Buy tickets, straight to the shop: centred under the date lockup, so it is on the first
+   screen of every phone. "The day after…" follows it, centred too. */
+.hero-buy { margin-top: 1.25rem; text-align: center; }
+.hero-buy .buy { padding-inline: 2.25rem; }
 
 
 /* ---------- sections ---------- */
@@ -265,6 +263,45 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .about p { margin-block: 1.1em; overflow-wrap: break-word; }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
+
+/* ---------- activities ---------- */
+/* The day's activities as a programme: uppercase like the nav, a small red diamond for each (a
+   CSS shape: the font subset has no ✦). Words are written in sentence case and uppercased here,
+   so screen readers read words, not letters. Home, phones and tablets: [poster | list], the list
+   one column so its twelve lines stand about as tall as the thumbnail. Desktop (no thumbnail)
+   and the about page: columns (see the desktop block). */
+.activities {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 600 1rem / 1.25 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.activities li { position: relative; padding: .2em 0 .2em 1.1em; break-inside: avoid; }
+.activities li::before {
+  content: "";
+  position: absolute;
+  left: .1em;
+  top: .72em;
+  width: .38em;
+  height: .38em;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+.lineup {
+  display: grid;
+  grid-template-columns: min(42%, 11rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+.about-page .activities { margin-top: 1.5rem; columns: 2; column-gap: 1.5rem; }
+/* "Learn more about Renaissance Rodeo": a plain link in the copy, its arrow drawn inline (the
+   font subset has no U+2192) and nudged right on hover. */
+.about .more { margin-top: .5rem; }
+.more a { font-weight: 600; text-underline-offset: .2em; }
+.more svg { display: inline-block; width: .8em; height: .8em; margin-inline-start: .3em; vertical-align: -.05em; }
 
 /* ---------- signup ---------- */
 #signup { scroll-margin-top: 1.5rem; }
@@ -353,7 +390,9 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 /* ---------- partners ---------- */
 /* Three marks in one row at every width. Each link is a two-row grid: a fixed-height logo
    slot (the mark fits inside it, centred, so three different aspect ratios sit on one line)
-   and the caption. On phones the slot shrinks and the captions go screen-reader-only. */
+   and the caption. On phones the slot shrinks and the captions go screen-reader-only.
+   Club Cocal is held back until it is confirmed (Cameron, 2026-10-28); bringing it back as the
+   second of four, two a row, is a revert of the commit that took it out. */
 .partners {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -397,6 +436,20 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
    caption break still starts a new line — BitPoker SV's name above its description. */
 .partners .cap .tagline + br { display: none; }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
+/* The second tier: under a hairline, three smaller marks side by side, no label (Cameron,
+   2026-10-24; Beef Back Better joined 2026-10-26). Each mark is capped by height and by its cell,
+   so the wide BitDriver wordmark, the squarer Bitcoin Hardware Store lockup and the round Beef
+   Back Better seal carry about the same weight. */
+.partners.tier-2 {
+  grid-template-columns: repeat(3, minmax(0, 12rem));
+  justify-content: center;
+  gap: 1.5rem 1.5rem;
+  margin-top: 2.25rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid rgb(14 29 45 / .18);
+}
+.partners.tier-2 a { grid-template-rows: 4.5rem auto; }
+.partners.tier-2 img { max-height: 4.5rem; max-width: 92%; }
 
 /* ---------- poster viewer (<dialog>) ---------- */
 /* Scoped to [open]: a bare .lightbox{display:grid} would undo the UA's display:none on the
@@ -432,116 +485,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .lightbox-close:hover { background: var(--red); border-color: var(--red); }
 body:has(dialog[open]) { overflow: hidden; }
 
-/* ---------- intro: the black opening sequence ---------- */
-/* The sequence never plays on arrival. /intro.js puts .has-intro on <html> only when the
-   "View intro" button starts it; without that class — no JS, or nobody has asked — the overlay
-   is display:none and nothing below applies. The text frames and the closing card are static
-   markup in each page; only the partner marks are cloned in at runtime. */
-html:not(.has-intro) .intro:not(.is-leaving) { display: none; }
-html.has-intro { background: #000; overflow: hidden; }
-html.has-intro body > :not(.intro) { opacity: 0; }
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: #000;
-  color: var(--cream);
-  text-align: center;
-  touch-action: none;   /* swipes reach intro.js as pointer events instead of being cancelled as pans */
-  user-select: none;    /* and a drag across the text is a swipe, not a selection */
-}
-.intro img { -webkit-user-drag: none; }   /* a drag that starts on a mark is a swipe, not an image drag */
-.intro.is-leaving { opacity: 0; }
-/* Every frame sits in the same grid cell; only .is-on is visible (and reachable). */
-.intro-stage { display: grid; place-items: center; grid-area: 1 / 1; width: 100%; }
-.intro-slide {
-  grid-area: 1 / 1;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  opacity: 0;
-  visibility: hidden;
-}
-.intro-slide.is-on { opacity: 1; visibility: visible; }
-.intro-text {
-  max-width: 34rem;
-  font: 400 clamp(1.375rem, 1.1rem + 1.4vw, 2.25rem) / 1.4 var(--font-body);
-  text-wrap: balance;
-}
-.intro-marks {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(1.5rem, 6vw, 4rem);
-}
-/* The marks and the bull are the ink-coloured site assets; inverting #0e1d2d gives #f1e2d2,
-   the cream, so the intro ships no second copy of any image. */
-.intro-marks img, .intro-cta img { filter: invert(1); }
-.intro-marks img { max-height: 6rem; max-width: 26vw; width: auto; height: auto; }
-.intro-cta { gap: 1.5rem; }
-.intro-cta img { width: min(60vw, 16rem); }
-.intro-join {
-  display: inline-flex;
-  align-items: center;
-  height: var(--control);
-  padding: 0 1.5rem;
-  background: var(--red);
-  color: var(--cream);
-  border: var(--border) solid var(--red);
-  border-radius: 6px;
-  font: 600 var(--text-button) / 1 var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  text-decoration: none;
-  box-shadow: 0 2px 6px rgb(0 0 0 / .35);
-}
-.intro-join:hover { background: var(--red-deep); border-color: var(--red-deep); transform: translateY(-2px); }
-.intro-enter {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 .5rem;
-  color: var(--cream);
-  font-size: var(--text-small);
-}
-.intro-skip {
-  position: fixed;
-  top: .75rem;
-  right: .75rem;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 1rem;
-  background: transparent;
-  color: var(--cream);
-  border: var(--border) solid rgb(247 237 216 / .6);
-  border-radius: 999px;
-  font: 600 var(--text-small) / 1 var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  cursor: pointer;
-}
-.intro-skip:hover { border-color: var(--cream); }
-.intro :focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Replay, pinned to the footer's bottom right; hidden until intro.js unhides it. Styled as
-   footer text in an outline so it reads as part of the line, not a floating control. */
-.intro-replay {
-  flex: none;
-  min-height: 32px;
-  padding: 0 .75rem;
-  background: none;
-  color: inherit;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  font: inherit;
-  line-height: 1;
-  cursor: pointer;
-}
-.intro-replay:hover { color: var(--red); }
-
-/* ---------- team (/team, /es/team) ---------- */
+/* ---------- team (the #team section of /about, /es/about) ---------- */
 /* One list of cards: a square (the person's photo, or their initials until one exists), then the
    name, the organisation, an X link and a short bio. Phones: the square sits beside the name and
    the bio runs full width under both. From 520px: one card per row, the square on the left and the
@@ -583,7 +527,6 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .member-bio { flex-basis: 100%; text-wrap: pretty; }
 /* Pull the 44px tap target left so the X glyph lines up with the text above it. */
 .member .social { margin-inline-start: -12px; }
-.team-contact { margin-top: var(--gap-section); }
 @media (min-width: 520px) {
   /* Tablet and up: one card per row, the square on the left, the text beside it and the bio
      under the name, so the long bios read as left-aligned paragraphs, not centred slivers. */
@@ -602,10 +545,9 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 }
 
 /* ---------- tickets and sponsors (/tickets, /sponsors and the /es/ twins) ---------- */
-/* Text pages in the 36rem copy column. Tickets: the Bitcoin Histórico box, the DUI notice, then a red
-   "Coming soon" under the VIP heading and the same signup form as the home page. (Sales are paused: the
-   price list and Buy button rules below are kept for when they reopen.) Sponsors: the partner row, then
-   how to become a sponsor. */
+/* Text pages in the 36rem copy column. Tickets: the Bitcoin Histórico box, prices and the Buy link,
+   the DUI notice, then the same signup form as the home page. (.soon is no longer used by any
+   page.) Sponsors: the partner row, then how to become a sponsor. */
 .soon {
   margin-top: .5rem;
   color: var(--red);
@@ -670,10 +612,111 @@ html.has-intro body > :not(.intro) { opacity: 0; }
 .page-section h2 { margin-bottom: 1.25rem; font: 400 clamp(1.25rem, 1.1rem + .8vw, 1.625rem) / 1.2 var(--font-display); }
 .page-section p + p { margin-top: 1em; }
 
+/* ---------- about (/about, /es/about) ---------- */
+/* The event, the team and the sponsors, one section each, under a row of jump links that sticks
+   to the top of the screen. A jump scrolls smoothly (html scroll-behavior, motion block) and
+   lands the heading just under the row (scroll-margin-top). Where scroll markers exist (Chrome
+   140+), the section in view is underlined like the current page in the header; elsewhere the
+   one you jumped to is. No script. The links are the header's own voice (uppercase, tracked, hover
+   red) with the red diamond of the activities list between them (Cameron, 2026-10-27). */
+.jump {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 1.25rem -1rem 0;
+  padding: .5rem 1rem;
+  /* The body's own wash, also fixed to the viewport, so the row is invisible against the page
+     where it sits and still covers what scrolls under it once it sticks. */
+  background: linear-gradient(180deg, var(--cream) 0%, #ecdec2 55%, #e2cfa9 100%) fixed;
+  border-bottom: 1px solid rgb(14 29 45 / .18);
+  /* The nav size, so the diamonds and their margins (em) follow the type on phones, where it shrinks. */
+  font-size: var(--jump-size, var(--nav-size));
+}
+/* One row, centred at its natural width; if it cannot fit (the Spanish labels on a 320px phone)
+   it slides sideways rather than wrapping. The first and last items' auto margins do the
+   centring, so an overflowing row still starts at its left edge (justify-content: center would
+   push the first link out of reach). The 5px padding keeps the focus ring inside the scroll box,
+   which clips. */
+.jump ul {
+  display: flex;
+  margin: -5px;
+  padding: 5px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-target-group: auto;
+}
+.jump ul::-webkit-scrollbar { display: none; }
+.jump li { display: flex; flex: 0 0 auto; align-items: center; scroll-snap-align: start; }
+.jump li:first-child { margin-inline-start: auto; }
+.jump li:last-child { margin-inline-end: auto; }
+.jump li + li::before {
+  content: "";
+  flex: none;
+  width: .38em;
+  height: .38em;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+.jump a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  color: var(--ink);
+  font: 600 1em / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--jump-track, var(--nav-track));
+  white-space: nowrap;
+  text-decoration: none;
+}
+.jump a:hover { color: var(--red); }
+/* The section in view, marked like the current page in the header. Its own rule, never in the
+   header's list: a browser that does not know :target-current drops a whole rule that names it,
+   and would lose the header's and the footer's mark with it.
+   Where there are no scroll markers the link of the section you jumped to is marked instead. */
+.jump a:target-current {
+  text-decoration: underline;
+  text-decoration-thickness: .08em;
+  text-underline-offset: .3em;
+}
+@supports not selector(:target-current) {
+  .about-page:has(#event:target) .jump a[href="#event"],
+  .about-page:has(#team:target) .jump a[href="#team"],
+  .about-page:has(#sponsors:target) .jump a[href="#sponsors"] {
+    text-decoration: underline;
+    text-decoration-thickness: .08em;
+    text-underline-offset: .3em;
+  }
+}
+/* Phones and small tablets: three equal tap targets across the row, a diamond with a little air
+   on each side on the borders between them. The type is the header's size when it fits and
+   shrinks to fit when it does not, the tracking a little tighter (.03em): the Spanish labels are
+   the long ones (about 20.4 px of row per px of type, English 15.7, measured with Cormorant 600 at
+   this tracking, the diamonds and their margins included; 62px is the page margins, the link
+   padding and some slack), floored at .7rem, below which the row slides sideways as before (a 320px
+   phone). */
+@media (max-width: 47.99rem) {
+  .jump {
+    --jump-fit: 15.7;
+    --jump-track: .03em;
+    --jump-size: max(.7rem, min(var(--nav-size), calc((100vw - 62px) / var(--jump-fit))));
+  }
+  .jump:lang(es) { --jump-fit: 20.4; }
+  .jump li { flex: 1 1 auto; }
+  .jump li + li::before { margin-inline: .4em; }
+  .jump a { flex: 1; padding-inline: .125rem; }
+}
+.about-page > section { scroll-margin-top: calc(44px + 2.5rem); }
+.jump + .page-section { margin-top: 2rem; }
+.page-section h2 + .team-lede { margin-top: 0; }
+.become { margin-top: 2.25rem; }
+
 /* ---------- footer ---------- */
 /* Shorter on top than the section gap so the share bar is not stranded above it (404 has no
-   footer). The page links again, then X and Instagram as words, then the copyright line; the
-   intro's replay button (home pages only) holds the bottom right. */
+   footer). The page links again, then X and Instagram as words, then the copyright line. */
 footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-block: clamp(1.75rem, 4vw, 2.75rem) var(--gap-section); color: var(--muted); font-size: var(--text-small); }
 footer a { color: inherit; }
 .foot { display: grid; gap: .75rem; }
@@ -685,8 +728,23 @@ footer a { color: inherit; }
   padding: 0;
   list-style: none;
 }
-.foot-nav a { display: inline-block; padding-block: .25rem; color: var(--ink); text-decoration: none; }
+.foot-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  font: 600 var(--nav-size) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--nav-track);
+  text-decoration: none;
+}
 .foot-nav a:hover { color: var(--red); }
+/* Desktop: the links and the copyright share one line, links left and copyright right like the
+   header's links and language switch (Cameron, 2026-10-27). It wraps back to two lines if a longer
+   pair ever does not fit; phones keep them stacked. */
+@media (min-width: 64rem) {
+  .foot { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 2rem; }
+}
 
 /* ---------- 404 ---------- */
 .notfound { padding-block: var(--gap-section); }
@@ -769,7 +827,6 @@ footer a { color: inherit; }
   .included > div { display: contents; }
   .included p { grid-column: 1 / -1; margin-top: 0; }
   .dui { padding: 1rem; }
-  .intro-marks img { max-height: 4.5rem; }
   .partners { gap: 1.5rem 1rem; }
   .share { display: block; }
   .share-row { display: block; }
@@ -781,8 +838,21 @@ footer a { color: inherit; }
   .partners img { max-height: 5.5rem; }
   /* Three captions in ~6rem columns would wrap into a wall of text: on the home page the marks
      stand alone and the names stay readable to assistive tech (Bitcoin Histórico's "day before"
-     is in the hero). The sponsors page stacks the three instead and keeps every caption. */
+     is in the hero). The about and sponsors pages stack the three instead and keep every caption. */
   .page .partners { grid-template-columns: 1fr; gap: 2.25rem; }
+  .partners.tier-2, .page .partners.tier-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1.25rem; }
+  /* Two a row on a phone: the third mark sits centred under them, one cell wide. */
+  .partners.tier-2 li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - .625rem); }
+  .partners.tier-2 a { grid-template-rows: 3.5rem auto; }
+  /* The stacked TBHS lockup a size down, so it weighs about what the flat BitDriver wordmark does. */
+  .partners.tier-2 img { max-height: 3rem; }
+  /* Uppercase would wrap most items in a phone's narrow column and double the list's height:
+     plain case, a size down, so each item keeps one line and the list stands as tall as the
+     poster beside it. */
+  .lineup { gap: 1rem; }
+  .activities { font-size: .875rem; line-height: 1.15; text-transform: none; letter-spacing: 0; }
+  .activities li { padding-block: .15em; }
+  .activities li::before { top: .55em; }
   .copy .partners .cap {
     position: absolute;
     width: 1px;
@@ -807,14 +877,23 @@ footer a { color: inherit; }
   /* Everything but the poster stays in the copy track — the 404 page shares this sheet and
      has no .copy wrapper, so auto-placement would otherwise spill its heading into track 2. */
   main > :not(.poster) { grid-column: 1; }
-  /* The team page has no poster: it takes the whole 64rem. Two columns of cards that fill
+  /* The about page has no poster: it takes the whole 64rem, the jump links sit centred at their own
+     width and the event text keeps a reading measure. The team: two columns of cards that fill
      downwards (James, Zack, Tom | Andrea, Cam, Will), not rows: the bios differ a lot in length,
      and rows would leave a hole under every short card. */
-  main.team { display: block; }
+  main.about-page { display: block; }
+  .jump { margin-inline: 0; padding-inline: 0; }
+  .jump a { padding-inline: 1.5rem; }
+  #event p { max-width: 38rem; }
   .team-grid { display: block; columns: 2; column-gap: 3rem; }
   .member { break-inside: avoid; margin-bottom: 3rem; }
   .member:last-child { margin-bottom: 0; }
   .poster-thumb { display: none; }
+  .lineup { display: block; }
+  /* Two columns in the 36rem home column (three would wrap the longer items, the Spanish above
+     all); three across the about page's full width. */
+  .activities { columns: 2; column-gap: 2rem; }
+  .about-page .activities { columns: 3; }
   .poster {
     display: block;
     grid-column: 2;
@@ -839,14 +918,17 @@ footer a { color: inherit; }
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
   .signup button { transition: background-color .15s ease, border-color .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease; }
-  .intro-join { transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease; }
+  .more svg { transition: transform .15s ease; }
+  .more a:hover svg { transform: translateX(3px); }
   /* Team photos lift gently on hover. */
   .avatar img { transition: transform .35s ease; }
   .avatar:hover img { transform: scale(1.04); }
   /* Scroll fade-up: the sections of the copy column rise into place as they enter the view.
      Scroll-driven animation ranges need no script; where animation-timeline is unsupported
      the @supports block never matches and nothing changes. The hero sits above the fold on
-     arrival, so it is left out — its logo must not fade in mid-read. */
+     arrival, so it is left out — its logo must not fade in mid-read. The about page's sections
+     are left out too: they are jump targets, and a section still translated when the browser
+     scrolls to it lands 1.25rem off, under the sticky jump row. */
   @supports (animation-timeline: view()) {
     .copy > section:not(.hero) {
       animation: fade-up both ease-out;
@@ -854,13 +936,6 @@ footer a { color: inherit; }
       animation-range: entry 0% entry 55%;
     }
   }
-  /* Intro fades. The durations are mirrored in intro.js (FADE_IN / FADE_OUT / LEAVE); the
-     page's own fade-up runs as html.has-intro comes off. */
-  .intro-slide { transition: opacity .6s ease, visibility 0s linear .6s; }
-  .intro-slide.is-on { transition: opacity .9s ease, visibility 0s; }
-  .intro-slide.is-cut.is-on { transition-duration: .25s; }
-  .intro { transition: opacity .8s ease; }
-  body > :not(.intro) { transition: opacity .6s ease; }
 }
 
 /* The scroll fade-up above. */

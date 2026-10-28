@@ -51,6 +51,31 @@
   "vars": {
     "LISTMONK_LIST_ID": "2",
     "LISTMONK_LIST_ID_ES": "3"
+  },
+
+  // STAGING (Cameron, 2026-10-24): a second Worker, renaissance-rodeo-staging, on
+  // staging.renaissance.rodeo, where a branch is looked at and approved before it
+  // goes live. Deploy it by hand from that branch: `npx wrangler deploy --env staging`.
+  // Workers Builds deploys only the top level, so nothing reaches staging by itself
+  // and nothing deployed here reaches production. main, compatibility_date and assets
+  // are inherited; vars, ratelimits and secrets are NOT. vars and ratelimits are set
+  // empty here on purpose (that also silences wrangler's "not inherited" warning), and no
+  // secret is ever put on this Worker: with no TURNSTILE_SECRET and no list id its signup
+  // form answers 503 unavailable, so staging can never write to the live listmonk list.
+  // test/index.spec.js asserts the name, the one staging route and the empty vars, so
+  // staging cannot claim a production hostname.
+  "env": {
+    "staging": {
+      "name": "renaissance-rodeo-staging",
+      "routes": [
+        { "pattern": "staging.renaissance.rodeo", "custom_domain": true }
+      ],
+      "workers_dev": false,
+      "preview_urls": false,
+      "observability": { "enabled": true },
+      "vars": {},
+      "ratelimits": []
+    }
   }
 
   // No secret is here, and none may be added to "vars": a vars entry with the

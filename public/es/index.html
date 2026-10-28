@@ -31,8 +31,6 @@
   <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2?v=2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2?v=2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
-  <!-- Diferido: la secuencia nunca se reproduce al llegar, así que no le cuesta nada al primer pintado. -->
-  <script src="/intro.js" defer></script>
   <!-- Ambos diferidos (defer), así que se ejecutan en el orden del documento: primero
        signup.js, porque el cargador de Turnstile resuelve los nombres data-*-callback de
        abajo contra window al dibujar el widget y descarta en silencio los que no encuentra. -->
@@ -44,31 +42,10 @@
 <body>
   <a class="skip" href="#main">Ir al contenido</a>
 
-  <!-- La secuencia de apertura (style.css "intro", controlada por /intro.js). Los cuadros de texto
-       son este texto, escrito para la pantalla: más corto que la sección "El evento", que queda
-       como está. Las marcas aliadas se clonan de la fila de aliados en tiempo de ejecución.
-       Nunca se reproduce al llegar: display:none hasta que el botón "Ver intro" al pie de la
-       página la inicia. -->
-  <section class="intro" aria-label="Introducción">
-    <button type="button" class="intro-skip">Saltar intro</button>
-    <div class="intro-stage" aria-hidden="true">
-      <div class="intro-slide"><p class="intro-text">El Salvador vive un renacimiento.<br>Este evento celebra el lado ganadero y agrícola de ese renacer.</p></div>
-      <div class="intro-slide"><p class="intro-text">Honramos a los verdaderos hombres y mujeres detrás de la cultura vaquera,<br>una cultura que ha resistido los años más duros de El Salvador.</p></div>
-      <div class="intro-slide"><p class="intro-text">Un punto de encuentro donde salvadoreños y visitantes internacionales se reúnen,<br>forjando relaciones que fortalecen la industria.</p></div>
-      <div class="intro-slide"><p class="intro-text">Mientras El Salvador se eleva hacia convertirse en uno de los mejores países del planeta.</p></div>
-      <div class="intro-slide"><p class="intro-text">Una tarde completa de entretenimiento de rodeo.<br>Monta de toros. Monta de borregos. Feria de animales. Carrera de barriles. Música. Barbacoa.</p></div>
-    </div>
-    <div class="intro-slide intro-cta">
-      <img src="/img/bull.png?v=2" width="500" height="510" alt="" draggable="false">
-      <a class="intro-join" href="#signup">Únase a la lista de espera</a>
-      <a class="intro-enter" href="#main">Ir al sitio</a>
-    </div>
-  </section>
-
   <header class="top wrap">
     <nav class="site" id="site-nav" popover aria-label="Páginas">
       <ul class="site-links">
-        <li><a href="/es/team">Equipo</a></li>
+        <li><a href="/es/about">Acerca de</a></li>
         <li><a href="/es/tickets">Boletos</a></li>
         <li><a href="/es/sponsors">Patrocinadores</a></li>
       </ul>
@@ -97,22 +74,42 @@
         <!-- Date and place as a lockup under the logo: two centred lines in Bevan, sized to the
              column so they read as part of the logo (style.css "hero"). -->
         <p class="when"><time class="when-date" datetime="2026-11-13">13 de noviembre de 2026</time> <span class="when-place">Ilopango, El Salvador</span></p>
-        <!-- Phone only (display:none from 64rem up; loading=lazy keeps a hidden image unfetched).
-             Floats beside the two lines below, adds no height; tap opens the viewer. -->
-        <a class="poster-thumb" href="/img/poster.jpg?v=2" data-poster aria-label="Ver el afiche del evento"><img src="/img/poster-thumb.jpg?v=2" width="320" height="569" alt="" loading="lazy"></a>
+        <!-- Directo a la tienda de boletos (Cameron, 2026-10-24); /es/tickets conserva los precios,
+             las notas de Bitcoin Histórico y del DUI y el mismo enlace. -->
+        <p class="hero-buy"><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">Comprar boletos</a></p>
         <p class="after">El día después de <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
-        <p class="note">Sede, horarios y boletos: <a href="#signup">únase a la lista</a>.</p>
       </section>
 
+      <!-- Breve a propósito: una línea sobre el día y luego la historia completa en /es/about
+           (README, "The home page"). -->
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">El evento</h2>
-        <p>El Salvador vive un Renacimiento, y este evento está diseñado para impulsar la parte ganadera y agrícola de ese renacer.</p>
-        <p>Al celebrar a los verdaderos hombres y mujeres detrás de la cultura vaquera que ha sobrevivido a las adversidades de El Salvador, buscamos que el evento sea un punto de encuentro donde salvadoreños y visitantes internacionales puedan reunirse, disfrutar y forjar relaciones que fortalezcan la industria y le permitan prosperar, mientras el país avanza con fuerza hacia convertirse en uno de los mejores países del planeta.</p>
-        <p>Será una tarde completa de entretenimiento de rodeo, con monta de toros, monta de borregos para niños, feria de animales, carrera de barriles, música y barbacoa.</p>
+        <p>Será una tarde completa de entretenimiento de rodeo, con monta de toros, carrera de barriles, monta de borregos para niños, feria de animales, póker, cornhole, lanzamiento de herraduras, show de banderas, arte, un centro Bitcoin, cumbia y música country, y barbacoa.</p>
+        <!-- Phones and tablets: the poster beside the activity list, which is about as tall as the
+             thumbnail, so neither leaves a gap. From 64rem the thumbnail hides (the poster has its
+             own column) and the list runs in two columns. Tap opens the poster viewer. -->
+        <div class="lineup">
+          <a class="poster-thumb" href="/img/poster.jpg?v=2" data-poster aria-label="Ver el afiche del evento"><img src="/img/poster-thumb.jpg?v=3" width="480" height="853" alt="" loading="lazy"></a>
+          <ul class="activities" aria-label="Actividades">
+            <li>Monta de toros</li>
+            <li>Carrera de barriles</li>
+            <li>Póker</li>
+            <li>Monta de borregos</li>
+            <li>Barbacoa</li>
+            <li>Centro Bitcoin</li>
+            <li>Cornhole</li>
+            <li>Herraduras</li>
+            <li>Show de banderas</li>
+            <li>Arte</li>
+            <li>Cumbia</li>
+            <li>Música country</li>
+          </ul>
+        </div>
+        <p class="more"><a href="/es/about">Conozca más sobre Renaissance Rodeo<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
       </section>
 
       <section aria-labelledby="partners-h">
-        <h2 id="partners-h" class="sr-only">Bitcoin Histórico, Origen Ganadero y BitPoker SV</h2>
+        <h2 id="partners-h" class="sr-only">Bitcoin Histórico, Origen Ganadero, BitPoker SV, The Bitcoin Hardware Store, BitDriver y Beef Back Better</h2>
         <ul class="partners">
           <li class="bh">
             <a href="https://bitcoinhistorico.com/" rel="noopener">
@@ -123,13 +120,33 @@
           <li class="og">
             <a href="https://origenganadero.com/" rel="noopener">
               <img src="/img/origen-ganadero.svg?v=2" width="740" height="760" alt="Origen Ganadero">
-              <span class="cap">Aliado · Genética de ganado de carne y consultoría para fincas ganaderas, El Salvador.</span>
+              <span class="cap">Genética de ganado de carne y consultoría para fincas ganaderas, El Salvador.</span>
             </a>
           </li>
           <li class="bp">
             <a href="https://www.bitpokersv.com/" rel="noopener">
               <img src="/img/bitpoker.png?v=2" width="245" height="288" alt="">
-              <span class="cap"><strong>BitPoker SV</strong><br>Aliado · Club de póker en vivo con bitcoin, El Salvador.</span>
+              <span class="cap"><strong>BitPoker SV</strong><br>Club de póker en vivo con bitcoin, El Salvador.</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="partners tier-2">
+          <li class="tbhs">
+            <a href="https://tbhs.sv/" rel="noopener">
+              <img src="/img/tbhs.png" width="357" height="192" alt="">
+              <span class="cap"><strong>The Bitcoin Hardware Store</strong><br>Configuración y auditoría de autocustodia de bitcoin, El Zonte.</span>
+            </a>
+          </li>
+          <li class="bd">
+            <a href="https://bitdriver.taxi/" rel="noopener">
+              <img src="/img/bitdriver.png" width="480" height="120" alt="">
+              <span class="cap"><strong>BitDriver</strong><br>Transporte, alquiler de autos y viajes pagados con bitcoin, El Salvador.</span>
+            </a>
+          </li>
+          <li class="bbb">
+            <a href="https://www.beefbackbetter.com/" rel="noopener">
+              <img src="/img/beefbackbetter.png" width="277" height="288" alt="">
+              <span class="cap"><strong>Beef Back Better</strong><br>Carne de res alimentada y terminada a pasto, El Salvador.</span>
             </a>
           </li>
         </ul>
@@ -137,7 +154,7 @@
 
       <section id="signup" aria-labelledby="signup-h">
         <h2 id="signup-h">Entérese primero</h2>
-        <p>La sede, los horarios y los boletos se anunciarán primero a la lista de correo.</p>
+        <p>Los horarios, el transporte y cómo llegar a la sede se anuncian primero a la lista de correo.</p>
         <form class="signup" method="post" action="/api/subscribe" data-lang="es">
           <label for="email">Correo electrónico</label>
           <div class="row">
@@ -215,16 +232,13 @@
     <div class="foot">
       <nav class="foot-nav" aria-label="Sitio">
         <ul>
-          <li><a href="/es/team">Equipo</a></li>
+          <li><a href="/es/about">Acerca de</a></li>
           <li><a href="/es/tickets">Boletos</a></li>
           <li><a href="/es/sponsors">Patrocinadores</a></li>
-          <li><a href="https://x.com/rodeo_sv" rel="me noopener">X</a></li>
-          <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a></li>
         </ul>
       </nav>
       <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/" lang="en" hreflang="en">English</a></p>
     </div>
-    <button type="button" class="intro-replay" hidden>Ver intro</button>
   </footer>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first

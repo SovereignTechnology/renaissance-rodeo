@@ -173,6 +173,17 @@ describe('wrangler.jsonc guard', () => {
     expect(id, 'LISTMONK_LIST_ID is not a list id').toMatch(LIST_ID_RE);
   });
 
+  it('keeps the staging Worker on its own hostname, with no vars to reach the live list', () => {
+    const staging = JSON.parse(env.TEST_WRANGLER_STAGING);
+
+    expect(staging.name).toBe('renaissance-rodeo-staging');
+    expect(staging.routes).toEqual([{ pattern: 'staging.renaissance.rodeo', custom_domain: true }]);
+    expect(staging.workersDev).toBe(false);
+    // No list id, no secret, no DEV_MODE: its signup form answers 503 and never writes to listmonk.
+    expect(staging.varKeys).toEqual([]);
+    expect(staging.ratelimits).toBe(0);
+  });
+
   it('turns workers_dev off once routes are set', () => {
     const routes = Number(env.TEST_WRANGLER_ROUTES_COUNT);
     expect(Number.isInteger(routes)).toBe(true);
@@ -898,33 +909,19 @@ describe('static pages', () => {
     expect(await res.text()).toContain('<html lang="es">');
   });
 
-  it('ships the opening sequence on request, never on load', async () => {
-    const js = await call(new Request(`${ORIGIN}/intro.js`));
-    expect(js.status).toBe(200);
-    expect(js.headers.get('content-type')).toMatch(/javascript/);
-    const src = await js.text();
-    // No once-per-session memory and no autoplay gate left: the only way in is the button.
-    expect(src).not.toContain('sessionStorage');
-    expect(src).toContain('.intro-replay');
-
+  it('has no opening sequence any more: no overlay, no script, no replay button', async () => {
+    // Removed on 2026-10-24 (Cameron): the "View intro" pill was its only way in.
     for (const path of ['/', '/es/']) {
       const html = await (await call(new Request(`${ORIGIN}${path}`))).text();
-      // Deferred on purpose now: nothing plays before first paint, so nothing may block it.
-      expect(html).toContain('<script src="/intro.js" defer></script>');
-      expect(html).not.toContain('<script src="/intro.js"></script>');
-      expect(html).toContain('<section class="intro"');
-      // Five text frames written for the screen, and the replay button (README, "The opening sequence").
-      expect(html.match(/class="intro-text"/g)?.length).toBe(5);
-      expect(html).toContain('class="intro-replay" hidden>');
+      expect(html, path).not.toContain('intro.js');
+      expect(html, path).not.toContain('<section class="intro"');
+      expect(html, path).not.toContain('intro-replay');
     }
-
-    const bull = await call(new Request(`${ORIGIN}/img/bull.png`));
-    expect(bull.status).toBe(200);
-    expect(bull.headers.get('content-type')).toBe('image/png');
+    expect((await call(new Request(`${ORIGIN}/intro.js`))).status).toBe(404);
   });
 
   it('links X and Instagram from every page, and credits the share card to @rodeo_sv', async () => {
-    for (const path of ['/', '/es/', '/team', '/es/team', '/tickets', '/es/tickets', '/sponsors', '/es/sponsors']) {
+    for (const path of ['/', '/es/', '/about', '/es/about', '/tickets', '/es/tickets', '/sponsors', '/es/sponsors']) {
       const res = await call(new Request(`${ORIGIN}${path}`));
       const html = await res.text();
 
@@ -999,22 +996,27 @@ describe('static pages', () => {
   });
 });
 
-// README, "The team page". Two hand-written files carry the same cards, so most of what can go
+// README, "The about page". Two hand-written files carry the same cards, so most of what can go
 // wrong is drift between them: a person, a link or an order changed in one language only.
-describe('team page', () => {
-  const PAGES = { en: '/team', es: '/es/team' };
+describe('about page', () => {
+  const PAGES = { en: '/about', es: '/es/about' };
 
   async function page(path) {
     const res = await call(new Request(`${ORIGIN}${path}`));
     return { res, html: await res.text() };
   }
-  /** The cards and nothing else: from the grid's opening tag to the sponsorship line after it. */
+  /** The cards and nothing else: from the grid's opening tag to the sponsors section after it. */
   const grid = (html) =>
-    html.slice(html.indexOf('<ul class="team-grid">'), html.indexOf('<p class="team-contact">'));
-  const names = (html) => [...grid(html).matchAll(/<h2 class="member-name">([^<]*)<\/h2>/g)].map((m) => m[1]);
+    html.slice(html.indexOf('<ul class="team-grid">'), html.indexOf('<section id="sponsors"'));
+  /** One section of the page, by id: its opening tag up to its closing tag (sections do not nest). */
+  const section = (html, id) => {
+    const start = html.indexOf(`<section id="${id}"`);
+    return start < 0 ? '' : html.slice(start, html.indexOf('</section>', start));
+  };
+  const names = (html) => [...grid(html).matchAll(/<h3 class="member-name">([^<]*)<\/h3>/g)].map((m) => m[1]);
   const hrefs = (html) => [...grid(html).matchAll(/<a href="([^"]*)"/g)].map((m) => m[1]);
 
-  it('serves /team in English and /es/team in Spanish, with the site headers', async () => {
+  it('serves /about in English and /es/about in Spanish, with the site headers', async () => {
     for (const [lang, path] of Object.entries(PAGES)) {
       const { res, html } = await page(path);
 
@@ -1051,7 +1053,7 @@ describe('team page', () => {
       grid(html)
         .split('<li class="member">')
         .slice(1)
-        .map((card) => [card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1], card.match(/<p class="member-bio">([\s\S]*?)<\/p>/)?.[1]])
+        .map((card) => [card.match(/<h3 class="member-name">([^<]*)<\/h3>/)[1], card.match(/<p class="member-bio">([\s\S]*?)<\/p>/)?.[1]])
         .filter(([, bio]) => bio !== undefined);
     const en = withBio((await page(PAGES.en)).html);
     const es = withBio((await page(PAGES.es)).html);
@@ -1069,7 +1071,7 @@ describe('team page', () => {
       // Every card has a square, so none is missing an avatar that screen readers would read out.
       expect(cards.length, path).toBe(names(html).length);
       for (const card of cards) {
-        const name = card.match(/<h2 class="member-name">([^<]*)<\/h2>/)[1];
+        const name = card.match(/<h3 class="member-name">([^<]*)<\/h3>/)[1];
         const avatar = card.match(/<span class="avatar" aria-hidden="true">([\s\S]*?)<\/span>/);
         expect(avatar, name).not.toBeNull();
         const inner = avatar[1];
@@ -1094,6 +1096,19 @@ describe('team page', () => {
       expect(res.status, src).toBe(200);
       expect(res.headers.get('content-type'), src).toBe('image/jpeg');
     }
+  });
+
+  it('keeps :target-current out of every selector list, so a browser without it still marks the current page', async () => {
+    const css = await (await call(new Request(`${ORIGIN}/style.css`))).text();
+    // A browser that does not know a pseudo-class drops the whole rule that names it. The header's and the
+    // footer's "you are here" underline must share no rule with the jump links' :target-current.
+    const preludes = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{/g)].map((m) => m[1].trim());
+
+    expect(preludes.filter((p) => p.includes(':target-current') && !p.startsWith('@supports'))).toEqual([
+      '.jump a:target-current',
+    ]);
+    expect(preludes).toContain('@supports not selector(:target-current)');
+    expect(preludes).toContain('.site a[aria-current="page"], .foot-nav a[aria-current="page"]');
   });
 
   it('sends every outbound link over https with rel="noopener", and names every icon-only link', async () => {
@@ -1127,8 +1142,8 @@ describe('team page', () => {
   });
 
   it('is linked from both home pages and the sitemap, needs no script, and gives the sponsorship address', async () => {
-    expect((await page('/')).html).toContain('<a href="/team">Team</a>');
-    expect((await page('/es/')).html).toContain('<a href="/es/team">Equipo</a>');
+    expect((await page('/')).html).toContain('<a href="/about">About</a>');
+    expect((await page('/es/')).html).toContain('<a href="/es/about">Acerca de</a>');
 
     for (const path of Object.values(PAGES)) {
       const html = (await page(path)).html;
@@ -1138,8 +1153,64 @@ describe('team page', () => {
     }
 
     const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
-    expect(sitemap).toContain('<loc>https://renaissance.rodeo/team</loc>');
-    expect(sitemap).toContain('<loc>https://renaissance.rodeo/es/team</loc>');
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/about</loc>');
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/es/about</loc>');
+    expect(sitemap).not.toContain('/team<');
+  });
+
+  it('sends the old team addresses, every spelling, to the team section of the about page', async () => {
+    for (const [old, target] of [['/team', '/about#team'], ['/es/team', '/es/about#team']]) {
+      for (const variant of [old, `${old}/`, `${old}.html`]) {
+        const res = await call(new Request(`${ORIGIN}${variant}`, { redirect: 'manual' }));
+        const location = new URL(res.headers.get('location') ?? '', ORIGIN);
+
+        expect(res.status, variant).toBe(301);
+        expect(location.pathname + location.hash, variant).toBe(target);
+      }
+    }
+  });
+
+  it('opens with jump links to the event, the team and the sponsors, in page order', async () => {
+    const labels = { en: ['The event', 'Team', 'Sponsors'], es: ['El evento', 'Equipo', 'Patrocinadores'] };
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'));
+      const open = main.indexOf('<nav class="jump"');
+      const jump = main.slice(open, main.indexOf('</nav>', open));
+      const links = [...jump.matchAll(/<a href="#([a-z]+)">([^<]*)<\/a>/g)].map(([, id, text]) => [id, text]);
+
+      expect(open, lang).toBeGreaterThan(-1);
+      expect(links, lang).toEqual(['event', 'team', 'sponsors'].map((id, i) => [id, labels[lang][i]]));
+      // Each target exists once, after the jump row, in the same order as the links.
+      const at = links.map(([id]) => main.indexOf(`<section id="${id}"`));
+      for (const [i, [id]] of links.entries()) {
+        expect(html.match(new RegExp(`id="${id}"`, 'g')), `${lang} #${id}`).toHaveLength(1);
+        expect(at[i], `${lang} #${id}`).toBeGreaterThan(open);
+      }
+      expect([...at].sort((a, b) => a - b), lang).toEqual(at);
+    }
+  });
+
+  it("carries the event text the home page used to: three paragraphs, the home page's line among them", async () => {
+    for (const [path, home] of [[PAGES.en, '/'], [PAGES.es, '/es/']]) {
+      const event = section((await page(path)).html, 'event');
+      const line = (await page(home)).html.match(/<section class="about"[\s\S]*?(<p>[\s\S]*?<\/p>)/)[1];
+
+      expect(event.match(/<p>/g), path).toHaveLength(3);
+      expect(event, path).toContain(line);
+    }
+  });
+
+  it("repeats the home page's partner row in the sponsors section, with the sponsorship address", async () => {
+    const squash = (s) => s.replace(/\s+/g, ' ').trim();
+    const row = (html) => html.slice(html.indexOf('<ul class="partners">'), html.indexOf('</ul>', html.indexOf('<ul class="partners">')));
+    for (const [path, home] of [[PAGES.en, '/'], [PAGES.es, '/es/']]) {
+      const sponsors = section((await page(path)).html, 'sponsors');
+
+      expect(row(sponsors), path).not.toBe('');
+      expect(squash(row(sponsors)), path).toBe(squash(row((await page(home)).html)));
+      expect(sponsors, path).toContain('<a href="mailto:sponsors@renaissance.rodeo">sponsors@renaissance.rodeo</a>');
+    }
   });
 });
 
@@ -1148,12 +1219,12 @@ describe('team page', () => {
 // form and two its partner row, so most of what can go wrong is drift between copies.
 describe('navigation, tickets and sponsors', () => {
   const PAGES = {
-    en: { home: '/', team: '/team', tickets: '/tickets', sponsors: '/sponsors' },
-    es: { home: '/es/', team: '/es/team', tickets: '/es/tickets', sponsors: '/es/sponsors' },
+    en: { home: '/', about: '/about', tickets: '/tickets', sponsors: '/sponsors' },
+    es: { home: '/es/', about: '/es/about', tickets: '/es/tickets', sponsors: '/es/sponsors' },
   };
   const LINKS = {
-    en: [['/team', 'Team'], ['/tickets', 'Tickets'], ['/sponsors', 'Sponsors']],
-    es: [['/es/team', 'Equipo'], ['/es/tickets', 'Boletos'], ['/es/sponsors', 'Patrocinadores']],
+    en: [['/about', 'About'], ['/tickets', 'Tickets'], ['/sponsors', 'Sponsors']],
+    es: [['/es/about', 'Acerca de'], ['/es/tickets', 'Boletos'], ['/es/sponsors', 'Patrocinadores']],
   };
   const ALL = Object.values(PAGES).flatMap((pages) => Object.values(pages));
   const other = (lang) => (lang === 'en' ? 'es' : 'en');
@@ -1207,9 +1278,10 @@ describe('navigation, tickets and sponsors', () => {
             key === 'home' ? [] : [path]
           );
         }
+        // The footer is the page links only: X and Instagram stay in the header menu (Cameron, 2026-10-26).
         const foot = block(html, '<nav class="foot-nav"', '</nav>');
-        expect(foot).toContain('<a href="https://x.com/rodeo_sv" rel="me noopener">X</a>');
-        expect(foot).toContain('<a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a>');
+        expect(foot).not.toContain('x.com');
+        expect(foot).not.toContain('instagram.com');
       }
     }
   });
@@ -1288,12 +1360,12 @@ describe('navigation, tickets and sponsors', () => {
     expect(all[0]).not.toMatch(/^[123]x0/);
   });
 
-  it('gives the tickets pages "coming soon" and the home page signup form, word for word', async () => {
+  it('gives the tickets pages the home page signup form, word for word, and no "coming soon"', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
       const home = (await page(pages.home)).html;
       const html = (await page(pages.tickets)).html;
 
-      expect(html).toContain(lang === 'en' ? '<p class="soon">Coming soon</p>' : '<p class="soon">Próximamente</p>');
+      expect(html).not.toContain('class="soon"');
       expect(html).toContain(`<form class="signup" method="post" action="/api/subscribe" data-lang="${lang}">`);
       // Same fields, honeypot, widget and messages as the home page; only indentation differs.
       expect(squash(block(html, '<form class="signup"', '</form>'))).toBe(squash(block(home, '<form class="signup"', '</form>')));
@@ -1306,41 +1378,55 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('tells Bitcoin Histórico ticket holders the rodeo is included, and puts VIP under "coming soon"', async () => {
+  it('tells Bitcoin Histórico ticket holders the rodeo is included, then offers the signup form for news', async () => {
     const copy = {
-      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'VIP tickets'],
-      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Boletos VIP'],
+      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'Stay in the loop'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Novedades'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const [question, answer, vip] = copy[lang];
+      const [question, answer, news] = copy[lang];
       const included = block(html, '<section class="included"', '</section>');
 
       expect(included, lang).toContain(`<h2 id="included-h">${question}</h2>`);
       expect(included, lang).toContain(answer);
       expect(included, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>');
-      // The VIP heading, then "coming soon", then the signup form: in that order, after the box.
+      // The news heading comes straight before the signup form, after the box.
       const signup = block(html, '<section id="signup"', '</section>');
-      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${vip}</h2>\\s*<p class="soon">`));
+      expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${news}</h2>\\s*<p>`));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
     }
   });
 
-  it('keeps ticket sales off the tickets pages while the prices are decided', async () => {
-    // Sales are paused (2026-10-24): no prices, no Buy section and no link to the shop. When they reopen,
-    // revert the commit that added this test (README, "The tickets page").
+  it('sells VIP Cowboy Deluxe at $221 and regular entry at $21 through the shop, bitcoin only, after the box', async () => {
+    const copy = {
+      en: { heading: 'Buy tickets', tiers: ['VIP Cowboy Deluxe', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.' },
+      es: { heading: 'Comprar boletos', tiers: ['VIP Cowboy Deluxe', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.' },
+    };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
+      const { heading, tiers, only, cta, note } = copy[lang];
+      const buy = block(html, '<section id="buy"', '</section>');
 
-      expect(html, lang).not.toContain('id="buy"');
-      expect(html, lang).not.toContain('class="buy"');
-      expect(html, lang).not.toContain('tickets.renaissance.rodeo');
-      expect(html, lang).not.toContain('BITCOIN21');
-      expect(html, lang).not.toMatch(/\$\s?\d/);
+      expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
+      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$221</span></li>`);
+      expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$21</span></li>`);
+      expect(buy, lang).toContain(`<p><strong>${only}</strong></p>`);
+      // No discount code on the page (Cameron, 2026-10-23 and again 2026-10-26): it lives in the shop.
+      expect(buy, lang).not.toContain('BITCOIN');
+      expect(buy, lang).toContain(note);
+      // Exactly two links (README, "The tickets page"): the shop's event page over https with noopener, and
+      // the team's address under it.
+      expect(buy, lang).toContain(`<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a>`);
+      expect(buy, lang).toContain('<a href="mailto:hello@renaissance.rodeo">hello@renaissance.rodeo</a>');
+      expect(buy.match(/<a /g), lang).toHaveLength(2);
+      expect(buy.indexOf('class="buy"'), lang).toBeLessThan(buy.indexOf('mailto:'));
+      expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="buy"'));
+      expect(html.indexOf('<section id="buy"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
     }
   });
 
-  it('tells DUI holders they need no ticket, after the Bitcoin Histórico box and before the signup form', async () => {
+  it('tells DUI holders they need no ticket, after the prices and before the signup form', async () => {
     const copy = {
       en: ['Free entry with a DUI', 'No ticket needed. Show your DUI at the gate.'],
       es: ['Entrada gratuita con DUI', 'No necesita boleto. Presente su DUI en la entrada.'],
@@ -1354,6 +1440,105 @@ describe('navigation, tickets and sponsors', () => {
       expect(dui, lang).toContain(`<p>${line}</p>`);
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
       expect(html.indexOf('<section class="dui"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
+    }
+  });
+
+  it('keeps the home page short: one line about the day, the activities beside the poster, then a link to the about page', async () => {
+    const copy = {
+      en: ['It will be a full afternoon of rodeo entertainment, including bull riding, barrel racing, mutton busting, animal fairs, poker, cornhole, horseshoes, a flag show, art, a Bitcoin center, cumbia and country music, and barbecue.', 'Learn more about Renaissance Rodeo'],
+      es: ['Será una tarde completa de entretenimiento de rodeo, con monta de toros, carrera de barriles, monta de borregos para niños, feria de animales, póker, cornhole, lanzamiento de herraduras, show de banderas, arte, un centro Bitcoin, cumbia y música country, y barbacoa.', 'Conozca más sobre Renaissance Rodeo'],
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.home)).html;
+      const [line, more] = copy[lang];
+      const about = block(html, '<section class="about"', '</section>');
+
+      expect(about.match(/<p[ >]/g), lang).toHaveLength(2);
+      expect(about, lang).toContain(`<p>${line}</p>`);
+      expect(about, lang).toMatch(new RegExp(`<p class="more"><a href="${pages.about}">${more}<svg [^>]*aria-hidden="true"`));
+      // The poster thumbnail sits beside the list (the phone/tablet row), between the line and the link.
+      const lineup = block(about, '<div class="lineup">', '</div>');
+      expect(lineup, lang).toMatch(/^<div class="lineup">\s*<a class="poster-thumb" href="\/img\/poster\.jpg(?:\?v=2)?" data-poster /);
+      expect(lineup, lang).toContain('<ul class="activities"');
+      expect(about.indexOf(`<p>${line}</p>`), lang).toBeLessThan(about.indexOf('<div class="lineup">'));
+      expect(about.indexOf('<div class="lineup">'), lang).toBeLessThan(about.indexOf('<p class="more">'));
+      // Nothing left in the hero beside the date but the button and the day-after line.
+      expect(block(html, '<section class="hero"', '</section>'), lang).not.toContain('poster-thumb');
+    }
+  });
+
+  it('lists the twelve activities, the same on the home and about pages', async () => {
+    const first = { en: ['Bull riding', 'Country'], es: ['Monta de toros', 'Música country'] };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const home = block((await page(pages.home)).html, '<ul class="activities"', '</ul>');
+      const about = block((await page(pages.about)).html, '<ul class="activities"', '</ul>');
+      const items = [...home.matchAll(/<li>([^<]+)<\/li>/g)].map((m) => m[1]);
+
+      expect(items, lang).toHaveLength(12);
+      expect([items[0], items[11]], lang).toEqual(first[lang]);
+      expect(squash(about), lang).toBe(squash(home));
+      // Sentence case in the markup (CSS uppercases it), so screen readers read words.
+      for (const item of items) expect(item, `${lang} ${item}`).not.toBe(item.toUpperCase());
+    }
+  });
+
+  it('shows the second sponsor tier under the partner row on the home, about and sponsors pages', async () => {
+    for (const pages of Object.values(PAGES)) {
+      const rows = [];
+      for (const path of [pages.home, pages.about, pages.sponsors]) {
+        const html = (await page(path)).html;
+        const first = block(html, '<ul class="partners">', '</ul>');
+        const tier = block(html, '<ul class="partners tier-2">', '</ul>');
+
+        expect(tier, path).not.toBe('');
+        // Straight after the top row, nothing between them.
+        expect(html.slice(html.indexOf(first) + first.length, html.indexOf(tier)).trim(), path).toBe('');
+        expect([...tier.matchAll(/<a href="([^"]*)" rel="noopener">/g)].map((m) => m[1]), path).toEqual([
+          'https://tbhs.sv/',
+          'https://bitdriver.taxi/',
+          'https://www.beefbackbetter.com/',
+        ]);
+        rows.push(squash(tier));
+      }
+      expect(new Set(rows).size).toBe(1);
+    }
+    for (const src of ['/img/tbhs.png', '/img/bitdriver.png', '/img/beefbackbetter.png']) {
+      const res = await call(new Request(`${ORIGIN}${src}`));
+      expect(res.status, src).toBe(200);
+      expect(res.headers.get('content-type'), src).toBe('image/png');
+    }
+  });
+
+  it('lists the three main sponsors in one row on the home, about and sponsors pages, and no Club Cocal yet', async () => {
+    for (const pages of Object.values(PAGES)) {
+      const rows = [];
+      for (const path of [pages.home, pages.about, pages.sponsors]) {
+        const html = (await page(path)).html;
+        const top = block(html, '<ul class="partners">', '</ul>');
+
+        expect([...top.matchAll(/<a href="([^"]*)" rel="noopener">/g)].map((m) => m[1]), path).toEqual([
+          'https://bitcoinhistorico.com/',
+          'https://origenganadero.com/',
+          'https://www.bitpokersv.com/',
+        ]);
+        expect([...top.matchAll(/<li class="([^"]*)">/g)].map((m) => m[1]), path).toEqual(['bh', 'og', 'bp']);
+        // Held back until it is confirmed (Cameron, 2026-10-28): no page names or links it.
+        expect(html, path).not.toMatch(/club ?cocal/i);
+        rows.push(squash(top));
+      }
+      expect(new Set(rows).size).toBe(1);
+    }
+  });
+
+  it('puts a Buy tickets button straight to the shop in the home page hero', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.home)).html;
+      const hero = block(html, '<section class="hero"', '</section>');
+      const cta = lang === 'en' ? 'Buy tickets' : 'Comprar boletos';
+
+      expect(hero, lang).toContain(`<p class="hero-buy"><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a></p>`);
+      // The old "Venue, times and tickets — join the list" line is gone: tickets are on sale.
+      expect(hero, lang).not.toContain('class="note"');
     }
   });
 

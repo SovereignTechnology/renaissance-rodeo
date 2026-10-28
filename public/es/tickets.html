@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#f7edd8">
   <title>Boletos — Renaissance Rodeo</title>
-  <meta name="description" content="El boleto de Bitcoin Histórico incluye la entrada a Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador. Los boletos VIP salen a la venta pronto: únase a la lista de correo para enterarse primero.">
+  <meta name="description" content="Boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador: VIP Cowboy Deluxe $221, entrada regular $21, gratis con DUI. El boleto de Bitcoin Histórico incluye la entrada.">
   <link rel="canonical" href="https://renaissance.rodeo/es/tickets">
   <link rel="alternate" hreflang="en" href="https://renaissance.rodeo/tickets">
   <link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/tickets">
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Renaissance Rodeo">
   <meta property="og:title" content="Boletos — Renaissance Rodeo">
-  <meta property="og:description" content="El boleto de Bitcoin Histórico incluye la entrada a Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador. Los boletos VIP salen a la venta pronto: únase a la lista de correo para enterarse primero.">
+  <meta property="og:description" content="Boletos para Renaissance Rodeo, el 13 de noviembre de 2026 en Ilopango, El Salvador: VIP Cowboy Deluxe $221, entrada regular $21, gratis con DUI. El boleto de Bitcoin Histórico incluye la entrada.">
   <meta property="og:url" content="https://renaissance.rodeo/es/tickets">
   <meta property="og:image" content="https://renaissance.rodeo/img/og-es.png?v=2">
   <meta property="og:image:width" content="1200">
@@ -44,7 +44,7 @@
     <a class="mark" href="/es/" aria-label="Inicio de Renaissance Rodeo"><img src="/img/mark.png?v=2" width="36" height="36" alt=""></a>
     <nav class="site" id="site-nav" popover aria-label="Páginas">
       <ul class="site-links">
-        <li><a href="/es/team">Equipo</a></li>
+        <li><a href="/es/about">Acerca de</a></li>
         <li><a href="/es/tickets" aria-current="page">Boletos</a></li>
         <li><a href="/es/sponsors">Patrocinadores</a></li>
       </ul>
@@ -61,10 +61,9 @@
     </nav>
   </header>
 
-  <!-- README, "The tickets page". El boleto de Bitcoin Histórico incluye el rodeo; los boletos VIP no
-       están a la venta (venta en pausa desde el 2026-10-24 mientras se deciden los precios), así que
-       hasta que reabra la tienda la sección VIP es el registro a la lista de correo de la portada,
-       palabra por palabra. Cuando reabra la venta, ahí va el enlace para comprar. -->
+  <!-- README, "The tickets page". El boleto de Bitcoin Histórico incluye el rodeo; los boletos VIP y
+       regulares se venden en la tienda de boletos, así que el enlace para comprar va allí; el registro a
+       la lista de correo de la portada, palabra por palabra, queda al final para las novedades. -->
   <main id="main" class="wrap page" tabindex="-1">
     <h1>Boletos</h1>
 
@@ -76,6 +75,17 @@
       </div>
     </section>
 
+    <section id="buy" aria-labelledby="buy-h">
+      <h2 id="buy-h">Comprar boletos</h2>
+      <ul class="prices">
+        <li><span>VIP Cowboy Deluxe</span> <span class="price">$221</span></li>
+        <li><span>Entrada regular</span> <span class="price">$21</span></li>
+      </ul>
+      <p><strong>Solo Bitcoin</strong></p>
+      <p><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">Comprar boletos</a></p>
+      <p class="buy-note">Sus boletos llegan por correo electrónico. ¿Preguntas? Escriba a <a href="mailto:hello@renaissance.rodeo">hello@renaissance.rodeo</a>.</p>
+    </section>
+
     <!-- README, "The tickets page". La entrada con DUI no requiere boleto (el DUI se presenta en la
          entrada), así que se dice aquí en texto y no es un producto de la tienda. -->
     <section class="dui" aria-labelledby="dui-h">
@@ -84,9 +94,8 @@
     </section>
 
     <section id="signup" aria-labelledby="signup-h">
-      <h2 id="signup-h">Boletos VIP</h2>
-      <p class="soon">Próximamente</p>
-      <p>Los boletos VIP salen a la venta pronto. Únase a la lista de correo y le escribiremos en cuanto estén disponibles.</p>
+      <h2 id="signup-h">Novedades</h2>
+      <p>Únase a la lista de correo para recibir novedades del rodeo.</p>
       <form class="signup" method="post" action="/api/subscribe" data-lang="es">
         <label for="email">Correo electrónico</label>
         <div class="row">
@@ -124,11 +133,9 @@
     <div class="foot">
       <nav class="foot-nav" aria-label="Sitio">
         <ul>
-          <li><a href="/es/team">Equipo</a></li>
+          <li><a href="/es/about">Acerca de</a></li>
           <li><a href="/es/tickets" aria-current="page">Boletos</a></li>
           <li><a href="/es/sponsors">Patrocinadores</a></li>
-          <li><a href="https://x.com/rodeo_sv" rel="me noopener">X</a></li>
-          <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a></li>
         </ul>
       </nav>
       <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/tickets" lang="en" hreflang="en">English</a></p>

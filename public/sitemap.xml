@@ -14,16 +14,16 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/"/>
   </url>
   <url>
-    <loc>https://renaissance.rodeo/team</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/team"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/team"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/team"/>
+    <loc>https://renaissance.rodeo/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/about"/>
   </url>
   <url>
-    <loc>https://renaissance.rodeo/es/team</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/team"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/team"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/team"/>
+    <loc>https://renaissance.rodeo/es/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://renaissance.rodeo/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://renaissance.rodeo/about"/>
   </url>
   <url>
     <loc>https://renaissance.rodeo/tickets</loc>

@@ -20,3 +20,9 @@
   Cache-Control: public, max-age=604800
 /favicon.ico
   Cache-Control: public, max-age=604800
+
+# Staging only (README, "Staging"): the second Worker on staging.renaissance.rodeo serves this
+# same file, so the rule is scoped by hostname and never reaches production. Keeps the copy
+# under review out of search results; the canonical links already point at production.
+https://staging.renaissance.rodeo/*
+  X-Robots-Tag: noindex, nofollow

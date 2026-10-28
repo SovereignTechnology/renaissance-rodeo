@@ -30,6 +30,19 @@ const wranglerVars = wranglerConfig.vars ?? {};
 // `routes` (plural) is what the cutover block uses; `route` (singular) is the
 // other spelling wrangler accepts, counted so the guard cannot be sidestepped.
 const routesCount = (wranglerConfig.routes ?? []).length + (wranglerConfig.route ? 1 : 0);
+// The staging environment, read the way `wrangler deploy --env staging` reads it, so the
+// suite can hold it to its own hostname and to no vars (wrangler.jsonc, "STAGING").
+const stagingConfig = unstable_readConfig({
+  config: path.join(import.meta.dirname, 'wrangler.jsonc'),
+  env: 'staging',
+});
+const staging = {
+  name: stagingConfig.name,
+  routes: [...(stagingConfig.routes ?? []), ...(stagingConfig.route ? [stagingConfig.route] : [])],
+  varKeys: Object.keys(stagingConfig.vars ?? {}),
+  ratelimits: (stagingConfig.ratelimits ?? []).length,
+  workersDev: stagingConfig.workers_dev,
+};
 
 export default defineConfig({
   plugins: [
@@ -54,6 +67,7 @@ export default defineConfig({
           TEST_WRANGLER_LIST_ID: JSON.stringify(wranglerVars.LISTMONK_LIST_ID ?? null),
           TEST_WRANGLER_ROUTES_COUNT: String(routesCount),
           TEST_WRANGLER_WORKERS_DEV: String(wranglerConfig.workers_dev),
+          TEST_WRANGLER_STAGING: JSON.stringify(staging),
         },
       },
     }),

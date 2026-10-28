@@ -1,0 +1,8 @@
+# The team page became the About page on 2026-10-24 (README, "The about page"). Old links,
+# including the ones already shared, land on its team section.
+/team /about#team 301
+/team/ /about#team 301
+/team.html /about#team 301
+/es/team /es/about#team 301
+/es/team/ /es/about#team 301
+/es/team.html /es/about#team 301

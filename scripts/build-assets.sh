@@ -71,9 +71,13 @@ declare -A EXPECT=(
   [origen-ganadero.svg]=740x760
   [bitcoin-historico.png]=251x288
   [bitpoker.png]=245x288
+  [tbhs.png]=357x192
+  [bitdriver.png]=480x120
+  [beefbackbetter.png]=277x288
+  [clubcocal.png]=900x141
   [poster.jpg]=1080x1920
   [poster.webp]=1080x1920
-  [poster-thumb.jpg]=320x569
+  [poster-thumb.jpg]=480x853
   [team-andrea.jpg]=256x256
   [team-cam.jpg]=256x256
   [team-tom.jpg]=256x256
@@ -82,7 +86,7 @@ declare -A EXPECT=(
 # The poster is the one opaque photograph-like asset: byte ceilings instead of colour assertions.
 POSTER_MAX_JPG=$((600 * 1024))
 POSTER_MAX_WEBP=$((400 * 1024))
-POSTER_MAX_THUMB=$((60 * 1024))
+POSTER_MAX_THUMB=$((110 * 1024))
 # Team headshots: brand/team/<name>.jpg → public/img/team-<name>.jpg. Square cover crop (keeps the
 # head and hat), resized to TEAM_SIZE so it covers the 8rem square at 2×. Byte ceiling only.
 TEAM_PHOTOS='andrea cam tom zack'
@@ -342,16 +346,59 @@ build_bitpoker() {
   assert_ink "$OUT_IMG/bitpoker.png"
 }
 
+# Club Cocal's wordmark (the palm sits in its O) is two greens on transparent, so its alpha alone
+# carries every shape and re-inking keeps it whole. A wide wordmark, sized by width. The site serves
+# it as WebP under a .png name; the committed source is a lossless PNG (brand/README.md).
+build_clubcocal() {
+  local src; src=$(prepare partners/clubcocal)
+  no_upscale "$src" 900 1
+  convert "$src" -resize 900x -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/clubcocal.png"
+  palettise_ink "$OUT_IMG/clubcocal.png"
+  assert_ink "$OUT_IMG/clubcocal.png"
+}
+
+# The second sponsor tier (smaller slot): The Bitcoin Hardware Store's lockup is blue and orange
+# line art on transparent, so its alpha alone carries every line and re-inking keeps it whole.
+build_tbhs() {
+  local src; src=$(prepare partners/tbhs)
+  no_upscale "$src" 1 192
+  convert "$src" -resize x192 -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/tbhs.png"
+  palettise_ink "$OUT_IMG/tbhs.png"
+  assert_ink "$OUT_IMG/tbhs.png"
+}
+
+# BitDriver's export is opaque on black; the committed source is a cut-out (brand/README.md) whose
+# coin carries its ₿ as a knockout. A wide wordmark, so it is sized by width.
+build_bitdriver() {
+  local src; src=$(prepare partners/bitdriver-black)
+  no_upscale "$src" 480 1
+  convert "$src" -resize 480x -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/bitdriver.png"
+  palettise_ink "$OUT_IMG/bitdriver.png"
+  assert_ink "$OUT_IMG/bitdriver.png"
+}
+
+# Beef Back Better's logo is a blue disc with white lettering and an orange cow head. The committed
+# source is a one-colour cut-out (brand/README.md): the disc and the cow are the mark, the white
+# lettering and band are transparent, so re-inking keeps every letter. Roughly square, sized by height.
+build_beefbackbetter() {
+  local src; src=$(prepare partners/beefbackbetter-black)
+  no_upscale "$src" 1 288
+  convert "$src" -resize x288 -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/beefbackbetter.png"
+  palettise_ink "$OUT_IMG/beefbackbetter.png"
+  assert_ink "$OUT_IMG/beefbackbetter.png"
+}
+
 # The announcement poster (1080×1920 designer JPEG). Served three ways: poster.jpg + poster.webp at
-# full size (desktop column and the tap-to-open viewer) and poster-thumb.jpg (the phone thumbnail,
-# ~105 CSS px wide, so 320 px covers 3× screens). Opaque by nature — no re-inking, no alpha.
+# full size (desktop column and the tap-to-open viewer) and poster-thumb.jpg (the phone and tablet
+# thumbnail beside the activity list: ~150 CSS px on phones, ~240 on tablets, so 480 px covers 3×
+# phones and 2× tablets). Opaque by nature — no re-inking, no alpha.
 build_poster() {
   local src="$BRAND/poster.jpg"
   [ -f "$src" ] || die "missing $src"
   assert_dims "$src" 1080x1920
   convert "$src" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 82 "$OUT_IMG/poster.jpg"
   cwebp -quiet -q 80 -metadata none "$src" -o "$OUT_IMG/poster.webp"
-  convert "$src" -strip -resize 320x -quality 75 "$OUT_IMG/poster-thumb.jpg"
+  convert "$src" -strip -resize 480x -quality 72 "$OUT_IMG/poster-thumb.jpg"
   assert_opaque "$OUT_IMG/poster.jpg"; assert_opaque "$OUT_IMG/poster-thumb.jpg"
 }
 
@@ -380,7 +427,7 @@ verify() {
     f="$img/$name"; [ -s "$f" ] || die "missing output $f (run: npm run assets)"
     assert_dims "$f" "${EXPECT[$name]}"
   done
-  for f in logo.png mark.png bull.png bitcoin-historico.png bitpoker.png; do assert_ink "$img/$f"; done
+  for f in logo.png mark.png bull.png bitcoin-historico.png bitpoker.png tbhs.png bitdriver.png beefbackbetter.png clubcocal.png; do assert_ink "$img/$f"; done
   for f in favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-en.png og-es.png poster.jpg poster-thumb.jpg; do assert_opaque "$img/$f"; done
   [ "$(stat -c %s "$img/poster.jpg")" -le "$POSTER_MAX_JPG" ] || die "poster.jpg is over $((POSTER_MAX_JPG / 1024)) KB"
   [ "$(stat -c %s "$img/poster.webp")" -le "$POSTER_MAX_WEBP" ] || die "poster.webp is over $((POSTER_MAX_WEBP / 1024)) KB"
@@ -427,7 +474,7 @@ size_table() {
   printf '%-24s %-10s %9s\n' '------------------------' '----------' '---------'
   for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/bull.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
-           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png \
+           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png "$IMG"/tbhs.png "$IMG"/bitdriver.png "$IMG"/beefbackbetter.png "$IMG"/clubcocal.png \
            "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg \
            "$IMG"/team-andrea.jpg "$IMG"/team-cam.jpg "$IMG"/team-tom.jpg "$IMG"/team-zack.jpg; do
     printf '%-24s %-10s %9s\n' "${f#"$PUBLIC"/}" "$(identify -format '%wx%h' "${f}[0]")" "$(stat -c %s "$f")"
@@ -478,6 +525,10 @@ main() {
       build_origen_ganadero
       build_bitcoin_historico
       build_bitpoker
+      build_clubcocal
+      build_tbhs
+      build_bitdriver
+      build_beefbackbetter
       build_poster
       build_team
       verify "$OUT"

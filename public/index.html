@@ -31,8 +31,6 @@
   <link rel="preload" href="/fonts/bevan-latin-400-normal.woff2?v=2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/cormorant-garamond-latin-400-normal.woff2?v=2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
-  <!-- Deferred: the sequence never plays on arrival, so it costs the first paint nothing. -->
-  <script src="/intro.js" defer></script>
   <!-- Both deferred, so they run in document order: signup.js first, because the
        Turnstile loader resolves the data-*-callback names below against window when
        it renders the widget and silently drops any it cannot find. -->
@@ -44,30 +42,10 @@
 <body>
   <a class="skip" href="#main">Skip to content</a>
 
-  <!-- The opening sequence (style.css "intro", driven by /intro.js). The text frames are this
-       copy, written for the screen — shorter than the About section, which stays as it is. The
-       partner marks are cloned from the partner row at runtime. It never plays on arrival:
-       display:none until the "View intro" button at the foot of the page starts it. -->
-  <section class="intro" aria-label="Introduction">
-    <button type="button" class="intro-skip">Skip intro</button>
-    <div class="intro-stage" aria-hidden="true">
-      <div class="intro-slide"><p class="intro-text">El Salvador is in the midst of a renaissance.<br>This event celebrates the cattle and agricultural side of that rebirth.</p></div>
-      <div class="intro-slide"><p class="intro-text">We honor the real men and women behind the cowboy culture,<br>a culture that has endured through El Salvador’s hardest years.</p></div>
-      <div class="intro-slide"><p class="intro-text">A gathering place where locals and international visitors meet,<br>building relationships that strengthen the industry.</p></div>
-      <div class="intro-slide"><p class="intro-text">As El Salvador rises toward becoming one of the best countries on the planet.</p></div>
-      <div class="intro-slide"><p class="intro-text">A full afternoon of rodeo entertainment.<br>Bull riding. Mutton busting. Animal fairs. Barrel racing. Music. Barbecue.</p></div>
-    </div>
-    <div class="intro-slide intro-cta">
-      <img src="/img/bull.png?v=2" width="500" height="510" alt="" draggable="false">
-      <a class="intro-join" href="#signup">Join the waitlist</a>
-      <a class="intro-enter" href="#main">Continue to the site</a>
-    </div>
-  </section>
-
   <header class="top wrap">
     <nav class="site" id="site-nav" popover aria-label="Pages">
       <ul class="site-links">
-        <li><a href="/team">Team</a></li>
+        <li><a href="/about">About</a></li>
         <li><a href="/tickets">Tickets</a></li>
         <li><a href="/sponsors">Sponsors</a></li>
       </ul>
@@ -96,22 +74,42 @@
         <!-- Date and place as a lockup under the logo: two centred lines in Bevan, sized to the
              column so they read as part of the logo (style.css "hero"). -->
         <p class="when"><time class="when-date" datetime="2026-11-13">13 November 2026</time> <span class="when-place">Ilopango, El Salvador</span></p>
-        <!-- Phone only (display:none from 64rem up; loading=lazy keeps a hidden image unfetched).
-             Floats beside the two lines below, adds no height; tap opens the viewer. -->
-        <a class="poster-thumb" href="/img/poster.jpg?v=2" data-poster aria-label="See the event poster"><img src="/img/poster-thumb.jpg?v=2" width="320" height="569" alt="" loading="lazy"></a>
+        <!-- Straight to the ticket shop (Cameron, 2026-10-24); /tickets keeps the prices, the
+             Bitcoin Histórico and DUI notes and the same link. -->
+        <p class="hero-buy"><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">Buy tickets</a></p>
         <p class="after">The day after <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
-        <p class="note">Venue, times and tickets — <a href="#signup">join the list</a>.</p>
       </section>
 
+      <!-- Short on purpose: one line about the day, then a way into the full story on /about
+           (README, "The home page"). -->
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">About the event</h2>
-        <p>El Salvador is in the midst of a Renaissance, this event is designed to promote the cattle and agricultural part of this rebirth.</p>
-        <p>By celebrating the real men and women behind the cowboy culture that has survived El Salvador’s trials, we aim for the event to be a hub where local and internationals can meet and enjoy, and develop relationships that can bolster the industry and allow it to thrive as the country surges towards becoming one of the best countries on the planet.</p>
-        <p>It will be a full afternoon of rodeo entertainment, including bull riding, mutton busting, animal fairs, barrel racing, music and barbecue.</p>
+        <p>It will be a full afternoon of rodeo entertainment, including bull riding, barrel racing, mutton busting, animal fairs, poker, cornhole, horseshoes, a flag show, art, a Bitcoin center, cumbia and country music, and barbecue.</p>
+        <!-- Phones and tablets: the poster beside the activity list, which is about as tall as the
+             thumbnail, so neither leaves a gap. From 64rem the thumbnail hides (the poster has its
+             own column) and the list runs in two columns. Tap opens the poster viewer. -->
+        <div class="lineup">
+          <a class="poster-thumb" href="/img/poster.jpg?v=2" data-poster aria-label="See the event poster"><img src="/img/poster-thumb.jpg?v=3" width="480" height="853" alt="" loading="lazy"></a>
+          <ul class="activities" aria-label="Activities">
+            <li>Bull riding</li>
+            <li>Barrel racing</li>
+            <li>Poker</li>
+            <li>Mutton busting</li>
+            <li>Barbecue</li>
+            <li>Bitcoin center</li>
+            <li>Cornhole</li>
+            <li>Horseshoe</li>
+            <li>Flag show</li>
+            <li>Art</li>
+            <li>Cumbia</li>
+            <li>Country</li>
+          </ul>
+        </div>
+        <p class="more"><a href="/about">Learn more about Renaissance Rodeo<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
       </section>
 
       <section aria-labelledby="partners-h">
-        <h2 id="partners-h" class="sr-only">Bitcoin Histórico, Origen Ganadero and BitPoker SV</h2>
+        <h2 id="partners-h" class="sr-only">Bitcoin Histórico, Origen Ganadero, BitPoker SV, The Bitcoin Hardware Store, BitDriver and Beef Back Better</h2>
         <ul class="partners">
           <li class="bh">
             <a href="https://bitcoinhistorico.com/" rel="noopener">
@@ -122,13 +120,33 @@
           <li class="og">
             <a href="https://origenganadero.com/" rel="noopener">
               <img src="/img/origen-ganadero.svg?v=2" width="740" height="760" alt="Origen Ganadero">
-              <span class="cap">Partner · Beef-cattle genetics and ranch consulting, El Salvador.</span>
+              <span class="cap">Beef-cattle genetics and ranch consulting, El Salvador.</span>
             </a>
           </li>
           <li class="bp">
             <a href="https://www.bitpokersv.com/" rel="noopener">
               <img src="/img/bitpoker.png?v=2" width="245" height="288" alt="">
-              <span class="cap"><strong>BitPoker SV</strong><br>Partner · El Salvador's live Bitcoin poker club.</span>
+              <span class="cap"><strong>BitPoker SV</strong><br>El Salvador's live Bitcoin poker club.</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="partners tier-2">
+          <li class="tbhs">
+            <a href="https://tbhs.sv/" rel="noopener">
+              <img src="/img/tbhs.png" width="357" height="192" alt="">
+              <span class="cap"><strong>The Bitcoin Hardware Store</strong><br>Bitcoin self-custody setup and audits, El Zonte.</span>
+            </a>
+          </li>
+          <li class="bd">
+            <a href="https://bitdriver.taxi/" rel="noopener">
+              <img src="/img/bitdriver.png" width="480" height="120" alt="">
+              <span class="cap"><strong>BitDriver</strong><br>Transport, car rental and trips paid in bitcoin, El Salvador.</span>
+            </a>
+          </li>
+          <li class="bbb">
+            <a href="https://www.beefbackbetter.com/" rel="noopener">
+              <img src="/img/beefbackbetter.png" width="277" height="288" alt="">
+              <span class="cap"><strong>Beef Back Better</strong><br>Grass-fed, grass-finished beef from El Salvador.</span>
             </a>
           </li>
         </ul>
@@ -136,7 +154,7 @@
 
       <section id="signup" aria-labelledby="signup-h">
         <h2 id="signup-h">Be first to know</h2>
-        <p>Venue, times and tickets will be announced to the mailing list first.</p>
+        <p>Times, transport and directions to the venue go to the mailing list first.</p>
         <form class="signup" method="post" action="/api/subscribe" data-lang="en">
           <label for="email">Email</label>
           <div class="row">
@@ -214,16 +232,13 @@
     <div class="foot">
       <nav class="foot-nav" aria-label="Site">
         <ul>
-          <li><a href="/team">Team</a></li>
+          <li><a href="/about">About</a></li>
           <li><a href="/tickets">Tickets</a></li>
           <li><a href="/sponsors">Sponsors</a></li>
-          <li><a href="https://x.com/rodeo_sv" rel="me noopener">X</a></li>
-          <li><a href="https://www.instagram.com/rodeo_sv" rel="me noopener">Instagram</a></li>
         </ul>
       </nav>
       <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/" lang="es" hreflang="es">Español</a></p>
     </div>
-    <button type="button" class="intro-replay" hidden>View intro</button>
   </footer>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
