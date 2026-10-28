@@ -73,7 +73,7 @@
         </h1>
         <!-- Date and place as a lockup under the logo: two centred lines in Bevan, sized to the
              column so they read as part of the logo (style.css "hero"). -->
-        <p class="when"><time class="when-date" datetime="2026-11-13">13 de noviembre de 2026</time> <span class="when-place">Ilopango, El Salvador</span></p>
+        <p class="when"><time class="when-date" datetime="2026-11-13">13 de noviembre de 2026</time> <span class="when-place"><button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button></span></p>
         <!-- Directo a la tienda de boletos (Cameron, 2026-10-24); /es/tickets conserva los precios,
              las notas de Bitcoin Histórico y del DUI y el mismo enlace. -->
         <p class="hero-buy"><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">Comprar boletos</a></p>
@@ -237,9 +237,22 @@
           <li><a href="/es/sponsors">Patrocinadores</a></li>
         </ul>
       </nav>
-      <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/" lang="en" hreflang="en">English</a></p>
+      <p>© 2026 Renaissance Rodeo · <button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button> · <a href="/" lang="en" hreflang="en">English</a></p>
     </div>
   </footer>
+
+  <!-- README, "The venue map". Cada nombre del lugar en la página abre esto
+       (popovertarget, sin script): el lugar, 13.676983, -89.095381, en la app de mapas del visitante. -->
+  <div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">
+    <p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>
+    <p class="venue-map-sub">Abrir en</p>
+    <ul>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381" rel="noopener">Google Maps</a></li>
+      <li><a href="https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo" rel="noopener">Apple Maps</a></li>
+      <li><a href="https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes" rel="noopener">Waze</a></li>
+    </ul>
+    <button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">Cerrar</button>
+  </div>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
        open only. Without JS the data-poster links open the JPEG itself. -->

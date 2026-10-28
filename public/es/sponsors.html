@@ -60,7 +60,7 @@
        portada, con sus textos; un aliado nuevo va en ambas portadas y ambas páginas de patrocinio. -->
   <main id="main" class="wrap page" tabindex="-1">
     <h1>Patrocinadores y aliados</h1>
-    <p class="lede">Renaissance Rodeo reúne a ganaderos, jinetes y familias de El Salvador con visitantes de todo el mundo en Ilopango el <time datetime="2026-11-13">13 de noviembre de 2026</time>, el día después de Bitcoin Histórico.</p>
+    <p class="lede">Renaissance Rodeo reúne a ganaderos, jinetes y familias de El Salvador con visitantes de todo el mundo en <button type="button" class="place" popovertarget="venue-map">Ilopango</button> el <time datetime="2026-11-13">13 de noviembre de 2026</time>, el día después de Bitcoin Histórico.</p>
 
     <section class="page-section" aria-labelledby="partners-h">
       <h2 id="partners-h">Aliados</h2>
@@ -122,8 +122,21 @@
           <li><a href="/es/sponsors" aria-current="page">Patrocinadores</a></li>
         </ul>
       </nav>
-      <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/sponsors" lang="en" hreflang="en">English</a></p>
+      <p>© 2026 Renaissance Rodeo · <button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button> · <a href="/sponsors" lang="en" hreflang="en">English</a></p>
     </div>
   </footer>
+
+  <!-- README, "The venue map". Cada nombre del lugar en la página abre esto
+       (popovertarget, sin script): el lugar, 13.676983, -89.095381, en la app de mapas del visitante. -->
+  <div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">
+    <p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>
+    <p class="venue-map-sub">Abrir en</p>
+    <ul>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381" rel="noopener">Google Maps</a></li>
+      <li><a href="https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo" rel="noopener">Apple Maps</a></li>
+      <li><a href="https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes" rel="noopener">Waze</a></li>
+    </ul>
+    <button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">Cerrar</button>
+  </div>
 </body>
 </html>

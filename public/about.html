@@ -96,7 +96,7 @@
 
     <section id="team" class="page-section" aria-labelledby="team-h">
       <h2 id="team-h">The organizing team</h2>
-      <p class="team-lede">The people bringing Renaissance Rodeo to Ilopango on <time datetime="2026-11-13">13 November 2026</time>.</p>
+      <p class="team-lede">The people bringing Renaissance Rodeo to <button type="button" class="place" popovertarget="venue-map">Ilopango</button> on <time datetime="2026-11-13">13 November 2026</time>.</p>
       <ul class="team-grid">
         <li class="member">
           <span class="avatar" aria-hidden="true">J</span>
@@ -212,8 +212,21 @@
           <li><a href="/sponsors">Sponsors</a></li>
         </ul>
       </nav>
-      <p>© 2026 Renaissance Rodeo · Ilopango, El Salvador · <a href="/es/about" lang="es" hreflang="es">Español</a></p>
+      <p>© 2026 Renaissance Rodeo · <button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button> · <a href="/es/about" lang="es" hreflang="es">Español</a></p>
     </div>
   </footer>
+
+  <!-- README, "The venue map". Every place name on the page opens this
+       (popovertarget, no script): the venue, 13.676983, -89.095381, in the visitor's own maps app. -->
+  <div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">
+    <p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>
+    <p class="venue-map-sub">Open in</p>
+    <ul>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381" rel="noopener">Google Maps</a></li>
+      <li><a href="https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo" rel="noopener">Apple Maps</a></li>
+      <li><a href="https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes" rel="noopener">Waze</a></li>
+    </ul>
+    <button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">Close</button>
+  </div>
 </body>
 </html>

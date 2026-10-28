@@ -1305,8 +1305,9 @@ describe('navigation, tickets and sponsors', () => {
         );
         expect(header.indexOf('class="menu-btn"'), path).toBeLessThan(header.indexOf('<nav class="lang"'));
         // One target, one invoker: a second id="site-nav" would leave the button opening the wrong one.
+        // (The place names open the venue map, a popover of its own: next test but one.)
         expect(html.match(/id="site-nav"/g), path).toHaveLength(1);
-        expect(html.match(/popovertarget=/g), path).toHaveLength(1);
+        expect(html.match(/popovertarget="site-nav"/g), path).toHaveLength(1);
       }
     }
   });
@@ -1340,6 +1341,55 @@ describe('navigation, tickets and sponsors', () => {
       for (const [, href, attrs] of outbound) {
         expect(href, path).toMatch(/^https:\/\//);
         expect(attrs, `${path} ${href}`).toMatch(/rel="(me )?noopener"/);
+      }
+    }
+  });
+
+  // README, "The venue map" (Cameron, 2026-10-28): every place name opens one menu of maps apps for the
+  // venue, with no script; the coordinates are his, 13.676983, -89.095381.
+  it('opens the venue in Google Maps, Apple Maps or Waze from every place name, with no script', async () => {
+    const MAPS = [
+      ['Google Maps', 'https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381'],
+      ['Apple Maps', 'https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo'],
+      ['Waze', 'https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes'],
+    ];
+    const place = (text) => `<button type="button" class="place" popovertarget="venue-map">${text}</button>`;
+    // Where each page names the place in its copy (the footer comes on top, on every page).
+    const copy = {
+      en: {
+        open: 'Open in', close: 'Close',
+        home: `<span class="when-place">${place('Ilopango, El Salvador')}</span>`,
+        tickets: `</time> in ${place('Ilopango')}, the day after`,
+        sponsors: `from around the world in ${place('Ilopango')} on <time`,
+        about: `bringing Renaissance Rodeo to ${place('Ilopango')} on <time`,
+      },
+      es: {
+        open: 'Abrir en', close: 'Cerrar',
+        home: `<span class="when-place">${place('Ilopango, El Salvador')}</span>`,
+        tickets: `</time> en ${place('Ilopango')}, el día después`,
+        sponsors: `de todo el mundo en ${place('Ilopango')} el <time`,
+        about: `traen Renaissance Rodeo a ${place('Ilopango')} el <time`,
+      },
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const { open, close } = copy[lang];
+      for (const [key, path] of Object.entries(pages)) {
+        const html = (await page(path)).html;
+        const menu = block(html, '<div class="venue-map"', '</div>');
+
+        // One menu per page, after the footer: the place, "Open in", the three apps in this order, Close.
+        expect(html.match(/id="venue-map"/g), path).toHaveLength(1);
+        expect(menu, path).toMatch(/^<div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">/);
+        expect(html.indexOf('<div class="venue-map"'), path).toBeGreaterThan(html.indexOf('</footer>'));
+        expect(menu, path).toContain('<p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>');
+        expect(menu, path).toContain(`<p class="venue-map-sub">${open}</p>`);
+        expect([...menu.matchAll(/<li><a href="([^"]*)" rel="noopener">([^<]*)<\/a><\/li>/g)].map(([, href, name]) => [name, href]), path).toEqual(MAPS);
+        expect(menu, path).toContain(`<button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">${close}</button>`);
+        // The place names that open it: the footer's and the one in the copy, and nothing else.
+        expect(block(html, '<footer', '</footer>'), path).toContain(`<p>© 2026 Renaissance Rodeo · ${place('Ilopango, El Salvador')} · `);
+        expect(html, path).toContain(copy[lang][key]);
+        expect(html.match(/class="place"/g), path).toHaveLength(2);
+        expect(html.match(/popovertarget="venue-map"/g), path).toHaveLength(3);
       }
     }
   });
@@ -1574,7 +1624,7 @@ describe('navigation, tickets and sponsors', () => {
       const date = lang === 'en' ? '13 November 2026' : '13 de noviembre de 2026';
 
       expect(html, lang).toContain(
-        `<p class="when"><time class="when-date" datetime="2026-11-13">${date}</time> <span class="when-place">Ilopango, El Salvador</span></p>`
+        `<p class="when"><time class="when-date" datetime="2026-11-13">${date}</time> <span class="when-place"><button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button></span></p>`
       );
       expect(html.indexOf('<p class="when">'), lang).toBeGreaterThan(html.indexOf('<h1 id="hero-h">'));
       expect(html.indexOf('<p class="when">'), lang).toBeLessThan(html.indexOf('class="poster-thumb"'));

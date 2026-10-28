@@ -485,6 +485,59 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .lightbox-close:hover { background: var(--red); border-color: var(--red); }
 body:has(dialog[open]) { overflow: hidden; }
 
+/* ---------- the venue map (README, "The venue map") ---------- */
+/* Each place name is a button that opens #venue-map (popovertarget, no script). It reads as a
+   link in its sentence: the font, colour and underline of the text around it. */
+.place {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+  text-decoration-thickness: .08em;
+  cursor: pointer;
+}
+.place:hover { color: var(--red); }
+/* The menu: a small card where the browser puts a popover (the middle of the screen), the site's
+   square ruled box. display is left to the browser, which hides it until it is opened. */
+.venue-map[popover] {
+  width: min(22rem, calc(100vw - 2rem));
+  margin: auto;
+  padding: 1.25rem 1.5rem 1rem;
+  border: var(--border) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 .5rem 1.5rem rgb(14 29 45 / .25);
+}
+.venue-map::backdrop { background: rgb(14 29 45 / .35); }
+.venue-map-h { font: 400 var(--text-date) / 1.2 var(--font-display); }
+.venue-map-sub { margin-top: .25rem; color: var(--muted); font-size: var(--text-small); }
+.venue-map ul { margin: .5rem 0 0; padding: 0; list-style: none; }
+.venue-map a, .venue-map-close {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  font: 600 var(--nav-size) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: var(--nav-track);
+}
+.venue-map a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--muted); }
+.venue-map a:hover, .venue-map-close:hover { color: var(--red); }
+.venue-map-close { margin-top: .5rem; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
+/* No popovers (older browsers): the buttons cannot open it, so the three links stay on the page
+   at the bottom, and the place names read as plain text. */
+@supports not selector(:popover-open) {
+  .venue-map[popover] { display: block; position: static; width: auto; max-width: 36rem; margin: 0 auto var(--gap-section); padding: 0 1rem; border: 0; box-shadow: none; background: none; }
+  .venue-map-close { display: none; }
+  .place { text-decoration: none; cursor: auto; }
+}
+
 /* ---------- team (the #team section of /about, /es/about) ---------- */
 /* One list of cards: a square (the person's photo, or their initials until one exists), then the
    name, the organisation, an X link and a short bio. Phones: the square sits beside the name and

@@ -337,6 +337,32 @@ tests fail unless every page of a language carries the same links in the same or
 places, with only the current one marked, and unless every page has exactly one popover nav with
 one button pointing at it.
 
+## The venue map
+
+Every place name on the eight pages opens the venue in the visitor's own maps app (Cameron,
+2026-10-28). The venue is at **13.676983, -89.095381**. The names that do it: the footer's "Ilopango,
+El Salvador" on every page, the home date lockup's, and the "Ilopango" in the tickets box, the sponsors
+lede and the About page's team line. Each is a `<button class="place" popovertarget="venue-map">`
+styled as an underlined word of its sentence, and it opens one **popover** per page, `#venue-map`,
+placed after the footer: the place, **Open in** / **Abrir en**, then **Google Maps**, **Apple Maps** and
+**Waze**, and a **Close** / **Cerrar** button. Like the menu, it needs **no script**: it opens in the middle
+of the screen over a dimmed page and closes on Esc, a tap outside or Close. A browser without popovers
+cannot open it, so there the three links stay at the bottom of the page and the names read as plain
+text. On a phone each link opens its app when it is installed (universal links), its website when not.
+
+- The links: `https://www.google.com/maps/search/?api=1&query=13.676983%2C-89.095381`,
+  `https://maps.apple.com/?ll=13.676983,-89.095381&q=Renaissance%20Rodeo`,
+  `https://waze.com/ul?ll=13.676983,-89.095381&navigate=yes`. Cameron's share link
+  (`maps.app.goo.gl/adckMoVBJtxjHzDbA`) points to the same coordinates but carries Google's share
+  tracking (`g_ep`, `skid`), so the site uses Google's documented URL for the point instead.
+- Left plain on purpose: `<title>`, the meta and share card descriptions, the share bar's texts and the
+  poster's alt text (none can hold a button), and "El Salvador" in partner captions and team bios (not
+  the venue).
+- The ticket shop prints its location as plain text (pretix's own templates), so it has no map link.
+- Moving the venue means the three links and the tests' copy of them; the tests require on every page
+  exactly one `#venue-map` after the footer, the three links in this order, and every place button
+  pointing at it.
+
 ## Social links
 
 X and Instagram (`@rodeo_sv` on both) sit in the header as two inline-SVG icons after the page
@@ -696,7 +722,8 @@ mistake fails *open* or fails *silently*:
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
   show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
-  two lines under the logo; the sponsors pages repeat
+  two lines under the logo; every page names the place in its footer and its copy as buttons opening
+  one venue map popover (Google Maps, Apple Maps, Waze); the sponsors pages repeat
   the partner row; the sitemap lists all eight pages;
 - **about**: `/about` and `/es/about` are served in their language with the site CSP, `/about/` and
   `/about.html` redirect to `/about`, every spelling of the old `/team` addresses answers 301 to
