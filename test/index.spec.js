@@ -1409,7 +1409,8 @@ describe('navigation, tickets and sponsors', () => {
       const buy = block(html, '<section id="buy"', '</section>');
 
       expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
-      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$210</span></li>`);
+      // The VIP row also holds what the ticket includes (next test), so it is checked up to its price.
+      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$210</span>`);
       expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$21</span></li>`);
       expect(buy, lang).toContain(`<p><strong>${only}</strong></p>`);
       // No discount code on the page (Cameron, 2026-10-23 and again 2026-10-26): it lives in the shop.
@@ -1423,6 +1424,31 @@ describe('navigation, tickets and sponsors', () => {
       expect(buy.indexOf('class="buy"'), lang).toBeLessThan(buy.indexOf('mailto:'));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="buy"'));
       expect(html.indexOf('<section id="buy"'), lang).toBeLessThan(html.indexOf('<section class="dui"'));
+    }
+  });
+
+  // README, "The tickets page" (Cameron, 2026-10-28): right under the VIP price, what the ticket includes,
+  // without emoji, and "Hecho en El Salvador" under the hat and the tees (in Spanish on both pages).
+  it('lists what VIP Cowboy Deluxe includes in its row, limited to 50, hat and tees made in El Salvador, no emoji', async () => {
+    const copy = {
+      en: { limit: 'Limited to 50 tickets. Each one includes:', bbq: 'Exclusive lakeside BBQ in the VIP area', made: ['Branded cowboy hat', 'Pick 1 of 3 tees'], tag: '<span class="made" lang="es">Hecho en El Salvador</span>', next: '<li><span>Regular entry</span>' },
+      es: { limit: 'Solo 50 boletos. Cada uno incluye:', bbq: 'Parrillada exclusiva a la orilla del lago en el área VIP', made: ['Sombrero vaquero con la marca del rodeo', 'Elija 1 de 3 camisetas'], tag: '<span class="made">Hecho en El Salvador</span>', next: '<li><span>Entrada regular</span>' },
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.tickets)).html;
+      const { limit, bbq, made, tag, next } = copy[lang];
+      const perks = block(html, '<div class="perks"', '</div>');
+      const buy = block(html, '<section id="buy"', '</section>');
+      // The VIP row: its name and price, then the list, then the row closes before the regular one.
+      const vip = block(buy, '<li><span>VIP Cowboy Deluxe</span> <span class="price">$210</span>', next);
+
+      expect(perks, lang).not.toBe('');
+      expect(vip, lang).toMatch(new RegExp(`^<li><span>VIP Cowboy Deluxe</span> <span class="price">\\$210</span>\\s*<div class="perks">[\\s\\S]*</div>\\s*</li>\\s*${next}$`));
+      expect(vip, lang).toContain(perks);
+      expect(perks, lang).toContain(`<p>${limit}</p>`);
+      expect([...perks.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => m[1]), lang).toEqual([bbq, ...made.map((item) => `${item} ${tag}`)]);
+      // No emoji or flag in the Buy section (the footer's © is pictographic too, so the page as a whole is not checked).
+      expect(buy, lang).not.toMatch(/\p{Extended_Pictographic}|\p{Regional_Indicator}/u);
     }
   });
 

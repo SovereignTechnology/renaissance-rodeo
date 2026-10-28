@@ -468,7 +468,11 @@ without a photo yet keeps the ink square with their initials in Bevan.
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
 your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
 entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
-**Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $210 (the shop sells 50), regular entry $21, **Bitcoin Only** / **Solo Bitcoin**
+**Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $210 (the shop sells 50), regular entry $21. In the VIP
+row, right under its name and price, what the ticket includes (Cameron, 2026-10-28): "Limited to 50 tickets. Each
+one includes:" then an exclusive lakeside BBQ in the VIP area, a branded cowboy hat and a pick of 1 of 3 tees; the
+hat and the tees each have a quieter "Hecho en El Salvador" line under them, in Spanish on both pages as he wrote
+it (`lang="es"` on the English page). No emoji, and a test keeps them out of the section. The shop's VIP description says the same. Then **Bitcoin Only** / **Solo Bitcoin**
 (no discount code is shown on the page; it lives in the shop), one Buy link to
 `https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line saying tickets arrive by email,
 with `hello@renaissance.rodeo` as the address for questions (no mailbox: the mail catch-all delivers it to
