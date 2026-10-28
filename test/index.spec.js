@@ -1398,7 +1398,7 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('sells VIP Cowboy Deluxe at $221 and regular entry at $21 through the shop, bitcoin only, after the box', async () => {
+  it('sells VIP Cowboy Deluxe at $210 and regular entry at $21 through the shop, bitcoin only, after the box', async () => {
     const copy = {
       en: { heading: 'Buy tickets', tiers: ['VIP Cowboy Deluxe', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.' },
       es: { heading: 'Comprar boletos', tiers: ['VIP Cowboy Deluxe', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.' },
@@ -1409,7 +1409,7 @@ describe('navigation, tickets and sponsors', () => {
       const buy = block(html, '<section id="buy"', '</section>');
 
       expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
-      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$221</span></li>`);
+      expect(buy, lang).toContain(`<li><span>${tiers[0]}</span> <span class="price">$210</span></li>`);
       expect(buy, lang).toContain(`<li><span>${tiers[1]}</span> <span class="price">$21</span></li>`);
       expect(buy, lang).toContain(`<p><strong>${only}</strong></p>`);
       // No discount code on the page (Cameron, 2026-10-23 and again 2026-10-26): it lives in the shop.
