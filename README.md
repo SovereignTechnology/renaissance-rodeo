@@ -261,8 +261,8 @@ literal `"$k"`, not the value.
   `partners/bitcoin-historico-white.png` to `bitcoin-historico.png` and `partners/bitpoker-black.png`
   to `bitpoker.png`; and, for the second sponsor tier, `partners/tbhs.png` to `tbhs.png` (357×192),
   `partners/bitdriver-black.png` to `bitdriver.png` (480×120) and `partners/beefbackbetter-black.png` to
-  `beefbackbetter.png` (277×288); and `partners/clubcocal.png` to `clubcocal.png` (900×141), the
-  wordmark of the fourth main sponsor;
+  `beefbackbetter.png` (277×288); and `partners/clubcocal.png` to `clubcocal.png` (287×288), the
+  circle emblem of the main sponsor Club Cocal;
 - re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (it was the opening sequence's closing
   card; the sequence was removed on 2026-10-24 and the file is kept as a brand asset, like `mark.png`);
 - encodes the announcement poster `poster.jpg` (1080×1920) as `poster.jpg` + `poster.webp` (the desktop
@@ -521,17 +521,12 @@ forwards it, see *Email*). The About page's sponsors section carries the same ro
 
 There are **two tiers** (Cameron, 2026-10-24):
 
-- **`ul.partners`**: the main sponsors, three in one row: Bitcoin Histórico, Origen Ganadero and BitPoker SV.
-  On phones the home page keeps the row with the captions screen-reader-only, and the about and sponsors
-  pages stack them with every caption. **Club Cocal (`clubcocal.com`) is held back until it is confirmed**
-  (Cameron, 2026-10-28). Its logo and build step stay (`public/img/clubcocal.png`, 900×141, linked from no
-  page). To bring it back as it was on staging (second of four, two a row): an `<li class="cc">` second in
-  `ul.partners` on the six pages, linking `https://clubcocal.com/` with that image (`alt=""`) and the caption
-  **Club Cocal** / "Real estate in El Salvador, plus a beachfront clubhouse and event venue in Surf City."
-  (Spanish: "Bienes raíces en El Salvador, además de un club frente al mar y sede de eventos en Surf City.");
-  its name second again in the home pages' screen-reader heading; `.partners` two columns
-  (`repeat(2, minmax(0, 1fr))`), `max-width: 40rem`, `margin: 0 auto`, with `max-width: none` on
-  `.partners.tier-2`; and the main-sponsors test back to four.
+- **`ul.partners`**: the main sponsors, four in two rows of two, capped at `40rem` and centred: Bitcoin
+  Histórico and Club Cocal (`clubcocal.com`), then Origen Ganadero and BitPoker SV. Club Cocal shows
+  **its circle emblem only** (the crescent and the palm), without the CLUB COCAL lettering: the name is
+  typed in its caption in the page's own bold, like Bitcoin Histórico's and BitPoker SV's (Cameron,
+  2026-10-30). On phones the home page keeps the two-by-two marks with the captions screen-reader-only,
+  and the about and sponsors pages stack them with every caption.
 - **`ul.partners.tier-2`**: The Bitcoin Hardware Store (`tbhs.sv`), BitDriver (`bitdriver.taxi`) and
   Beef Back Better (`beefbackbetter.com`, added 2026-10-26), right under it. It sits below a hairline with
   no label, and its marks are smaller and side by side (three across; two-up on phones with the third
@@ -737,8 +732,9 @@ mistake fails *open* or fails *silently*:
   that order, and the hero carries the Buy tickets button to the shop and no thumbnail; there is no
   opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
 - **activities**: twelve items, identical on the home and about pages per language, in sentence case;
-- **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `origenganadero.com` then `bitpokersv.com`
-  (classes `bh`, `og`, `bp`) identically on the home, about and sponsors pages, and no page names Club Cocal yet;
+- **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `clubcocal.com`, `origenganadero.com` then
+  `bitpokersv.com` (classes `bh`, `cc`, `og`, `bp`) identically on the home, about and sponsors pages, Club
+  Cocal as its emblem with the name typed in the caption, and `/img/clubcocal.png` served as PNG;
 - **sponsor tier 2**: the same `ul.partners.tier-2` right after the partner row on the home, about
   and sponsors pages, linking `tbhs.sv`, `bitdriver.taxi` then `beefbackbetter.com`, and the three logos served as PNG;
 - **staging**: `env.staging` is `renaissance-rodeo-staging` on `staging.renaissance.rodeo` only,

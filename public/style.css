@@ -388,16 +388,18 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .share-status { grid-column: 2; color: var(--muted); font-size: var(--text-small); }
 
 /* ---------- partners ---------- */
-/* Three marks in one row at every width. Each link is a two-row grid: a fixed-height logo
-   slot (the mark fits inside it, centred, so three different aspect ratios sit on one line)
-   and the caption. On phones the slot shrinks and the captions go screen-reader-only.
-   Club Cocal is held back until it is confirmed (Cameron, 2026-10-28); README "The sponsors
-   page" says how it comes back (second of four, two a row). */
+/* The main sponsors: two marks a row, two rows (Bitcoin Histórico and Club Cocal, then Origen
+   Ganadero and BitPoker SV; Cameron, 2026-10-27, Club Cocal's emblem 2026-10-30). Each link is a
+   two-row grid: a fixed-height logo slot (the mark fits inside it, centred, so different aspect
+   ratios sit on one line) and the caption. The block is capped and centred so two cells do not
+   spread across the about page's full width. On phones the slot shrinks and the captions go
+   screen-reader-only. */
 .partners {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem 1.5rem;
-  margin: 0;
+  max-width: 40rem;
+  margin: 0 auto;
   padding: 0;
   list-style: none;
   text-align: center;
@@ -443,6 +445,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .partners.tier-2 {
   grid-template-columns: repeat(3, minmax(0, 12rem));
   justify-content: center;
+  max-width: none;
   gap: 1.5rem 1.5rem;
   margin-top: 2.25rem;
   padding-top: 2.25rem;
@@ -907,9 +910,9 @@ footer a { color: inherit; }
   .share .social { margin-inline-start: -12px; }
   .partners a { grid-template-rows: 5.5rem auto; }
   .partners img { max-height: 5.5rem; }
-  /* Three captions in ~6rem columns would wrap into a wall of text: on the home page the marks
-     stand alone and the names stay readable to assistive tech (Bitcoin Histórico's "day before"
-     is in the hero). The about and sponsors pages stack the three instead and keep every caption. */
+  /* Captions in narrow phone columns would wrap into a wall of text: on the home page the four
+     marks stand two by two alone and the names stay readable to assistive tech (Bitcoin Histórico's
+     "day before" is in the hero). The about and sponsors pages stack them instead and keep every caption. */
   .page .partners { grid-template-columns: 1fr; gap: 2.25rem; }
   .partners.tier-2, .page .partners.tier-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1.25rem; }
   /* Two a row on a phone: the third mark sits centred under them, one cell wide. */

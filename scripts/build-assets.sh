@@ -74,7 +74,7 @@ declare -A EXPECT=(
   [tbhs.png]=357x192
   [bitdriver.png]=480x120
   [beefbackbetter.png]=277x288
-  [clubcocal.png]=900x141
+  [clubcocal.png]=287x288
   [poster.jpg]=1080x1920
   [poster.webp]=1080x1920
   [poster-thumb.jpg]=480x853
@@ -347,13 +347,14 @@ build_bitpoker() {
   assert_ink "$OUT_IMG/bitpoker.png"
 }
 
-# Club Cocal's wordmark (the palm sits in its O) is two greens on transparent, so its alpha alone
-# carries every shape and re-inking keeps it whole. A wide wordmark, sized by width. The site serves
-# it as WebP under a .png name; the committed source is a lossless PNG (brand/README.md).
+# Club Cocal's circle emblem (the crescent and the palm, without the CLUB COCAL lettering; the
+# pages type the name in the caption) is two greens on transparent, so its alpha alone carries every
+# shape and re-inking keeps it whole. Sized by height like the other main marks. The site serves it
+# as WebP under a .png name; the committed source is a lossless PNG (brand/README.md).
 build_clubcocal() {
   local src; src=$(prepare partners/clubcocal)
-  no_upscale "$src" 900 1
-  convert "$src" -resize 900x -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/clubcocal.png"
+  no_upscale "$src" 1 288
+  convert "$src" -resize x288 -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/clubcocal.png"
   palettise_ink "$OUT_IMG/clubcocal.png"
   assert_ink "$OUT_IMG/clubcocal.png"
 }

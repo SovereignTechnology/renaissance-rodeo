@@ -1585,7 +1585,7 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('lists the three main sponsors in one row on the home, about and sponsors pages, and no Club Cocal yet', async () => {
+  it('lists the four main sponsors in two rows of two, Club Cocal second, on the home, about and sponsors pages', async () => {
     for (const pages of Object.values(PAGES)) {
       const rows = [];
       for (const path of [pages.home, pages.about, pages.sponsors]) {
@@ -1594,16 +1594,21 @@ describe('navigation, tickets and sponsors', () => {
 
         expect([...top.matchAll(/<a href="([^"]*)" rel="noopener">/g)].map((m) => m[1]), path).toEqual([
           'https://bitcoinhistorico.com/',
+          'https://clubcocal.com/',
           'https://origenganadero.com/',
           'https://www.bitpokersv.com/',
         ]);
-        expect([...top.matchAll(/<li class="([^"]*)">/g)].map((m) => m[1]), path).toEqual(['bh', 'og', 'bp']);
-        // Held back until it is confirmed (Cameron, 2026-10-28): no page names or links it.
-        expect(html, path).not.toMatch(/club ?cocal/i);
+        expect([...top.matchAll(/<li class="([^"]*)">/g)].map((m) => m[1]), path).toEqual(['bh', 'cc', 'og', 'bp']);
+        // The circle emblem without its lettering; the name is typed in the caption (Cameron, 2026-10-30).
+        expect(top, path).toContain('<img src="/img/clubcocal.png?v=2" width="287" height="288" alt="">');
+        expect(top, path).toContain('<strong>Club Cocal</strong>');
         rows.push(squash(top));
       }
       expect(new Set(rows).size).toBe(1);
     }
+    const res = await call(new Request(`${ORIGIN}/img/clubcocal.png`));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
   });
 
   it('puts a Buy tickets button straight to the shop in the home page hero', async () => {
