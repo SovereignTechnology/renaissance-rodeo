@@ -1091,7 +1091,7 @@ describe('about page', () => {
   });
 
   it('serves every team photo as a self-hosted JPEG', async () => {
-    for (const src of ['/img/team-andrea.jpg', '/img/team-cam.jpg', '/img/team-tom.jpg', '/img/team-zack.jpg']) {
+    for (const src of ['/img/team-andrea.jpg', '/img/team-cam.jpg', '/img/team-james.jpg', '/img/team-tom.jpg', '/img/team-zack.jpg']) {
       const res = await call(new Request(`${ORIGIN}${src}`));
       expect(res.status, src).toBe(200);
       expect(res.headers.get('content-type'), src).toBe('image/jpeg');

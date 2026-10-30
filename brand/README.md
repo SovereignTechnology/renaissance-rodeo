@@ -22,8 +22,9 @@ under the SAME name, re-run the script, and commit both.
 | `team/tom.jpg` | Tom Taber's headshot, 1284×1600 (4:5) | photo, 2026-10-14 (brighter pick) |
 | `team/zack.jpg` | Zack Dorsey's headshot, 792×990 | photo, 2026-10-14 |
 | `team/cam.jpg` | Cam's headshot, 814×1106 | photo, 2026-10-14 |
+| `team/james.jpg` | James's headshot, 600×600 | cropped from a 1280×852 photo (2026-10-30), framed in the source because the build crops centred: `jpegtran -copy none -perfect -crop 600x600+448+64` (lossless, metadata dropped) |
 
-The three `team/` sources are cover-cropped to a 256×256 square (`img/team-<name>.jpg`) by
+The `team/` sources are cover-cropped to a 256×256 square (`img/team-<name>.jpg`) by
 `build_team()` — a centred crop that keeps the head and hat. Replace a source under the same name
 when a better shot arrives; the crop anchor is the source's framing, so re-frame there if needed.
 
