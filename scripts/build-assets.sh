@@ -74,6 +74,7 @@ declare -A EXPECT=(
   [tbhs.png]=357x192
   [bitdriver.png]=480x120
   [beefbackbetter.png]=277x288
+  [bitcoinlife.png]=438x288
   [clubcocal.png]=287x288
   [poster.jpg]=1080x1920
   [poster.webp]=1080x1920
@@ -142,7 +143,7 @@ prepare() {                          # prepare <stem> [trim]
            convert -background none -density 384 "$src" "${trimarg[@]}" -strip -depth 8 PNG32:"$out" ;;
     *)     convert "$src" "${trimarg[@]}" -strip -depth 8 PNG32:"$out" ;;
   esac
-  [ "$(identify -format '%[opaque]' "$out")" = false ] || die "$src has no transparency — brand sources must be transparent"
+  [ "$(opaque_of "$out")" = false ] || die "$src has no transparency — brand sources must be transparent"
   printf '%s' "$out"
 }
 
@@ -170,6 +171,8 @@ PY
 }
 
 dims()      { identify -format '%wx%h' "$1"; }
+# ImageMagick 6 prints %[opaque] as true/false, ImageMagick 7 (Debian 13) as True/False.
+opaque_of() { identify -format '%[opaque]' "$1" | tr 'A-Z' 'a-z'; }
 no_upscale() {                       # no_upscale <file> <needed-w> <needed-h>
   local w h; IFS=x read -r w h <<< "$(dims "$1")"
   [ "$w" -ge "$2" ] && [ "$h" -ge "$3" ] || die "$(basename "$1") is ${w}x${h}; target needs ${2}x${3} — refusing to upscale (ask the designer for a larger export or an SVG)"
@@ -186,10 +189,10 @@ assert_ink() {                       # exactly one opaque colour == INK, alpha s
   [ "$k" = 1 ] || die "$(basename "$f") carries $k colours, expected exactly 1"
   hex=$(convert "$f" -alpha off -unique-colors -format '%[hex:p{0,0}]' info: | tr 'A-F' 'a-f')
   [ "#$hex" = "$INK" ] || die "$(basename "$f") colour is #$hex, expected $INK"
-  [ "$(identify -format '%[opaque]' "$f")" = false ] || die "$(basename "$f") lost its alpha channel"
+  [ "$(opaque_of "$f")" = false ] || die "$(basename "$f") lost its alpha channel"
 }
 assert_opaque() {
-  [ "$(identify -format '%[opaque]' "$1")" = true ] || die "$(basename "$1") must be fully opaque"
+  [ "$(opaque_of "$1")" = true ] || die "$(basename "$1") must be fully opaque"
 }
 assert_png8_max_colors() {           # assert_png8_max_colors <file> <max>
   local k r
@@ -390,6 +393,18 @@ build_beefbackbetter() {
   assert_ink "$OUT_IMG/beefbackbetter.png"
 }
 
+# Bitcoin Life's logo is an orange and white "LB" monogram over an orange and white "BitcoinLife"
+# wordmark on transparent. Every letter and both halves of the monogram are separate shapes, so the
+# alpha alone carries the whole lockup and re-inking keeps it whole; the committed source is that
+# alpha in black (brand/README.md). Wider than tall, sized by height like Beef Back Better.
+build_bitcoinlife() {
+  local src; src=$(prepare partners/bitcoinlife-black)
+  no_upscale "$src" 1 288
+  convert "$src" -resize x288 -fill "$INK" -colorize 100 -strip -depth 8 PNG32:"$OUT_IMG/bitcoinlife.png"
+  palettise_ink "$OUT_IMG/bitcoinlife.png"
+  assert_ink "$OUT_IMG/bitcoinlife.png"
+}
+
 # The announcement poster (1080×1920 designer JPEG). Served three ways: poster.jpg + poster.webp at
 # full size (desktop column and the tap-to-open viewer) and poster-thumb.jpg (the phone and tablet
 # thumbnail beside the activity list: ~150 CSS px on phones, ~240 on tablets, so 480 px covers 3×
@@ -429,7 +444,7 @@ verify() {
     f="$img/$name"; [ -s "$f" ] || die "missing output $f (run: npm run assets)"
     assert_dims "$f" "${EXPECT[$name]}"
   done
-  for f in logo.png mark.png bull.png bitcoin-historico.png bitpoker.png tbhs.png bitdriver.png beefbackbetter.png clubcocal.png; do assert_ink "$img/$f"; done
+  for f in logo.png mark.png bull.png bitcoin-historico.png bitpoker.png tbhs.png bitdriver.png beefbackbetter.png bitcoinlife.png clubcocal.png; do assert_ink "$img/$f"; done
   for f in favicon-32.png apple-touch-icon.png icon-192.png icon-512.png og-en.png og-es.png poster.jpg poster-thumb.jpg; do assert_opaque "$img/$f"; done
   [ "$(stat -c %s "$img/poster.jpg")" -le "$POSTER_MAX_JPG" ] || die "poster.jpg is over $((POSTER_MAX_JPG / 1024)) KB"
   [ "$(stat -c %s "$img/poster.webp")" -le "$POSTER_MAX_WEBP" ] || die "poster.webp is over $((POSTER_MAX_WEBP / 1024)) KB"
@@ -440,7 +455,7 @@ verify() {
   done
   assert_png8_max_colors "$img/og-en.png" 64
   assert_png8_max_colors "$img/og-es.png" 64
-  [ "$(identify -format '%[opaque]' "$img/logo.webp")" = false ] || die "logo.webp lost its alpha"
+  [ "$(opaque_of "$img/logo.webp")" = false ] || die "logo.webp lost its alpha"
   [ "$(stat -c %s "$img/logo.webp")" -le "$((200 * 1024))" ] || die "logo.webp is unexpectedly large"
 
   [ -s "$root/favicon.ico" ] || die "missing $root/favicon.ico"
@@ -476,7 +491,7 @@ size_table() {
   printf '%-24s %-10s %9s\n' '------------------------' '----------' '---------'
   for f in "$IMG"/logo.png "$IMG"/logo.webp "$IMG"/mark.png "$IMG"/bull.png "$IMG"/favicon-32.png "$IMG"/apple-touch-icon.png \
            "$IMG"/icon-192.png "$IMG"/icon-512.png "$PUBLIC"/favicon.ico "$IMG"/og-en.png "$IMG"/og-es.png \
-           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png "$IMG"/tbhs.png "$IMG"/bitdriver.png "$IMG"/beefbackbetter.png "$IMG"/clubcocal.png \
+           "$IMG"/origen-ganadero.svg "$IMG"/bitcoin-historico.png "$IMG"/bitpoker.png "$IMG"/tbhs.png "$IMG"/bitdriver.png "$IMG"/beefbackbetter.png "$IMG"/bitcoinlife.png "$IMG"/clubcocal.png \
            "$IMG"/poster.jpg "$IMG"/poster.webp "$IMG"/poster-thumb.jpg \
            "$IMG"/team-andrea.jpg "$IMG"/team-cam.jpg "$IMG"/team-james.jpg "$IMG"/team-tom.jpg "$IMG"/team-zack.jpg; do
     printf '%-24s %-10s %9s\n' "${f#"$PUBLIC"/}" "$(identify -format '%wx%h' "${f}[0]")" "$(stat -c %s "$f")"
@@ -531,6 +546,7 @@ main() {
       build_tbhs
       build_bitdriver
       build_beefbackbetter
+      build_bitcoinlife
       build_poster
       build_team
       verify "$OUT"

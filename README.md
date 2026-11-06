@@ -260,8 +260,8 @@ literal `"$k"`, not the value.
 - recolours `partners/origen-ganadero.svg` to ink and widens its hairline strokes, and re-inks
   `partners/bitcoin-historico-white.png` to `bitcoin-historico.png` and `partners/bitpoker-black.png`
   to `bitpoker.png`; and, for the second sponsor tier, `partners/tbhs.png` to `tbhs.png` (357×192),
-  `partners/bitdriver-black.png` to `bitdriver.png` (480×120) and `partners/beefbackbetter-black.png` to
-  `beefbackbetter.png` (277×288); and `partners/clubcocal.png` to `clubcocal.png` (287×288), the
+  `partners/bitdriver-black.png` to `bitdriver.png` (480×120), `partners/beefbackbetter-black.png` to
+  `beefbackbetter.png` (277×288) and `partners/bitcoinlife-black.png` to `bitcoinlife.png` (438×288); and `partners/clubcocal.png` to `clubcocal.png` (287×288), the
   circle emblem of the main sponsor Club Cocal;
 - re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (it was the opening sequence's closing
   card; the sequence was removed on 2026-10-24 and the file is kept as a brand asset, like `mark.png`);
@@ -400,10 +400,11 @@ Renaissance Rodeo →**, a plain text link to `/about` whose arrow is an inline 
 no U+2192). Then the partner rows, the signup form (pitched at times, transport and directions to
 the venue), the share bar, and the poster column on desktop. The full story lives on the About page.
 
-**The activity list** (`ul.activities`, 12 items in Cameron's order: bull riding … country) is on
+**The activity list** (`ul.activities`, 14 items in Cameron's order: bull riding … country; helicopter
+tours and ferry & jet skis, Bitcoin Life's trips on the lake, joined after the Bitcoin center on 2026-11-06) is on
 the home page and again after the About page's event text, identical (tested). Items are written in
 sentence case and uppercased by CSS, each with a small red diamond. On phones and tablets the home
-page sets it in a row beside the poster thumbnail, `[poster | list]`, one column, so its twelve lines
+page sets it in a row beside the poster thumbnail, `[poster | list]`, one column, so its fourteen lines
 stand about as tall as the thumbnail and neither leaves a gap (the thumbnail used to float in the
 hero beside one line of text). On phones the list drops the uppercase and a size, or most items would
 wrap in that narrow column. From 64rem the thumbnail hides (the poster has its own column) and the
@@ -500,7 +501,9 @@ one includes:" then an exclusive lakeside BBQ in the VIP area, a branded cowboy 
 hat and the tees each have a quieter "Hecho en El Salvador" line under them, in Spanish on both pages as he wrote
 it (`lang="es"` on the English page). No emoji, and a test keeps them out of the section. The shop's VIP description says the same. Then **Bitcoin Only** / **Solo Bitcoin**
 (no discount code is shown on the page; it lives in the shop), one Buy link to
-`https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line saying tickets arrive by email,
+`https://tickets.renaissance.rodeo/rodeo/2026/`, and under it a quieter line that opens with how long online sales
+run (*Online sales stay open until 9 PM on Friday 13 November*: the shop stays open during the event for
+on-the-day upgrades and closes at 21:00, Cameron 2026-11-06; the newsletters never mention it), then says tickets arrive by email,
 with `hello@renaissance.rodeo` as the address for questions (no mailbox: the mail catch-all delivers it to
 the team, and the shop sends the same address as its Reply-To). Those are the section's only two links. Then a
 text-only box: **Free entry with a DUI** / **Entrada gratuita con DUI**. DUI holders need no ticket
@@ -527,10 +530,17 @@ There are **two tiers** (Cameron, 2026-10-24):
   typed in its caption in the page's own bold, like Bitcoin Histórico's and BitPoker SV's (Cameron,
   2026-10-30). On phones the home page keeps the two-by-two marks with the captions screen-reader-only,
   and the about and sponsors pages stack them with every caption.
-- **`ul.partners.tier-2`**: The Bitcoin Hardware Store (`tbhs.sv`), BitDriver (`bitdriver.taxi`) and
-  Beef Back Better (`beefbackbetter.com`, added 2026-10-26), right under it. It sits below a hairline with
-  no label, and its marks are smaller and side by side (three across; two-up on phones with the third
-  centred under them).
+- **`ul.partners.tier-2`**: The Bitcoin Hardware Store (`tbhs.sv`), BitDriver (`bitdriver.taxi`), Bitcoin
+  Life (`bitcoinlife.sv`, added 2026-11-06) and Beef Back Better (`beefbackbetter.com`, added 2026-10-26),
+  right under it. It sits below a hairline with no label, and its marks are smaller: two by two in the
+  home and sponsors pages' copy column and on phones, four across on the about page from 64rem.
+
+**Role lines** (2026-11-06, from the sponsor announcements on X): a `span.tagline` after the name, the
+small uppercase label Bitcoin Histórico's "The day before" uses, says what a partner does on the day:
+Club Cocal *Main sponsor* / *Patrocinador principal*, The Bitcoin Hardware Store *Bitcoin Center* /
+*Centro Bitcoin* (it hosts it), BitDriver *Official shuttle* / *Transporte oficial*, Bitcoin Life
+*Official helicopter* / *Helicóptero oficial*. The tests hold the tier's labels in
+both languages.
 
 Every mark is re-inked to the page ink. Both rows live in six files: both home pages, both about pages
 and both sponsors pages. A new sponsor goes into the right row in all six, and its logo through
@@ -731,12 +741,13 @@ mistake fails *open* or fails *silently*:
 - **home**: the About section is the sentence, the `[poster | list]` row and the link to `/about`, in
   that order, and the hero carries the Buy tickets button to the shop and no thumbnail; there is no
   opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
-- **activities**: twelve items, identical on the home and about pages per language, in sentence case;
+- **activities**: fourteen items, identical on the home and about pages per language, in sentence case;
 - **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `clubcocal.com`, `origenganadero.com` then
   `bitpokersv.com` (classes `bh`, `cc`, `og`, `bp`) identically on the home, about and sponsors pages, Club
   Cocal as its emblem with the name typed in the caption, and `/img/clubcocal.png` served as PNG;
 - **sponsor tier 2**: the same `ul.partners.tier-2` right after the partner row on the home, about
-  and sponsors pages, linking `tbhs.sv`, `bitdriver.taxi` then `beefbackbetter.com`, and the three logos served as PNG;
+  and sponsors pages, linking `tbhs.sv`, `bitdriver.taxi`, `www.bitcoinlife.sv` then `beefbackbetter.com`, with the role
+  lines in both languages, and the four logos served as PNG; Club Cocal's caption carries *Main sponsor*;
 - **staging**: `env.staging` is `renaissance-rodeo-staging` on `staging.renaissance.rodeo` only,
   `workers_dev` off, with no `vars` and no rate limiter.
 

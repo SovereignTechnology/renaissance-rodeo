@@ -438,12 +438,14 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
    caption break still starts a new line — BitPoker SV's name above its description. */
 .partners .cap .tagline + br { display: none; }
 .partners a:hover .cap { text-decoration: underline; text-underline-offset: .15em; }
-/* The second tier: under a hairline, three smaller marks side by side, no label (Cameron,
-   2026-10-24; Beef Back Better joined 2026-10-26). Each mark is capped by height and by its cell,
-   so the wide BitDriver wordmark, the squarer Bitcoin Hardware Store lockup and the round Beef
-   Back Better seal carry about the same weight. */
+/* The second tier: under a hairline, smaller marks, no label (Cameron, 2026-10-24; Beef Back
+   Better joined 2026-10-26, Bitcoin Life 2026-11-06). Four marks: two by two in the 36rem copy
+   column (four across there would squeeze each caption into a sliver), four across on the
+   full-width about page from 64rem (below). Each mark is capped by height and by its cell, so the
+   wide BitDriver wordmark, the squarer Bitcoin Hardware Store and Bitcoin Life lockups and the
+   round Beef Back Better seal carry about the same weight. */
 .partners.tier-2 {
-  grid-template-columns: repeat(3, minmax(0, 12rem));
+  grid-template-columns: repeat(2, minmax(0, 14rem));
   justify-content: center;
   max-width: none;
   gap: 1.5rem 1.5rem;
@@ -452,7 +454,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
   border-top: 1px solid rgb(14 29 45 / .18);
 }
 .partners.tier-2 a { grid-template-rows: 4.5rem auto; }
-.partners.tier-2 img { max-height: 4.5rem; max-width: 92%; }
+.partners.tier-2 img { max-height: 4.5rem; max-width: min(92%, 11rem); }
 
 /* ---------- poster viewer (<dialog>) ---------- */
 /* Scoped to [open]: a bare .lightbox{display:grid} would undo the UA's display:none on the
@@ -915,7 +917,7 @@ footer a { color: inherit; }
      "day before" is in the hero). The about and sponsors pages stack them instead and keep every caption. */
   .page .partners { grid-template-columns: 1fr; gap: 2.25rem; }
   .partners.tier-2, .page .partners.tier-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 1.25rem; }
-  /* Two a row on a phone: the third mark sits centred under them, one cell wide. */
+  /* Two a row on a phone; an odd last mark would sit centred under them, one cell wide. */
   .partners.tier-2 li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - .625rem); }
   .partners.tier-2 a { grid-template-rows: 3.5rem auto; }
   /* The stacked TBHS lockup a size down, so it weighs about what the flat BitDriver wordmark does. */
@@ -968,6 +970,8 @@ footer a { color: inherit; }
      all); three across the about page's full width. */
   .activities { columns: 2; column-gap: 2rem; }
   .about-page .activities { columns: 3; }
+  /* The full-width about page has room for the second tier's four marks in one row. */
+  .about-page .partners.tier-2 { grid-template-columns: repeat(4, minmax(0, 13.5rem)); }
   .poster {
     display: block;
     grid-column: 2;

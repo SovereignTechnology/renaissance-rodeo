@@ -1450,12 +1450,12 @@ describe('navigation, tickets and sponsors', () => {
 
   it('sells VIP Cowboy Deluxe at $210 and regular entry at $21 through the shop, bitcoin only, after the box', async () => {
     const copy = {
-      en: { heading: 'Buy tickets', tiers: ['VIP Cowboy Deluxe', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.' },
-      es: { heading: 'Comprar boletos', tiers: ['VIP Cowboy Deluxe', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.' },
+      en: { heading: 'Buy tickets', tiers: ['VIP Cowboy Deluxe', 'Regular entry'], only: 'Bitcoin Only', cta: 'Buy tickets', note: 'Your tickets arrive by email.', closes: 'Online sales stay open until 9 PM on Friday 13 November.' },
+      es: { heading: 'Comprar boletos', tiers: ['VIP Cowboy Deluxe', 'Entrada regular'], only: 'Solo Bitcoin', cta: 'Comprar boletos', note: 'Sus boletos llegan por correo electrónico.', closes: 'La venta en línea sigue abierta hasta las 9:00 p.&nbsp;m. del viernes 13 de noviembre.' },
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
-      const { heading, tiers, only, cta, note } = copy[lang];
+      const { heading, tiers, only, cta, note, closes } = copy[lang];
       const buy = block(html, '<section id="buy"', '</section>');
 
       expect(buy, lang).toContain(`<h2 id="buy-h">${heading}</h2>`);
@@ -1466,6 +1466,9 @@ describe('navigation, tickets and sponsors', () => {
       // No discount code on the page (Cameron, 2026-10-23 and again 2026-10-26): it lives in the shop.
       expect(buy, lang).not.toContain('BITCOIN');
       expect(buy, lang).toContain(note);
+      // How long online sales run, first in the quiet line under Buy: the shop stays open through the rodeo for
+      // on-the-day upgrades and closes when it ends (Cameron, 2026-11-06).
+      expect(buy, lang).toContain(`<p class="buy-note">${closes} ${note}`);
       // Exactly two links (README, "The tickets page"): the shop's event page over https with noopener, and
       // the team's address under it.
       expect(buy, lang).toContain(`<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">${cta}</a>`);
@@ -1521,8 +1524,8 @@ describe('navigation, tickets and sponsors', () => {
 
   it('keeps the home page short: one line about the day, the activities beside the poster, then a link to the about page', async () => {
     const copy = {
-      en: ['It will be a full afternoon of rodeo entertainment, including bull riding, barrel racing, mutton busting, animal fairs, poker, cornhole, horseshoes, a flag show, art, a Bitcoin center, cumbia and country music, and barbecue.', 'Learn more about Renaissance Rodeo'],
-      es: ['Será una tarde completa de entretenimiento de rodeo, con monta de toros, carrera de barriles, monta de borregos para niños, feria de animales, póker, cornhole, lanzamiento de herraduras, show de banderas, arte, un centro Bitcoin, cumbia y música country, y barbacoa.', 'Conozca más sobre Renaissance Rodeo'],
+      en: ['It will be a full afternoon of rodeo entertainment, including bull riding, barrel racing, mutton busting, animal fairs, poker, cornhole, horseshoes, a flag show, art, a Bitcoin center, helicopter and ferry tours of the lake, cumbia and country music, and barbecue.', 'Learn more about Renaissance Rodeo'],
+      es: ['Será una tarde completa de entretenimiento de rodeo, con monta de toros, carrera de barriles, monta de borregos para niños, feria de animales, póker, cornhole, lanzamiento de herraduras, show de banderas, arte, un centro Bitcoin, paseos en helicóptero y en ferry por el lago, cumbia y música country, y barbacoa.', 'Conozca más sobre Renaissance Rodeo'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.home)).html;
@@ -1543,15 +1546,15 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('lists the twelve activities, the same on the home and about pages', async () => {
+  it('lists the fourteen activities, the same on the home and about pages', async () => {
     const first = { en: ['Bull riding', 'Country'], es: ['Monta de toros', 'Música country'] };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const home = block((await page(pages.home)).html, '<ul class="activities"', '</ul>');
       const about = block((await page(pages.about)).html, '<ul class="activities"', '</ul>');
       const items = [...home.matchAll(/<li>([^<]+)<\/li>/g)].map((m) => m[1]);
 
-      expect(items, lang).toHaveLength(12);
-      expect([items[0], items[11]], lang).toEqual(first[lang]);
+      expect(items, lang).toHaveLength(14);
+      expect([items[0], items[13]], lang).toEqual(first[lang]);
       expect(squash(about), lang).toBe(squash(home));
       // Sentence case in the markup (CSS uppercases it), so screen readers read words.
       for (const item of items) expect(item, `${lang} ${item}`).not.toBe(item.toUpperCase());
@@ -1559,7 +1562,11 @@ describe('navigation, tickets and sponsors', () => {
   });
 
   it('shows the second sponsor tier under the partner row on the home, about and sponsors pages', async () => {
-    for (const pages of Object.values(PAGES)) {
+    const taglines = {
+      en: ['Bitcoin Center', 'Official shuttle', 'Official helicopter'],
+      es: ['Centro Bitcoin', 'Transporte oficial', 'Helicóptero oficial'],
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
       const rows = [];
       for (const path of [pages.home, pages.about, pages.sponsors]) {
         const html = (await page(path)).html;
@@ -1572,13 +1579,16 @@ describe('navigation, tickets and sponsors', () => {
         expect([...tier.matchAll(/<a href="([^"]*)" rel="noopener">/g)].map((m) => m[1]), path).toEqual([
           'https://tbhs.sv/',
           'https://bitdriver.taxi/',
+          'https://www.bitcoinlife.sv/',
           'https://www.beefbackbetter.com/',
         ]);
+        // Each mark's role on the day, as the sponsor announcements name it (2026-11-06).
+        expect([...tier.matchAll(/<span class="tagline">([^<]+)<\/span>/g)].map((m) => m[1]), path).toEqual(taglines[lang]);
         rows.push(squash(tier));
       }
       expect(new Set(rows).size).toBe(1);
     }
-    for (const src of ['/img/tbhs.png', '/img/bitdriver.png', '/img/beefbackbetter.png']) {
+    for (const src of ['/img/tbhs.png', '/img/bitdriver.png', '/img/bitcoinlife.png', '/img/beefbackbetter.png']) {
       const res = await call(new Request(`${ORIGIN}${src}`));
       expect(res.status, src).toBe(200);
       expect(res.headers.get('content-type'), src).toBe('image/png');
@@ -1586,7 +1596,8 @@ describe('navigation, tickets and sponsors', () => {
   });
 
   it('lists the four main sponsors in two rows of two, Club Cocal second, on the home, about and sponsors pages', async () => {
-    for (const pages of Object.values(PAGES)) {
+    const main = { en: 'Main sponsor', es: 'Patrocinador principal' };
+    for (const [lang, pages] of Object.entries(PAGES)) {
       const rows = [];
       for (const path of [pages.home, pages.about, pages.sponsors]) {
         const html = (await page(path)).html;
@@ -1602,6 +1613,8 @@ describe('navigation, tickets and sponsors', () => {
         // The circle emblem without its lettering; the name is typed in the caption (Cameron, 2026-10-30).
         expect(top, path).toContain('<img src="/img/clubcocal.png?v=2" width="287" height="288" alt="">');
         expect(top, path).toContain('<strong>Club Cocal</strong>');
+        // The main sponsor says so under its name (2026-11-06).
+        expect(top, path).toContain(`<strong>Club Cocal</strong><span class="tagline">${main[lang]}</span>`);
         rows.push(squash(top));
       }
       expect(new Set(rows).size).toBe(1);
