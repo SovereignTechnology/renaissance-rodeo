@@ -265,8 +265,8 @@ literal `"$k"`, not the value.
   circle emblem of the main sponsor Club Cocal;
 - re-inks `bull-black.png` to `bull.png` at its 500×510 canvas (it was the opening sequence's closing
   card; the sequence was removed on 2026-10-24 and the file is kept as a brand asset, like `mark.png`);
-- encodes the announcement poster `poster.jpg` (1080×1920) as `poster.jpg` + `poster.webp` (the desktop
-  column and the tap-to-open viewer) and `poster-thumb.jpg` (480 wide, the phone and tablet thumbnail
+- encodes the schedule poster `poster.jpg` (1080×1350) as `poster.jpg` + `poster.webp` (the desktop
+  column and the tap-to-open viewer) and `poster-thumb.jpg` (480×600, the phone and tablet thumbnail
   beside the activity list), each under a byte ceiling. The viewer is a native `<dialog>` driven by `public/poster.js`;
   without JavaScript the same links open the JPEG;
 - fetches the three fonts and their licences from fontsource and checks their byte counts.
@@ -397,15 +397,17 @@ under it. Then one sentence about the day that names every activity (*It will be
 rodeo entertainment, including bull riding, barrel racing, …*; Cameron wants it to cover everything),
 the **activity list** (below), and **Learn more about Renaissance Rodeo →** / **Conozca más sobre
 Renaissance Rodeo →**, a plain text link to `/about` whose arrow is an inline SVG (the font subset has
-no U+2192). Then the partner rows, the signup form (pitched at times, transport and directions to
-the venue), the share bar, and the poster column on desktop. The full story lives on the About page.
+no U+2192). Then the **Getting there** section (`#getting-there`: the two shuttle lines, each with its
+website and X handle, and the Apulo car-and-boat note), the partner rows, the signup form (pitched at
+times, transport and directions to the venue), the share bar, and the poster column on desktop. The
+full story lives on the About page.
 
 **The activity list** (`ul.activities`, 14 items in Cameron's order: bull riding … country; helicopter
 tours and ferry & jet skis, Bitcoin Life's trips on the lake, joined after the Bitcoin center on 2026-11-06) is on
 the home page and again after the About page's event text, identical (tested). Items are written in
 sentence case and uppercased by CSS, each with a small red diamond. On phones and tablets the home
-page sets it in a row beside the poster thumbnail, `[poster | list]`, one column, so its fourteen lines
-stand about as tall as the thumbnail and neither leaves a gap (the thumbnail used to float in the
+page sets it in a row beside the 4:5 poster thumbnail, `[poster | list]`, one column; the list is the
+longer of the two and the thumbnail is top-aligned with it (the thumbnail used to float in the
 hero beside one line of text). On phones the list drops the uppercase and a size, or most items would
 wrap in that narrow column. From 64rem the thumbnail hides (the poster has its own column) and the
 list runs in two columns (three on the wider about page). The sentence keeps "animal fairs", which the list does not have.
@@ -739,7 +741,9 @@ mistake fails *open* or fails *silently*:
   order, the event section holds the three paragraphs including the home page's line, the sponsors
   section repeats the home partner row, and both home pages and the sitemap link them;
 - **home**: the About section is the sentence, the `[poster | list]` row and the link to `/about`, in
-  that order, and the hero carries the Buy tickets button to the shop and no thumbnail; there is no
+  that order; below it the Getting there section carries the two shuttle lines (site and X handle
+  each) and the Apulo boat note, in both languages; and the hero carries the Buy tickets button to
+  the shop and no thumbnail; there is no
   opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
 - **activities**: fourteen items, identical on the home and about pages per language, in sentence case;
 - **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `clubcocal.com`, `origenganadero.com` then

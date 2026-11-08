@@ -76,9 +76,9 @@ declare -A EXPECT=(
   [beefbackbetter.png]=277x288
   [bitcoinlife.png]=438x288
   [clubcocal.png]=287x288
-  [poster.jpg]=1080x1920
-  [poster.webp]=1080x1920
-  [poster-thumb.jpg]=480x853
+  [poster.jpg]=1080x1350
+  [poster.webp]=1080x1350
+  [poster-thumb.jpg]=480x600
   [team-andrea.jpg]=256x256
   [team-cam.jpg]=256x256
   [team-james.jpg]=256x256
@@ -405,14 +405,14 @@ build_bitcoinlife() {
   assert_ink "$OUT_IMG/bitcoinlife.png"
 }
 
-# The announcement poster (1080×1920 designer JPEG). Served three ways: poster.jpg + poster.webp at
+# The schedule poster (1080×1350 designer JPEG). Served three ways: poster.jpg + poster.webp at
 # full size (desktop column and the tap-to-open viewer) and poster-thumb.jpg (the phone and tablet
 # thumbnail beside the activity list: ~150 CSS px on phones, ~240 on tablets, so 480 px covers 3×
 # phones and 2× tablets). Opaque by nature — no re-inking, no alpha.
 build_poster() {
   local src="$BRAND/poster.jpg"
   [ -f "$src" ] || die "missing $src"
-  assert_dims "$src" 1080x1920
+  assert_dims "$src" 1080x1350
   convert "$src" -strip -interlace JPEG -sampling-factor 4:2:0 -quality 82 "$OUT_IMG/poster.jpg"
   cwebp -quiet -q 80 -metadata none "$src" -o "$OUT_IMG/poster.webp"
   convert "$src" -strip -resize 480x -quality 72 "$OUT_IMG/poster-thumb.jpg"

@@ -264,6 +264,25 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
 
+/* ---------- getting there ---------- */
+/* The shuttle lines carry a website link and a social handle; the paragraph below covers
+   driving and the Apulo boat. Diamond markers as on the activity list, so the section
+   reads as part of the programme rather than a footnote. */
+#getting-there h2 { margin-bottom: .75rem; font: 400 clamp(1.25rem, 1.1rem + .8vw, 1.625rem) / 1.2 var(--font-display); }
+.transport { margin: 0; padding: 0; list-style: none; }
+.transport li { position: relative; padding: .25em 0 .25em 1.1em; }
+.transport li::before {
+  content: "";
+  position: absolute;
+  left: .1em;
+  top: .8em;
+  width: .38em;
+  height: .38em;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+#getting-there p { margin-top: 1.1em; overflow-wrap: break-word; }
+
 /* ---------- activities ---------- */
 /* The day's activities as a programme: uppercase like the nav, a small red diamond for each (a
    CSS shape: the font subset has no ✦). Words are written in sentence case and uppercased here,
@@ -292,7 +311,7 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .lineup {
   display: grid;
   grid-template-columns: min(42%, 11rem) minmax(0, 1fr);
-  align-items: center;
+  align-items: start;
   gap: 1.5rem;
   margin-top: 1.5rem;
 }
@@ -982,7 +1001,7 @@ footer a { color: inherit; }
     margin: 0;
   }
   .poster a { display: block; }
-  /* Both max-constraints together keep the 9:16 ratio: on a short laptop viewport the height
+  /* Both max-constraints together keep the 4:5 ratio: on a short laptop viewport the height
      cap wins and the width follows. */
   .poster img {
     max-width: 100%;

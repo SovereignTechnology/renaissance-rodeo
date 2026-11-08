@@ -1537,12 +1537,60 @@ describe('navigation, tickets and sponsors', () => {
       expect(about, lang).toMatch(new RegExp(`<p class="more"><a href="${pages.about}">${more}<svg [^>]*aria-hidden="true"`));
       // The poster thumbnail sits beside the list (the phone/tablet row), between the line and the link.
       const lineup = block(about, '<div class="lineup">', '</div>');
-      expect(lineup, lang).toMatch(/^<div class="lineup">\s*<a class="poster-thumb" href="\/img\/poster\.jpg(?:\?v=2)?" data-poster /);
+      expect(lineup, lang).toMatch(/^<div class="lineup">\s*<a class="poster-thumb" href="\/img\/poster\.jpg(?:\?v=\d+)?" data-poster /);
       expect(lineup, lang).toContain('<ul class="activities"');
       expect(about.indexOf(`<p>${line}</p>`), lang).toBeLessThan(about.indexOf('<div class="lineup">'));
       expect(about.indexOf('<div class="lineup">'), lang).toBeLessThan(about.indexOf('<p class="more">'));
       // Nothing left in the hero beside the date but the button and the day-after line.
       expect(block(html, '<section class="hero"', '</section>'), lang).not.toContain('poster-thumb');
+    }
+  });
+
+  it('puts the shuttle links, social handles and the Apulo boat note between About and the sponsors', async () => {
+    const copy = {
+      en: {
+        heading: 'Getting there',
+        coast: 'Shuttle from the coast',
+        city: 'Shuttle from the city',
+        car: 'Coming by car or taxi?',
+      },
+      es: {
+        heading: 'Cómo llegar',
+        coast: 'Traslado desde la costa',
+        city: 'Traslado desde la ciudad',
+        car: '¿Viene en carro o taxi?',
+      },
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.home)).html;
+      const text = copy[lang];
+      const section = block(html, '<section id="getting-there"', '</section>');
+
+      expect(section, lang).toContain(`<h2 id="getting-there-h">${text.heading}</h2>`);
+      for (const line of [text.coast, text.city, text.car, 'Apulo']) {
+        expect(section, `${lang} ${line}`).toContain(line);
+      }
+      for (const href of [
+        'https://bitdriver.taxi/',
+        'https://x.com/bitdriver_sv',
+        'https://www.bitcoinlife.sv/',
+        'https://x.com/TheBitcoinLife_',
+      ]) {
+        expect(section, `${lang} ${href}`).toContain(`<a href="${href}" rel="noopener">`);
+      }
+      // The programme's order: the day's line and activities, then how to get there, then partners.
+      expect(html.indexOf('<section id="getting-there"'), lang).toBeGreaterThan(html.indexOf('<section class="about"'));
+      expect(html.indexOf('<section id="getting-there"'), lang).toBeLessThan(html.indexOf('<section aria-labelledby="partners-h">'));
+    }
+  });
+
+  it('serves the schedule poster at its 4:5 size, with the thumbnail beside the activity list', async () => {
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const html = (await page(pages.home)).html;
+
+      expect(html, lang).toContain('src="/img/poster-thumb.jpg?v=4" width="480" height="600"');
+      expect(html, lang).toContain('src="/img/poster.jpg?v=3" width="1080" height="1350"');
+      expect(html, lang).toContain('srcset="/img/poster.webp?v=3"');
     }
   });
 

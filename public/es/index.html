@@ -85,11 +85,11 @@
       <section class="about" aria-labelledby="about-h">
         <h2 id="about-h" class="sr-only">El evento</h2>
         <p>Será una tarde completa de entretenimiento de rodeo, con monta de toros, carrera de barriles, monta de borregos para niños, feria de animales, póker, cornhole, lanzamiento de herraduras, show de banderas, arte, un centro Bitcoin, paseos en helicóptero y en ferry por el lago, cumbia y música country, y barbacoa.</p>
-        <!-- Phones and tablets: the poster beside the activity list, which is about as tall as the
-             thumbnail, so neither leaves a gap. From 64rem the thumbnail hides (the poster has its
+        <!-- Phones and tablets: the 4:5 poster thumbnail sits top-aligned beside the activity
+             list, which runs longer than it. From 64rem the thumbnail hides (the poster has its
              own column) and the list runs in two columns. Tap opens the poster viewer. -->
         <div class="lineup">
-          <a class="poster-thumb" href="/img/poster.jpg?v=2" data-poster aria-label="Ver el afiche del evento"><img src="/img/poster-thumb.jpg?v=3" width="480" height="853" alt="" loading="lazy"></a>
+          <a class="poster-thumb" href="/img/poster.jpg?v=3" data-poster aria-label="Ver el afiche del horario"><img src="/img/poster-thumb.jpg?v=4" width="480" height="600" alt="" loading="lazy"></a>
           <ul class="activities" aria-label="Actividades">
             <li>Monta de toros</li>
             <li>Carrera de barriles</li>
@@ -108,6 +108,15 @@
           </ul>
         </div>
         <p class="more"><a href="/es/about">Conozca más sobre Renaissance Rodeo<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
+      </section>
+
+      <section id="getting-there" aria-labelledby="getting-there-h">
+        <h2 id="getting-there-h">Cómo llegar</h2>
+        <ul class="transport">
+          <li><strong>Traslado desde la costa</strong> → <a href="https://bitdriver.taxi/" rel="noopener">bitdriver.taxi</a> (El Zonte – Club Cocal – Rodeo) · <a href="https://x.com/bitdriver_sv" rel="noopener">@bitdriver_sv</a></li>
+          <li><strong>Traslado desde la ciudad</strong> → <a href="https://www.bitcoinlife.sv/" rel="noopener">bitcoinlife.sv</a> · <a href="https://x.com/TheBitcoinLife_" rel="noopener">@TheBitcoinLife_</a></li>
+        </ul>
+        <p>¿Viene en carro o taxi? Estacione en Apulo (a unos 30 minutos de San Salvador) y tome un bote de 5 minutos directo al rodeo. Es más rápido y fácil que estacionar en el recinto, y mantiene las carreteras junto al lago despejadas para todos.</p>
       </section>
 
       <section aria-labelledby="partners-h">
@@ -233,10 +242,10 @@
     <!-- Desktop only: sticky column beside the copy (hidden below 64rem). Last in <main> so the
          section-spacing selector is untouched and screen readers meet it after the content. -->
     <figure class="poster">
-      <a href="/img/poster.jpg?v=2" data-poster>
+      <a href="/img/poster.jpg?v=3" data-poster>
         <picture>
-          <source type="image/webp" srcset="/img/poster.webp?v=2">
-          <img src="/img/poster.jpg?v=2" width="1080" height="1920" alt="Afiche de Renaissance Rodeo: Al toro Bravo por los Cuernos, Ilopango, 13 de noviembre" loading="lazy">
+          <source type="image/webp" srcset="/img/poster.webp?v=3">
+          <img src="/img/poster.jpg?v=3" width="1080" height="1350" alt="Afiche del horario de Renaissance Rodeo: puertas abren a las 12 PM, música, comida y bebidas 2 PM, show de rodeo 3 PM, monta de toros 5 PM, premios y gran final 10 PM, Ilopango, 13 de noviembre de 2026" loading="lazy">
         </picture>
       </a>
     </figure>
@@ -270,11 +279,11 @@
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
        open only. Without JS the data-poster links open the JPEG itself. -->
-  <dialog class="lightbox" id="poster-dialog" aria-label="Afiche del evento">
+  <dialog class="lightbox" id="poster-dialog" aria-label="Afiche del horario">
     <button type="button" class="lightbox-close" aria-label="Cerrar">&#x2715;</button>
     <picture>
-      <source type="image/webp" srcset="/img/poster.webp?v=2">
-      <img src="/img/poster.jpg?v=2" width="1080" height="1920" alt="Afiche de Renaissance Rodeo: Al toro Bravo por los Cuernos, Ilopango, 13 de noviembre" loading="lazy">
+      <source type="image/webp" srcset="/img/poster.webp?v=3">
+      <img src="/img/poster.jpg?v=3" width="1080" height="1350" alt="Afiche del horario de Renaissance Rodeo: puertas abren a las 12 PM, música, comida y bebidas 2 PM, show de rodeo 3 PM, monta de toros 5 PM, premios y gran final 10 PM, Ilopango, 13 de noviembre de 2026" loading="lazy">
     </picture>
   </dialog>
 </body>
