@@ -1451,10 +1451,10 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('tells Bitcoin Histórico ticket holders the rodeo is included, then offers the signup form for news', async () => {
+  it('tells Bitcoin Histórico ticket holders their entry is free with the code in their inbox, then offers the signup form for news', async () => {
     const copy = {
-      en: ['Have a Bitcoin Histórico ticket?', 'It includes your entry to Renaissance Rodeo', 'Stay in the loop'],
-      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Incluye su entrada a Renaissance Rodeo', 'Novedades'],
+      en: ['Have a Bitcoin Histórico ticket?', 'Watch your inbox for an email from Bitcoin Histórico with your personal code', 'Stay in the loop'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Esté atento a su correo: Bitcoin Histórico le enviará un código personal', 'Novedades'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
@@ -1464,10 +1464,28 @@ describe('navigation, tickets and sponsors', () => {
       expect(included, lang).toContain(`<h2 id="included-h">${question}</h2>`);
       expect(included, lang).toContain(answer);
       expect(included, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>');
+      // The code is redeemed in the ticket shop (Cameron, 2026-11-09: redeem it before getting in line).
+      expect(included, lang).toContain('<a href="https://tickets.renaissance.rodeo/rodeo/2026/" rel="noopener">');
       // The news heading comes straight before the signup form, after the box.
       const signup = block(html, '<section id="signup"', '</section>');
       expect(signup, lang).toMatch(new RegExp(`^<section id="signup" aria-labelledby="signup-h">\\s*<h2 id="signup-h">${news}</h2>\\s*<p>`));
       expect(html.indexOf('<section class="included"'), lang).toBeLessThan(html.indexOf('<section id="signup"'));
+    }
+  });
+
+  it('tells Bitcoin Histórico ticket holders on the home, tickets and location pages to watch their inbox for the code, never that their ticket already includes the rodeo', async () => {
+    // Cameron, 2026-11-09: the National Bitcoin Office emails each Histórico ticket holder a personal code.
+    const inbox = { en: 'watch your inbox', es: 'esté atento a su correo' };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      for (const key of ['home', 'tickets', 'location']) {
+        const html = (await page(pages[key])).html;
+        expect(html.toLowerCase(), `${lang} ${key}`).toContain(inbox[lang]);
+        expect(html, `${lang} ${key}`).not.toMatch(/already includes Renaissance Rodeo|ya incluye Renaissance Rodeo|Histórico ticket includes entry|Histórico incluye la entrada/);
+      }
+      const home = (await page(pages.home)).html;
+      expect(block(home, '<p class="after">', '</p>'), lang).toContain(`<a href="${lang === 'en' ? '' : '/es'}/tickets#included-h">`);
+      const location = (await page(pages.location)).html;
+      expect(location.split('https://tickets.renaissance.rodeo/rodeo/2026/').length - 1, lang).toBeGreaterThanOrEqual(3);
     }
   });
 

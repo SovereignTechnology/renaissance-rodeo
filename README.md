@@ -511,9 +511,12 @@ without a photo yet keeps the ink square with their initials in Bevan.
 
 ## The tickets page
 
-`/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket? It includes
-your entry to Renaissance Rodeo** (Spanish: *¿Tiene boleto para Bitcoin Histórico? Incluye su
-entrada…*), with the Bitcoin Histórico emblem from the partner row and a link to its site. Then
+`/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket?** Entry is free, and
+(Cameron, 2026-11-09) the National Bitcoin Office emails every Histórico ticket holder a personal single-use code:
+*watch your inbox … redeem it in the ticket shop for your free entry ticket before you get in line* (Spanish: *Esté
+atento a su correo …*), with a link to the shop, the Bitcoin Histórico emblem from the partner row and a link to its
+site. The same line is on the home page (under "The day after Bitcoin Histórico", linking to this box) and on the
+Location page (Coming from Bitcoin Histórico, Before you go). The codes: sovtech/alpha `kata/pretix/historico-codes.sh`. Then
 **Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $210 (the shop sells 50), regular entry $21. In the VIP
 row, right under its name and price, what the ticket includes (Cameron, 2026-10-28): "Limited to 50 tickets. Each
 one includes:" then an exclusive lakeside BBQ in the VIP area, a branded cowboy hat and a pick of 1 of 3 tees; the
@@ -568,8 +571,8 @@ ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place na
                Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
                                                        via Club Cocal; 9:00 PM back), WhatsApp, site, X
                Driving to the venue                    Google Maps or Waze
-               Coming from Bitcoin Histórico           the day before; its ticket includes the rodeo
-#before        Before you go: the QR in your email, free with a DUI, Bitcoin Histórico tickets, Bitcoin
+               Coming from Bitcoin Histórico           the day before; its ticket holders redeem the emailed code
+#before        Before you go: the QR in your email, free with a DUI, the Histórico code to redeem, Bitcoin
                only and the Bitcoin Center, Buy tickets, the tickets page and hello@
 ```
 
@@ -801,7 +804,8 @@ mistake fails *open* or fails *silently*:
   and icons, and one menu button pointing at it, before the language switch; every subpage header opens with the mark and its
   language switch leads to the same page; every outbound link on every page is `https` +
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
-  test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
+  test key; the tickets pages tell Bitcoin Histórico ticket holders entry is free with the code in their inbox
+  (home, tickets and location all say it, and none says the Histórico ticket "already includes" the rodeo), then
   show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
   two lines under the logo; every page names the place in its footer and its copy as links to the
   Location page in its language, with no venue popover left; the sponsors pages repeat
