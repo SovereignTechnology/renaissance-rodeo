@@ -47,6 +47,7 @@
       <ul class="site-links">
         <li><a href="/es/about">Acerca de</a></li>
         <li><a href="/es/tickets">Boletos</a></li>
+        <li><a href="/es/location">Ubicación</a></li>
         <li><a href="/es/sponsors">Patrocinadores</a></li>
       </ul>
       <ul class="social">
@@ -73,11 +74,13 @@
         </h1>
         <!-- Date and place as a lockup under the logo: two centred lines in Bevan, sized to the
              column so they read as part of the logo (style.css "hero"). -->
-        <p class="when"><time class="when-date" datetime="2026-11-13">13 de noviembre de 2026</time> <span class="when-place"><button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button></span></p>
+        <p class="when"><time class="when-date" datetime="2026-11-13">13 de noviembre de 2026</time> <span class="when-place"><a class="place" href="/es/location">Ilopango, El Salvador</a></span></p>
+        <p class="gates">Viernes · Puertas abren 12:00&nbsp;m.</p>
         <!-- Directo a la tienda de boletos (Cameron, 2026-10-24); /es/tickets conserva los precios,
              las notas de Bitcoin Histórico y del DUI y el mismo enlace. -->
         <p class="hero-buy"><a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">Comprar boletos</a></p>
         <p class="after">El día después de <a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>
+        <p class="more plan"><a href="/es/about#schedule">Programa<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a><span class="sep" aria-hidden="true">·</span><a href="/es/location">Cómo llegar<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
       </section>
 
       <!-- Breve a propósito: una línea sobre el día y luego la historia completa en /es/about
@@ -110,13 +113,12 @@
         <p class="more"><a href="/es/about">Conozca más sobre Renaissance Rodeo<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
       </section>
 
+      <!-- A teaser for the Location page (Cameron, 2026-11-08): one line with every way in, the Apulo
+           boat and ferry included, and a large link; the details live on /location. -->
       <section id="getting-there" aria-labelledby="getting-there-h">
         <h2 id="getting-there-h">Cómo llegar</h2>
-        <ul class="transport">
-          <li><strong>Traslado desde la costa</strong> → <a href="https://bitdriver.taxi/" rel="noopener">bitdriver.taxi</a> (El Zonte – Club Cocal – Rodeo) · <a href="https://x.com/bitdriver_sv" rel="noopener">@bitdriver_sv</a></li>
-          <li><strong>Traslado desde la ciudad</strong> → <a href="https://www.bitcoinlife.sv/" rel="noopener">bitcoinlife.sv</a> · <a href="https://x.com/TheBitcoinLife_" rel="noopener">@TheBitcoinLife_</a></li>
-        </ul>
-        <p>¿Viene en carro o taxi? Estacione en Apulo (a unos 30 minutos de San Salvador) y tome un bote de 5 minutos directo al rodeo. Es más rápido y fácil que estacionar en el recinto, y mantiene las carreteras junto al lago despejadas para todos.</p>
+        <p>Shuttle desde la costa, helicóptero desde San Salvador, o estacione en Apulo y tome el bote de 5 minutos o el ferry directo al rodeo.</p>
+        <p class="more more-big"><a href="/es/location">Ubicación y cómo <span class="nw">llegar<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></span></a></p>
       </section>
 
       <section aria-labelledby="partners-h">
@@ -177,7 +179,7 @@
 
       <section id="signup" aria-labelledby="signup-h">
         <h2 id="signup-h">Entérese primero</h2>
-        <p>Los horarios, el transporte y cómo llegar a la sede se anuncian primero a la lista de correo.</p>
+        <p>Las novedades de último momento llegan primero a la lista de correo.</p>
         <form class="signup" method="post" action="/api/subscribe" data-lang="es">
           <label for="email">Correo electrónico</label>
           <div class="row">
@@ -257,25 +259,14 @@
         <ul>
           <li><a href="/es/about">Acerca de</a></li>
           <li><a href="/es/tickets">Boletos</a></li>
+          <li><a href="/es/location">Ubicación</a></li>
           <li><a href="/es/sponsors">Patrocinadores</a></li>
         </ul>
       </nav>
-      <p>© 2026 Renaissance Rodeo · <button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button> · <a href="/" lang="en" hreflang="en">English</a></p>
+      <p>© 2026 Renaissance Rodeo · <a class="place" href="/es/location">Ilopango, El Salvador</a> · <a href="/" lang="en" hreflang="en">English</a></p>
     </div>
   </footer>
 
-  <!-- README, "The venue map". Cada nombre del lugar en la página abre esto
-       (popovertarget, sin script): el lugar, 13.676983, -89.095381, en la app de mapas del visitante. -->
-  <div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">
-    <p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>
-    <p class="venue-map-sub">Abrir en</p>
-    <ul>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381" rel="noopener">Google Maps</a></li>
-      <li><a href="https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo" rel="noopener">Apple Maps</a></li>
-      <li><a href="https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes" rel="noopener">Waze</a></li>
-    </ul>
-    <button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">Cerrar</button>
-  </div>
 
   <!-- Full-screen poster viewer. Closed <dialog> is display:none, so the lazy image loads on first
        open only. Without JS the data-poster links open the JPEG itself. -->

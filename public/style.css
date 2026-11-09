@@ -256,6 +256,18 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
    screen of every phone. "The day after…" follows it, centred too. */
 .hero-buy { margin-top: 1.25rem; text-align: center; }
 .hero-buy .buy { padding-inline: 2.25rem; }
+/* The day and the gate time, a quiet tracked line right under the lockup (2026-11-06); the link to
+   the schedule and the ways to get there closes the hero, in the learn-more link's voice. */
+.gates {
+  margin-top: .35rem;
+  font: 600 var(--text-small) / 1.3 var(--font-body);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+.plan { margin-top: .5rem; text-align: center; }
+.plan .sep { margin-inline: .6em; color: var(--muted); }
 
 
 /* ---------- sections ---------- */
@@ -264,24 +276,15 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .about p:first-of-type { margin-top: 0; }
 .about p:last-of-type { margin-bottom: 0; }
 
-/* ---------- getting there ---------- */
-/* The shuttle lines carry a website link and a social handle; the paragraph below covers
-   driving and the Apulo boat. Diamond markers as on the activity list, so the section
-   reads as part of the programme rather than a footnote. */
-#getting-there h2 { margin-bottom: .75rem; font: 400 clamp(1.25rem, 1.1rem + .8vw, 1.625rem) / 1.2 var(--font-display); }
-.transport { margin: 0; padding: 0; list-style: none; }
-.transport li { position: relative; padding: .25em 0 .25em 1.1em; }
-.transport li::before {
-  content: "";
-  position: absolute;
-  left: .1em;
-  top: .8em;
-  width: .38em;
-  height: .38em;
-  background: var(--red);
-  transform: rotate(45deg);
-}
-#getting-there p { margin-top: 1.1em; overflow-wrap: break-word; }
+/* ---------- getting there (home) ---------- */
+/* A teaser for the Location page (2026-11-08): one sentence naming every way in, then a large link in the
+   learn-more link's voice. Scoped to the home column: /location has its own #getting-there section. */
+.copy > #getting-there h2 { margin-bottom: .75rem; font: 400 clamp(1.25rem, 1.1rem + .8vw, 1.625rem) / 1.2 var(--font-display); }
+.copy > #getting-there p { overflow-wrap: break-word; }
+.copy > #getting-there .more { margin-top: .75rem; }
+.more-big a { font-size: clamp(1.375rem, 1.2rem + .9vw, 1.75rem); line-height: 1.25; }
+/* The last word and the arrow wrap together, never the arrow alone on a line. */
+.nw { white-space: nowrap; }
 
 /* ---------- activities ---------- */
 /* The day's activities as a programme: uppercase like the nav, a small red diamond for each (a
@@ -509,58 +512,17 @@ main { padding-top: clamp(.5rem, 3vw, 1.5rem); }
 .lightbox-close:hover { background: var(--red); border-color: var(--red); }
 body:has(dialog[open]) { overflow: hidden; }
 
-/* ---------- the venue map (README, "The venue map") ---------- */
-/* Each place name is a button that opens #venue-map (popovertarget, no script). It reads as a
-   link in its sentence: the font, colour and underline of the text around it. */
+/* ---------- place names (README, "Place names") ---------- */
+/* Every "Ilopango" and "Ilopango, El Salvador" links to the Location page (2026-11-08; until then each
+   opened a menu of maps apps, which now sits on that page). It reads as a word of its sentence: the
+   font, colour and case of the text around it, underlined. */
 .place {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
   color: inherit;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
   text-decoration: underline;
   text-underline-offset: .15em;
   text-decoration-thickness: .08em;
-  cursor: pointer;
 }
 .place:hover { color: var(--red); }
-/* The menu: a small card where the browser puts a popover (the middle of the screen), the site's
-   square ruled box. display is left to the browser, which hides it until it is opened. */
-.venue-map[popover] {
-  width: min(22rem, calc(100vw - 2rem));
-  margin: auto;
-  padding: 1.25rem 1.5rem 1rem;
-  border: var(--border) solid var(--ink);
-  border-radius: var(--radius);
-  background: var(--paper);
-  color: var(--ink);
-  box-shadow: 0 .5rem 1.5rem rgb(14 29 45 / .25);
-}
-.venue-map::backdrop { background: rgb(14 29 45 / .35); }
-.venue-map-h { font: 400 var(--text-date) / 1.2 var(--font-display); }
-.venue-map-sub { margin-top: .25rem; color: var(--muted); font-size: var(--text-small); }
-.venue-map ul { margin: .5rem 0 0; padding: 0; list-style: none; }
-.venue-map a, .venue-map-close {
-  display: flex;
-  align-items: center;
-  min-height: 48px;
-  font: 600 var(--nav-size) / 1 var(--font-body);
-  text-transform: uppercase;
-  letter-spacing: var(--nav-track);
-}
-.venue-map a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--muted); }
-.venue-map a:hover, .venue-map-close:hover { color: var(--red); }
-.venue-map-close { margin-top: .5rem; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
-/* No popovers (older browsers): the buttons cannot open it, so the three links stay on the page
-   at the bottom, and the place names read as plain text. */
-@supports not selector(:popover-open) {
-  .venue-map[popover] { display: block; position: static; width: auto; max-width: 36rem; margin: 0 auto var(--gap-section); padding: 0 1rem; border: 0; box-shadow: none; background: none; }
-  .venue-map-close { display: none; }
-  .place { text-decoration: none; cursor: auto; }
-}
 
 /* ---------- team (the #team section of /about, /es/about) ---------- */
 /* One list of cards: a square (the person's photo, or their initials until one exists), then the
@@ -779,6 +741,8 @@ body:has(dialog[open]) { overflow: hidden; }
 }
 @supports not selector(:target-current) {
   .about-page:has(#event:target) .jump a[href="#event"],
+  .about-page:has(#schedule:target) .jump a[href="#schedule"],
+  .about-page:has(#getting-there:target) .jump a[href="#schedule"],
   .about-page:has(#team:target) .jump a[href="#team"],
   .about-page:has(#sponsors:target) .jump a[href="#sponsors"] {
     text-decoration: underline;
@@ -786,26 +750,112 @@ body:has(dialog[open]) { overflow: hidden; }
     text-underline-offset: .3em;
   }
 }
-/* Phones and small tablets: three equal tap targets across the row, a diamond with a little air
-   on each side on the borders between them. The type is the header's size when it fits and
-   shrinks to fit when it does not, the tracking a little tighter (.03em): the Spanish labels are
-   the long ones (about 20.4 px of row per px of type, English 15.7, measured with Cormorant 600 at
-   this tracking, the diamonds and their margins included; 62px is the page margins, the link
-   padding and some slack), floored at .7rem, below which the row slides sideways as before (a 320px
-   phone). */
+/* Phones and small tablets: four equal tap targets across the row (The day joined on 2026-11-06),
+   a diamond with a little air on each side on the borders between them. The type is the header's
+   size when it fits and shrinks to fit when it does not, the tracking a little tighter (.03em): the
+   Spanish labels are the long ones (about 27.5 px of row per px of type, English 23.5, measured in
+   headless Chromium with Cormorant 600 at this tracking, the diamonds, their margins and the link
+   padding included, plus a little slack; 48px is the page margins and some slack), floored at .6rem
+   (four labels need it: at .7rem the Spanish row overflowed a 390px phone), below which the row
+   slides sideways as before (a 320px phone, and the Spanish row on a 360px one). */
 @media (max-width: 47.99rem) {
   .jump {
-    --jump-fit: 15.7;
+    --jump-fit: 23.5;
     --jump-track: .03em;
-    --jump-size: max(.7rem, min(var(--nav-size), calc((100vw - 62px) / var(--jump-fit))));
+    --jump-size: max(.6rem, min(var(--nav-size), calc((100vw - 48px) / var(--jump-fit))));
   }
-  .jump:lang(es) { --jump-fit: 20.4; }
+  .jump:lang(es) { --jump-fit: 27.5; }
   .jump li { flex: 1 1 auto; }
   .jump li + li::before { margin-inline: .4em; }
   .jump a { flex: 1; padding-inline: .125rem; }
 }
+/* Tablets: the header's type, a little less air around each link, so the four Spanish labels keep
+   one row at 768px (measured: 761px of row at 1.25rem against 735px of room). */
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .jump a { padding-inline: .875rem; }
+}
 .about-page > section { scroll-margin-top: calc(44px + 2.5rem); }
+/* The day's schedule (2026-11-06): one row per hour, the time in the display face, hairlines
+   between the rows like the tickets page's price list. */
+.schedule { width: 100%; max-width: 34rem; border-collapse: collapse; }
+.page-section p + .schedule { margin-top: 1.25rem; }
+.schedule th, .schedule td {
+  padding: .6rem 0;
+  border-top: 1px solid rgb(14 29 45 / .18);
+  text-align: left;
+  vertical-align: baseline;
+}
+.schedule tr:last-child > * { border-bottom: 1px solid rgb(14 29 45 / .18); }
+.schedule th { padding-inline-end: 1.25rem; font: 400 .9em / 1.3 var(--font-display); white-space: nowrap; }
+/* Getting there: one block per way in, each with a small display-face heading. The BitDriver runs
+   and the Bitcoin Life options carry the activities list's red diamond. */
+.way { margin-top: 2rem; max-width: 38rem; }
+.way h3 { margin-bottom: .5rem; font: 400 1.25rem / 1.2 var(--font-display); }
+.runs, .options { margin: 0 0 .75rem; padding: 0; list-style: none; }
+.runs li, .options li { position: relative; padding: .2em 0 .2em 1.1em; }
+.runs li::before, .options li::before {
+  content: "";
+  position: absolute;
+  left: .1em;
+  top: .78em;
+  width: .38em;
+  height: .38em;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+.runs strong { font-weight: 600; margin-inline-end: .35em; }
 .jump + .page-section { margin-top: 2rem; }
+.schedule + .more { margin-top: 1.25rem; }
+
+/* ---------- location (/location, /es/location) ---------- */
+/* The map is inline SVG drawn by scripts/build-map.py from OpenStreetMap (README, "The location page"): its
+   viewBox is 1000 units wide, so the type sizes below are in those units and scale with the map. The lake
+   is a pale blue under an ink shoreline; roads are quiet; the boat and ferry crossing and the venue pin are
+   the site's red, the pin a diamond like the activities list's. The three maps apps follow as outline
+   buttons, the same height as Buy. */
+.venue { margin: 1.75rem 0 0; max-width: 46rem; }
+.map { display: block; width: 100%; height: auto; background: var(--paper); border: var(--border) solid var(--ink); }
+.map-water { fill: #cbd8df; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.map-road { fill: none; stroke: var(--muted); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
+.map-road-apulo { stroke: var(--ink); stroke-width: 4.5; opacity: .85; }
+.map-crossing { fill: none; stroke: var(--red); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 2 12; }
+.map-pin { fill: var(--red); stroke: var(--paper); stroke-width: 4; }
+.map-dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; }
+.map-arrow { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.map text { fill: var(--ink); stroke: var(--paper); stroke-width: 9px; stroke-linejoin: round; paint-order: stroke; }
+.map .map-place { font: 600 40px var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
+.map .map-venue { font: 400 40px var(--font-display); fill: var(--red); }
+.map .map-note { font: italic 600 34px var(--font-body); fill: var(--red); }
+.map .map-lake { font: italic 400 40px var(--font-body); fill: var(--muted); stroke: #cbd8df; }
+.venue figcaption { margin-top: .375rem; font-size: 1rem; color: var(--muted); }
+.venue figcaption a { color: inherit; }
+.apps-h {
+  margin-top: 1.25rem;
+  font: 600 var(--text-small) / 1.3 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+.apps { display: flex; flex-wrap: wrap; gap: .625rem; margin: .5rem 0 0; padding: 0; list-style: none; }
+.apps a {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control);
+  padding: 0 1.25rem;
+  background: var(--paper);
+  color: var(--ink);
+  border: var(--border) solid var(--ink);
+  border-radius: 6px;
+  font: 600 var(--text-button) / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+.apps a:hover { color: var(--red); border-color: var(--red); }
+.location-page .page-section > .way:first-of-type { margin-top: 0; }
+.way p + p { margin-top: .75em; }
+.location-page .options + p { margin-top: .75rem; }
+.buy-row { margin-top: 1.5rem; }
 .page-section h2 + .team-lede { margin-top: 0; }
 .become { margin-top: 2.25rem; }
 
@@ -838,7 +888,10 @@ footer a { color: inherit; }
    header's links and language switch (Cameron, 2026-10-27). It wraps back to two lines if a longer
    pair ever does not fit; phones keep them stacked. */
 @media (min-width: 64rem) {
-  .foot { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 2rem; }
+  .foot { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .25rem 1.25rem; }
+  /* Four links since Location joined (2026-11-08): a little less air between them keeps the Spanish
+     pair (the longer one) on one line from 1024px; measured 1006px of row in 990px before. */
+  .foot-nav ul { column-gap: 1rem; }
 }
 
 /* ---------- 404 ---------- */

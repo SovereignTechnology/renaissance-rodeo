@@ -6,3 +6,26 @@
 /es/team /es/about#team 301
 /es/team/ /es/about#team 301
 /es/team.html /es/about#team 301
+
+# The Location page (2026-11-08, README, "The location page"). The other names people may type or share
+# land on it: English words on the English page, Spanish words on the Spanish one.
+/getting-there /location 301
+/getting-there/ /location 301
+/directions /location 301
+/directions/ /location 301
+/venue /location 301
+/venue/ /location 301
+/ubicacion /es/location 301
+/ubicacion/ /es/location 301
+/como-llegar /es/location 301
+/como-llegar/ /es/location 301
+/es/getting-there /es/location 301
+/es/getting-there/ /es/location 301
+/es/directions /es/location 301
+/es/directions/ /es/location 301
+/es/venue /es/location 301
+/es/venue/ /es/location 301
+/es/ubicacion /es/location 301
+/es/ubicacion/ /es/location 301
+/es/como-llegar /es/location 301
+/es/como-llegar/ /es/location 301

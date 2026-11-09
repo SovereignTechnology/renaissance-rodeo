@@ -4,8 +4,10 @@
 
 Bilingual event site for **Renaissance Rodeo** — 13 November 2026 · Ilopango, El Salvador, the day
 after Bitcoin Histórico (11–12 November 2026, Centro Histórico, San Salvador): a short home page
-plus About, Tickets and Sponsors pages, each in English and Spanish. Times, transport and
-directions are announced to the mailing list first, so the home and tickets pages collect email addresses: a form
+plus About, Tickets, Location and Sponsors pages, each in English and Spanish. News goes to the mailing
+list first (the schedule and the ways to get there did, before they joined the About and Location pages
+in November 2026),
+so the home and tickets pages collect email addresses: a form
 gated by Cloudflare Turnstile whose submissions go straight into a listmonk list. There is
 no database, no build step and no server beyond one Cloudflare Worker that serves the static files
 and answers a single API route. Live at <https://renaissance.rodeo>. The canonical source is on
@@ -302,7 +304,7 @@ unless the URL changes.
 Every page except `404.html` has the same header and footer, in its language:
 
 ```
-desktop   [mark]  ABOUT  TICKETS  SPONSORS  [X] [Instagram]               EN | ES
+desktop   [mark]  ABOUT  TICKETS  LOCATION  SPONSORS  [X] [Instagram]     EN | ES
 phone     [mark] [menu]                                                  EN | ES
 ```
 
@@ -329,39 +331,45 @@ phone     [mark] [menu]                                                  EN | ES
   three navs cannot drift apart.
 - The page you are on is marked `aria-current="page"` (underlined) in both lists. The home pages
   mark none.
-- Spanish labels: **Acerca de**, **Boletos**, **Patrocinadores**; the Spanish pages are `/es/about`,
-  `/es/tickets`, `/es/sponsors`.
+- Spanish labels: **Acerca de**, **Boletos**, **Ubicación**, **Patrocinadores**; the Spanish pages are
+  `/es/about`, `/es/tickets`, `/es/location`, `/es/sponsors`. Location joined on 2026-11-08, between
+  Tickets and Sponsors.
 
-**Adding a page to the list** means editing the header and the footer of all eight pages. The
+**Adding a page to the list** means editing the header and the footer of all ten pages. The
 tests fail unless every page of a language carries the same links in the same order, in both
 places, with only the current one marked, and unless every page has exactly one popover nav with
 one button pointing at it.
 
-## The venue map
+## Place names
 
-Every place name on the eight pages opens the venue in the visitor's own maps app (Cameron,
-2026-10-28). The venue is at **13.676983, -89.095381**. The names that do it: the footer's "Ilopango,
-El Salvador" on every page, the home date lockup's, and the "Ilopango" in the tickets box, the sponsors
-lede and the About page's team line. Each is a `<button class="place" popovertarget="venue-map">`
-styled as an underlined word of its sentence, and it opens one **popover** per page, `#venue-map`,
-placed after the footer: the place, **Open in** / **Abrir en**, then **Google Maps**, **Apple Maps** and
-**Waze**, and a **Close** / **Cerrar** button. Like the menu, it needs **no script**: it opens in the middle
-of the screen over a dimmed page and closes on Esc, a tap outside or Close. A browser without popovers
-cannot open it, so there the three links stay at the bottom of the page and the names read as plain
-text. On a phone each link opens its app when it is installed (universal links), its website when not.
+Every place name on the ten pages links to the **Location page** in the page's language (`/location`,
+`/es/location`; Cameron, 2026-11-08): the footer's "Ilopango, El Salvador" on every page, the home date
+lockup's, and the "Ilopango" in the tickets box, the sponsors lede and the About page's team line and
+schedule line. Each is an `<a class="place">` styled as an underlined word of its sentence (`.place` in
+`style.css`). On the Location page the lede's "Ilopango" is plain text, since it would link to itself,
+and the footer's link carries `aria-current="page"`.
 
-- The links: `https://www.google.com/maps/search/?api=1&query=13.676983%2C-89.095381`,
-  `https://maps.apple.com/?ll=13.676983,-89.095381&q=Renaissance%20Rodeo`,
-  `https://waze.com/ul?ll=13.676983,-89.095381&navigate=yes`. Cameron's share link
-  (`maps.app.goo.gl/adckMoVBJtxjHzDbA`) points to the same coordinates but carries Google's share
-  tracking (`g_ep`, `skid`), so the site uses Google's documented URL for the point instead.
-- Left plain on purpose: `<title>`, the meta and share card descriptions, the share bar's texts and the
-  poster's alt text (none can hold a button), and "El Salvador" in partner captions and team bios (not
-  the venue).
-- The ticket shop prints its location as plain text (pretix's own templates), so it has no map link.
-- Moving the venue means the three links and the tests' copy of them; the tests require on every page
-  exactly one `#venue-map` after the footer, the three links in this order, and every place button
-  pointing at it.
+From 2026-10-28 to 2026-11-08 each place name was a button that opened a popover of maps apps
+(`#venue-map`). Those three links now sit on the Location page, under the map (`ul.apps`), and no
+popover is left:
+
+- `https://www.google.com/maps/search/?api=1&query=13.676983%2C-89.095381`
+- `https://maps.apple.com/?ll=13.676983,-89.095381&q=Renaissance%20Rodeo`
+- `https://waze.com/ul?ll=13.676983,-89.095381&navigate=yes`
+
+The venue is at **13.676983, -89.095381**. Cameron's share link (`maps.app.goo.gl/adckMoVBJtxjHzDbA`)
+points to the same coordinates but carries Google's share tracking (`g_ep`, `skid`), so the site uses
+Google's documented URL for the point instead. On a phone each link opens its app when it is installed
+(universal links), its website when not. A curl of the Waze link gets a 403 (bot protection), but a
+browser opens it.
+
+- **Left plain on purpose:** `<title>`, the meta and share-card descriptions, the share bar's texts, the
+  poster's alt text, and "El Salvador" in partner captions and team bios (that is not the venue).
+- **The ticket shop** prints its location line as plain text (pretix's own template,
+  `{{ ev.location|linebreaksbr }}`), so it can't link. Its front-page text carries the link to the
+  Location page instead (alpha `kata/pretix/set-prices.sh`).
+- **Tests:** every place link on every page points at that language's Location page, the counts are
+  fixed, and no `venue-map` remains.
 
 ## Social links
 
@@ -370,7 +378,7 @@ links, drawn in `currentColor` (`.social` in `style.css`): no row of their own, 
 nothing for `img-src` or `npm run assets`. Each icon link carries `rel="me noopener"` and an
 `aria-label` in the page's language; the footer does not repeat them. `<meta name="twitter:site"
 content="@rodeo_sv">` credits the share card on X. A handle change touches the header of all
-eight pages (tested); `404.html` has no social links.
+ten pages (tested); `404.html` has no social links.
 
 The copy ends, after the signup, with an article-style **Share / Follow** block (`section.share`):
 
@@ -390,17 +398,21 @@ the input row (tested).
 
 ## The home page
 
-`/` and `/es/` are short on purpose (Cameron, 2026-10-24): the logo and the date lockup, a red
-**Buy tickets** / **Comprar boletos** button centred under it that goes **straight to the ticket shop**
-(`https://tickets.renaissance.rodeo/rodeo/2026/`), and "The day after Bitcoin Histórico" centred
-under it. Then one sentence about the day that names every activity (*It will be a full afternoon of
+`/` and `/es/` are short on purpose (Cameron, 2026-10-24): the logo and the date lockup, a quiet
+tracked line under it with the day and the gate time (*Friday · Gates open 12 PM* / *Viernes · Puertas
+abren 12:00 m.*, 2026-11-06), a red **Buy tickets** / **Comprar boletos** button centred under it that
+goes **straight to the ticket shop** (`https://tickets.renaissance.rodeo/rodeo/2026/`), "The day after
+Bitcoin Histórico" centred under it, and two links in the learn-more link's voice, **Schedule →** to
+`/about#schedule` and **How to get there →** to `/location` (*Programa →* · *Cómo llegar →*; the
+tickets pages carry the same pair between the DUI box and the signup form). Then one sentence about the day that names every activity (*It will be a full afternoon of
 rodeo entertainment, including bull riding, barrel racing, …*; Cameron wants it to cover everything),
 the **activity list** (below), and **Learn more about Renaissance Rodeo →** / **Conozca más sobre
 Renaissance Rodeo →**, a plain text link to `/about` whose arrow is an inline SVG (the font subset has
-no U+2192). Then the **Getting there** section (`#getting-there`: the two shuttle lines, each with its
-website and X handle, and the Apulo car-and-boat note), the partner rows, the signup form (pitched at
-times, transport and directions to the venue), the share bar, and the poster column on desktop. The
-full story lives on the About page.
+no U+2192). Then the **Getting there** section (`#getting-there`, a teaser since 2026-11-08: one sentence
+naming every way in, the Apulo boat and ferry included, and a large **Location and how to get there →**
+link to `/location`; the last word and the arrow sit in `span.nw` so the arrow never wraps alone), the partner rows, the signup form
+(pitched at last-minute news; it promised times, transport and directions until those reached the About
+and Location pages), the share bar, and the poster column on desktop. The full story lives on the About page.
 
 **The activity list** (`ul.activities`, 14 items in Cameron's order: bull riding … country; helicopter
 tours and ferry & jet skis, Bitcoin Life's trips on the lake, joined after the Bitcoin center on 2026-11-06) is on
@@ -426,14 +438,19 @@ in the CSP.
 
 ```
 h1        About Renaissance Rodeo / Acerca de Renaissance Rodeo
-nav.jump  The event · Team · Sponsors      (El evento · Equipo · Patrocinadores)
+nav.jump  The event · The day · Team · Sponsors      (El evento · El día · Equipo · Patrocinadores)
 #event    the three paragraphs that used to be the home page's About text
+#schedule The day / El día: Friday 13 November by the lake in Ilopango, then table.schedule, one row
+          per hour in the words of the organisers' schedule poster (12 PM gates open · 2 PM music, food
+          and drinks · 3 PM rodeo show begins · 5 PM main event: bull riding · 10 PM prizes and grand
+          finale), each time a <time> with its -06:00 offset, then a link to the Location page. How to
+          get there was a section here from 2026-11-06 until it became /location (2026-11-08)
 #team     The organizing team: the lede and the cards (below)
 #sponsors Sponsors and partners: the home page's partner row, captions shown, then a line
           with sponsors@renaissance.rodeo
 ```
 
-- **Jump links.** `nav.jump` is a row of three links (the header's voice, a small red diamond between
+- **Jump links.** `nav.jump` is a row of four links (the header's voice, a small red diamond between
   them, centred on desktop) that sticks to the top of the screen. A tap
   scrolls smoothly (`html { scroll-behavior: smooth }`, only without a reduced-motion preference)
   and lands the section heading just under the row (`scroll-margin-top`). Where CSS scroll
@@ -442,9 +459,9 @@ nav.jump  The event · Team · Sponsors      (El evento · Equipo · Patrocinado
   section you jumped to is (`:has(#team:target)`, behind `@supports not selector(:target-current)`).
   `:target-current` has its own rule and is never in the header's selector list: a browser that does not
   know it drops a whole rule that names it. No script.
-  Below 768px the three share the row equally and the type shrinks from the header's size just enough to
+  Below 768px the four share the row equally and the type shrinks from the header's size just enough to
   keep the Spanish labels on one row (measured widths are in the CSS comment); if the row still cannot fit
-  (a 320px phone) it slides sideways instead of wrapping. Its background is the body's
+  (a 320px phone, the Spanish row on a 360px one) it slides sideways instead of wrapping. Its background is the body's
   fixed wash, so it is invisible where it sits and still covers what scrolls under it.
 - **The scroll fade-up is not used here**: the sections are jump targets, and a section still
   translated by the animation when the browser scrolls to it lands 1.25rem off, under the row.
@@ -517,6 +534,55 @@ strings with the home page's, so a change to one form must be made in all four s
 
 Deploy the Buy link only once the shop is open: a closed shop answers 403 "Shop offline".
 The shop lives at `tickets.renaissance.rodeo`.
+
+## The location page
+
+`/location` (`public/location.html`) and `/es/location` (`public/es/location.html`), added 2026-11-08
+at the organisers' request: where the rodeo is and every way to get there. Cameron picked the name
+**Location** / **Ubicación**; the words people may type instead (`/getting-there`, `/directions`,
+`/venue`, `/ubicacion`, `/como-llegar`, with a trailing `/` and under `/es/`) answer 301 to it in their
+language (`public/_redirects`). No script, nothing from elsewhere, nothing new in the CSP.
+
+```
+h1             Location / Ubicación, and a lede: by the lake in Ilopango (plain text here), at its
+               west end, a short boat ride from Apulo; gates 12 PM, prizes and grand finale 10 PM; a link
+               to /about#schedule
+figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->), credited
+               "© OpenStreetMap contributors" with a link to openstreetmap.org/copyright
+ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (README, "Place names"), as outline buttons
+#getting-there five ways in (div.way, h3 each), in this order:
+               Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
+                                                       from San Salvador, 5-minute boat; easier than
+                                                       parking at the venue), Bitcoin Life's ferry and
+                                                       bus + ferry (the ferry leaves from Apulo too,
+                                                       Cameron 2026-11-08), Apulo found by name in the
+                                                       three apps (no dock pinned yet)
+               Helicopter from San Salvador            Bitcoin Life's shuttle; at the rodeo its lake
+                                                       tours, ferry tours and jet skis
+               Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
+                                                       via Club Cocal; 9:00 PM back), WhatsApp, site, X
+               Driving to the venue                    the three apps
+               Coming from Bitcoin Histórico           the day before; its ticket includes the rodeo
+#before        Before you go: the QR in your email, free with a DUI, Bitcoin Histórico tickets, Bitcoin
+               only and the Bitcoin Center, Buy tickets, the tickets page and hello@
+```
+
+Sources, nothing invented: the organisers' Apulo note (home page, 2026-11-08), the BitDriver and Bitcoin
+Life announcements and the November newsletters (mails 2 and 3 carry the same runs, options and
+schedule). **Open, for the organisers:** whether the 5-minute boat and Bitcoin Life's ferry are one
+service, the dock in Apulo (a pin would replace the search links), the price, whether a boat runs back
+after the 10 PM close, and BitDriver's 9:00 PM return, which leaves before the prizes.
+
+**The map** is drawn by `scripts/build-map.py` (standard library only) from OpenStreetMap data, so no
+tiles, images or scripts load from anywhere else and the labels use the site's fonts in the page's
+language. `fetch` queries Overpass once (the Lago de Ilopango relation, the trunk roads and Calle a
+Apulo, the Apulo village and park) and writes `brand/map/osm-extract.json` (ODbL); `render` draws from
+that file, offline, into both pages between the markers, and is byte-reproducible. It refuses to draw
+when the venue pin is not on the shore (within 400 m of the OSM shoreline, on land: it is 53 m) or the
+crossing is not a short boat ride (2–5 km: Apulo's park to the venue is 3.44 km), so a wrong pin never
+ships as a map. Its look lives in `style.css` ("location"): a pale blue lake under an ink shoreline,
+quiet roads, Calle a Apulo darker, and the crossing and the venue diamond in the site's red. To change a
+label, edit `LABELS` in the script and `render`; to move the frame, edit `WEST`/`EAST`/`SOUTH`/`NORTH`.
 
 ## The sponsors page
 
@@ -729,9 +795,9 @@ mistake fails *open* or fails *silently*:
   `noopener`; the Turnstile sitekey is on exactly the four signup pages, identical, and never a
   test key; the tickets pages tell Bitcoin Histórico ticket holders the rodeo is included, then
   show the prices and the one Buy link, the DUI notice, and repeat the home signup form and strings; the home date lockup is
-  two lines under the logo; every page names the place in its footer and its copy as buttons opening
-  one venue map popover (Google Maps, Apple Maps, Waze); the sponsors pages repeat
-  the partner row; the sitemap lists all eight pages;
+  two lines under the logo; every page names the place in its footer and its copy as links to the
+  Location page in its language, with no venue popover left; the sponsors pages repeat
+  the partner row; the sitemap lists all ten pages;
 - **about**: `/about` and `/es/about` are served in their language with the site CSP, `/about/` and
   `/about.html` redirect to `/about`, every spelling of the old `/team` addresses answers 301 to
   `#team`, the two files list the same names and links in the same order, each square holds the
@@ -741,10 +807,17 @@ mistake fails *open* or fails *silently*:
   order, the event section holds the three paragraphs including the home page's line, the sponsors
   section repeats the home partner row, and both home pages and the sitemap link them;
 - **home**: the About section is the sentence, the `[poster | list]` row and the link to `/about`, in
-  that order; below it the Getting there section carries the two shuttle lines (site and X handle
-  each) and the Apulo boat note, in both languages; and the hero carries the Buy tickets button to
-  the shop and no thumbnail; there is no
+  that order; below it the Getting there teaser is one sentence and one large link to `/location`, in
+  both languages; the hero carries the Buy tickets button to the shop, no thumbnail, and the Schedule ·
+  How to get there pair (on the tickets pages too); there is no
   opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
+- **location**: `/location` and `/es/location` are served in their language with the site CSP and no
+  script, iframe or remote image; the map is inline SVG under 8 KB with no script, handler or link, the
+  same drawing in both languages apart from its words, credited to OpenStreetMap; the three maps-app links
+  go to the venue's coordinates; Getting there lists the five ways in order with the BitDriver runs, the WhatsApp,
+  BitDriver, Bitcoin Life and Apulo links; Before you go has the QR, DUI and Bitcoin Histórico notes, the
+  Buy link and hello@; every alias (`/getting-there`, `/directions`, `/venue`, `/ubicacion`,
+  `/como-llegar`, with `/` and under `/es/`) answers 301 to the page in its language;
 - **activities**: fourteen items, identical on the home and about pages per language, in sentence case;
 - **main sponsors**: `ul.partners` lists `bitcoinhistorico.com`, `clubcocal.com`, `origenganadero.com` then
   `bitpokersv.com` (classes `bh`, `cc`, `og`, `bp`) identically on the home, about and sponsors pages, Club

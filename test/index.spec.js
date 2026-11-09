@@ -921,7 +921,7 @@ describe('static pages', () => {
   });
 
   it('links X and Instagram from every page, and credits the share card to @rodeo_sv', async () => {
-    for (const path of ['/', '/es/', '/about', '/es/about', '/tickets', '/es/tickets', '/sponsors', '/es/sponsors']) {
+    for (const path of ['/', '/es/', '/about', '/es/about', '/tickets', '/es/tickets', '/location', '/es/location', '/sponsors', '/es/sponsors']) {
       const res = await call(new Request(`${ORIGIN}${path}`));
       const html = await res.text();
 
@@ -1170,17 +1170,20 @@ describe('about page', () => {
     }
   });
 
-  it('opens with jump links to the event, the team and the sponsors, in page order', async () => {
-    const labels = { en: ['The event', 'Team', 'Sponsors'], es: ['El evento', 'Equipo', 'Patrocinadores'] };
+  it('opens with jump links to the event, the day, the team and the sponsors, in page order', async () => {
+    // Four links: "The day" lands on the schedule (2026-11-06); five would not fit a phone's row. How to get
+    // there moved to the Location page (2026-11-08).
+    const labels = { en: ['The event', 'The day', 'Team', 'Sponsors'], es: ['El evento', 'El día', 'Equipo', 'Patrocinadores'] };
     for (const [lang, path] of Object.entries(PAGES)) {
       const html = (await page(path)).html;
       const main = html.slice(html.indexOf('<main'), html.indexOf('</main>'));
       const open = main.indexOf('<nav class="jump"');
       const jump = main.slice(open, main.indexOf('</nav>', open));
-      const links = [...jump.matchAll(/<a href="#([a-z]+)">([^<]*)<\/a>/g)].map(([, id, text]) => [id, text]);
+      const links = [...jump.matchAll(/<a href="#([a-z-]+)">([^<]*)<\/a>/g)].map(([, id, text]) => [id, text]);
 
       expect(open, lang).toBeGreaterThan(-1);
-      expect(links, lang).toEqual(['event', 'team', 'sponsors'].map((id, i) => [id, labels[lang][i]]));
+      expect(links, lang).toEqual(['event', 'schedule', 'team', 'sponsors'].map((id, i) => [id, labels[lang][i]]));
+      expect(main, lang).not.toContain('id="getting-there"');
       // Each target exists once, after the jump row, in the same order as the links.
       const at = links.map(([id]) => main.indexOf(`<section id="${id}"`));
       for (const [i, [id]] of links.entries()) {
@@ -1188,6 +1191,31 @@ describe('about page', () => {
         expect(at[i], `${lang} #${id}`).toBeGreaterThan(open);
       }
       expect([...at].sort((a, b) => a - b), lang).toEqual(at);
+    }
+  });
+
+  // README, "The about page" (2026-11-06): the organisers' schedule, in the words of their schedule poster
+  // (2026-11-08; the November newsletters say the same), then a link to the Location page.
+  it('gives the schedule hour by hour in the poster\'s words, then links the Location page', async () => {
+    const copy = {
+      en: {
+        rows: [['12:00', '12 PM', 'Gates open'], ['14:00', '2 PM', 'Music, food and drinks'], ['15:00', '3 PM', 'Rodeo show begins'], ['17:00', '5 PM', 'Main event: bull riding'], ['22:00', '10 PM', 'Prizes and grand finale']],
+        more: ['/location', 'Location and how to get there'],
+      },
+      es: {
+        rows: [['12:00', '12:00&nbsp;m.', 'Apertura de puertas'], ['14:00', '2:00 p.&nbsp;m.', 'Música, comida y bebidas'], ['15:00', '3:00 p.&nbsp;m.', 'Comienza el show de rodeo'], ['17:00', '5:00 p.&nbsp;m.', 'Evento principal: monta de toros'], ['22:00', '10:00 p.&nbsp;m.', 'Premios y gran final']],
+        more: ['/es/location', 'Ubicación y cómo llegar'],
+      },
+    };
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const { rows, more } = copy[lang];
+      const schedule = section(html, 'schedule');
+
+      const got = [...schedule.matchAll(/<tr><th scope="row"><time datetime="2026-11-13T(\d\d:\d\d)-06:00">([^<]+)<\/time><\/th><td>([^<]+)<\/td><\/tr>/g)].map((m) => m.slice(1));
+      expect(got, lang).toEqual(rows);
+      expect(schedule, lang).toContain(`<p class="more"><a href="${more[0]}">${more[1]}<svg `);
+      expect(schedule.indexOf('<p class="more">'), lang).toBeGreaterThan(schedule.indexOf('</table>'));
     }
   });
 
@@ -1219,12 +1247,12 @@ describe('about page', () => {
 // form and two its partner row, so most of what can go wrong is drift between copies.
 describe('navigation, tickets and sponsors', () => {
   const PAGES = {
-    en: { home: '/', about: '/about', tickets: '/tickets', sponsors: '/sponsors' },
-    es: { home: '/es/', about: '/es/about', tickets: '/es/tickets', sponsors: '/es/sponsors' },
+    en: { home: '/', about: '/about', tickets: '/tickets', location: '/location', sponsors: '/sponsors' },
+    es: { home: '/es/', about: '/es/about', tickets: '/es/tickets', location: '/es/location', sponsors: '/es/sponsors' },
   };
   const LINKS = {
-    en: [['/about', 'About'], ['/tickets', 'Tickets'], ['/sponsors', 'Sponsors']],
-    es: [['/es/about', 'Acerca de'], ['/es/tickets', 'Boletos'], ['/es/sponsors', 'Patrocinadores']],
+    en: [['/about', 'About'], ['/tickets', 'Tickets'], ['/location', 'Location'], ['/sponsors', 'Sponsors']],
+    es: [['/es/about', 'Acerca de'], ['/es/tickets', 'Boletos'], ['/es/location', 'Ubicación'], ['/es/sponsors', 'Patrocinadores']],
   };
   const ALL = Object.values(PAGES).flatMap((pages) => Object.values(pages));
   const other = (lang) => (lang === 'en' ? 'es' : 'en');
@@ -1246,9 +1274,9 @@ describe('navigation, tickets and sponsors', () => {
       ([, href, current, text]) => ({ href, current: Boolean(current), text })
     );
 
-  it('serves /tickets, /sponsors and their Spanish twins in their language, with the site headers', async () => {
+  it('serves /tickets, /location, /sponsors and their Spanish twins in their language, with the site headers', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
-      for (const path of [pages.tickets, pages.sponsors]) {
+      for (const path of [pages.tickets, pages.location, pages.sponsors]) {
         const { res, html } = await page(path);
 
         expect(res.status, path).toBe(200);
@@ -1345,51 +1373,46 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  // README, "The venue map" (Cameron, 2026-10-28): every place name opens one menu of maps apps for the
-  // venue, with no script; the coordinates are his, 13.676983, -89.095381.
-  it('opens the venue in Google Maps, Apple Maps or Waze from every place name, with no script', async () => {
-    const MAPS = [
-      ['Google Maps', 'https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381'],
-      ['Apple Maps', 'https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo'],
-      ['Waze', 'https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes'],
-    ];
-    const place = (text) => `<button type="button" class="place" popovertarget="venue-map">${text}</button>`;
-    // Where each page names the place in its copy (the footer comes on top, on every page).
+  // README, "Place names" (Cameron, 2026-11-08): every "Ilopango" and "Ilopango, El Salvador" links to the
+  // Location page in the page's language. Until then each opened a popover of maps apps (2026-10-28); those
+  // three links now sit on the Location page, and no popover is left anywhere.
+  it('links every place name to the Location page in the page\'s language, with no venue popover left', async () => {
     const copy = {
       en: {
-        open: 'Open in', close: 'Close',
-        home: `<span class="when-place">${place('Ilopango, El Salvador')}</span>`,
-        tickets: `</time> in ${place('Ilopango')}, the day after`,
-        sponsors: `from around the world in ${place('Ilopango')} on <time`,
-        about: `bringing Renaissance Rodeo to ${place('Ilopango')} on <time`,
+        home: (a) => `<span class="when-place">${a('Ilopango, El Salvador')}</span>`,
+        tickets: (a) => `</time> in ${a('Ilopango')}, the day after`,
+        location: () => 'on the shore of the lake in Ilopango, at its west end',
+        sponsors: (a) => `from around the world in ${a('Ilopango')} on <time`,
+        about: (a) => `bringing Renaissance Rodeo to ${a('Ilopango')} on <time`,
       },
       es: {
-        open: 'Abrir en', close: 'Cerrar',
-        home: `<span class="when-place">${place('Ilopango, El Salvador')}</span>`,
-        tickets: `</time> en ${place('Ilopango')}, el día después`,
-        sponsors: `de todo el mundo en ${place('Ilopango')} el <time`,
-        about: `traen Renaissance Rodeo a ${place('Ilopango')} el <time`,
+        home: (a) => `<span class="when-place">${a('Ilopango, El Salvador')}</span>`,
+        tickets: (a) => `</time> en ${a('Ilopango')}, el día después`,
+        location: () => 'a la orilla del lago en Ilopango, en su extremo oeste',
+        sponsors: (a) => `de todo el mundo en ${a('Ilopango')} el <time`,
+        about: (a) => `traen Renaissance Rodeo a ${a('Ilopango')} el <time`,
       },
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
-      const { open, close } = copy[lang];
+      const a = (text) => `<a class="place" href="${pages.location}">${text}</a>`;
       for (const [key, path] of Object.entries(pages)) {
         const html = (await page(path)).html;
-        const menu = block(html, '<div class="venue-map"', '</div>');
-
-        // One menu per page, after the footer: the place, "Open in", the three apps in this order, Close.
-        expect(html.match(/id="venue-map"/g), path).toHaveLength(1);
-        expect(menu, path).toMatch(/^<div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">/);
-        expect(html.indexOf('<div class="venue-map"'), path).toBeGreaterThan(html.indexOf('</footer>'));
-        expect(menu, path).toContain('<p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>');
-        expect(menu, path).toContain(`<p class="venue-map-sub">${open}</p>`);
-        expect([...menu.matchAll(/<li><a href="([^"]*)" rel="noopener">([^<]*)<\/a><\/li>/g)].map(([, href, name]) => [name, href]), path).toEqual(MAPS);
-        expect(menu, path).toContain(`<button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">${close}</button>`);
-        // The place names that open it: the footer's and the one in the copy, and nothing else.
-        expect(block(html, '<footer', '</footer>'), path).toContain(`<p>© 2026 Renaissance Rodeo · ${place('Ilopango, El Salvador')} · `);
-        expect(html, path).toContain(copy[lang][key]);
-        expect(html.match(/class="place"/g), path).toHaveLength(2);
-        expect(html.match(/popovertarget="venue-map"/g), path).toHaveLength(3);
+        const here = key === 'location';
+        // The footer's place name, on every page; on the Location page it marks the page itself.
+        const foot = here ? `<a class="place" href="${pages.location}" aria-current="page">Ilopango, El Salvador</a>` : a('Ilopango, El Salvador');
+        expect(block(html, '<footer', '</footer>'), path).toContain(`<p>© 2026 Renaissance Rodeo · ${foot} · `);
+        // The one in the copy (plain text on the Location page, which would only link to itself).
+        expect(html, path).toContain(copy[lang][key](a));
+        // The about page also names the place in its schedule line.
+        if (key === 'about') {
+          expect(html, path).toContain(lang === 'en' ? `by the lake in ${a('Ilopango')}.` : `junto al lago en ${a('Ilopango')}.`);
+        }
+        // Every place link goes to this language's Location page, and nothing else is a place.
+        const places = [...html.matchAll(/<a class="place" href="([^"]*)"/g)].map((m) => m[1]);
+        expect(places.length, path).toBe(here ? 1 : key === 'about' ? 3 : 2);
+        expect(new Set(places), path).toEqual(new Set([pages.location]));
+        expect(html, path).not.toContain('venue-map');
+        expect(html, path).not.toContain('<button type="button" class="place"');
       }
     }
   });
@@ -1546,19 +1569,19 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('puts the shuttle links, social handles and the Apulo boat note between About and the sponsors', async () => {
+  // A teaser for the Location page (Cameron, 2026-11-08): one sentence with every way in, the Apulo boat and
+  // the ferry included, then a large link. The shuttle links and handles live on /location now.
+  it('puts a one-line Getting there teaser and a large Location link between About and the sponsors', async () => {
     const copy = {
       en: {
         heading: 'Getting there',
-        coast: 'Shuttle from the coast',
-        city: 'Shuttle from the city',
-        car: 'Coming by car or taxi?',
+        line: 'Shuttle from the coast, helicopter from San Salvador, or park in Apulo and take the 5-minute boat or the ferry straight to the rodeo.',
+        link: ['/location', 'Location and how to get <span class="nw">there<svg '],
       },
       es: {
         heading: 'Cómo llegar',
-        coast: 'Traslado desde la costa',
-        city: 'Traslado desde la ciudad',
-        car: '¿Viene en carro o taxi?',
+        line: 'Shuttle desde la costa, helicóptero desde San Salvador, o estacione en Apulo y tome el bote de 5 minutos o el ferry directo al rodeo.',
+        link: ['/es/location', 'Ubicación y cómo <span class="nw">llegar<svg '],
       },
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
@@ -1567,17 +1590,11 @@ describe('navigation, tickets and sponsors', () => {
       const section = block(html, '<section id="getting-there"', '</section>');
 
       expect(section, lang).toContain(`<h2 id="getting-there-h">${text.heading}</h2>`);
-      for (const line of [text.coast, text.city, text.car, 'Apulo']) {
-        expect(section, `${lang} ${line}`).toContain(line);
-      }
-      for (const href of [
-        'https://bitdriver.taxi/',
-        'https://x.com/bitdriver_sv',
-        'https://www.bitcoinlife.sv/',
-        'https://x.com/TheBitcoinLife_',
-      ]) {
-        expect(section, `${lang} ${href}`).toContain(`<a href="${href}" rel="noopener">`);
-      }
+      expect(section, lang).toContain(`<p>${text.line}</p>`);
+      expect(section, lang).toContain(`<p class="more more-big"><a href="${text.link[0]}">${text.link[1]}`);
+      // One link, to the Location page: the details are not repeated here.
+      expect(section.match(/<a /g), lang).toHaveLength(1);
+      expect(section, lang).not.toContain('class="transport"');
       // The programme's order: the day's line and activities, then how to get there, then partners.
       expect(html.indexOf('<section id="getting-there"'), lang).toBeGreaterThan(html.indexOf('<section class="about"'));
       expect(html.indexOf('<section id="getting-there"'), lang).toBeLessThan(html.indexOf('<section aria-labelledby="partners-h">'));
@@ -1684,13 +1701,36 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
+  it('says the day and the gate time under the home page lockup and links the schedule and the Location page from the hero and the tickets page', async () => {
+    const copy = {
+      en: { gates: 'Friday · Gates open 12 PM', schedule: 'Schedule', location: 'How to get there' },
+      es: { gates: 'Viernes · Puertas abren 12:00&nbsp;m.', schedule: 'Programa', location: 'Cómo llegar' },
+    };
+    for (const [lang, pages] of Object.entries(PAGES)) {
+      const { gates, schedule, location } = copy[lang];
+      const home = (await page(pages.home)).html;
+      const hero = block(home, '<section class="hero"', '</section>');
+      const plan = new RegExp(
+        `<p class="more plan"><a href="${pages.about}#schedule">${schedule}<svg [^]*?</svg></a><span class="sep" aria-hidden="true">·</span><a href="${pages.location}">${location}<svg [^]*?</svg></a></p>`
+      );
+
+      expect(hero, lang).toContain(`</a></span></p>\n        <p class="gates">${gates}</p>`);
+      expect(hero, lang).toMatch(plan);
+      expect(hero.indexOf('<p class="more plan">'), lang).toBeGreaterThan(hero.indexOf('<p class="after">'));
+      const tickets = (await page(pages.tickets)).html;
+      expect(tickets, lang).toMatch(plan);
+      expect(tickets.indexOf('<p class="more plan">'), lang).toBeGreaterThan(tickets.indexOf('<section class="dui"'));
+      expect(tickets.indexOf('<p class="more plan">'), lang).toBeLessThan(tickets.indexOf('<section id="signup"'));
+    }
+  });
+
   it('sets the date and the place as two lines under the home page logo, before the poster thumbnail', async () => {
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.home)).html;
       const date = lang === 'en' ? '13 November 2026' : '13 de noviembre de 2026';
 
       expect(html, lang).toContain(
-        `<p class="when"><time class="when-date" datetime="2026-11-13">${date}</time> <span class="when-place"><button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button></span></p>`
+        `<p class="when"><time class="when-date" datetime="2026-11-13">${date}</time> <span class="when-place"><a class="place" href="${pages.location}">Ilopango, El Salvador</a></span></p>`
       );
       expect(html.indexOf('<p class="when">'), lang).toBeGreaterThan(html.indexOf('<h1 id="hero-h">'));
       expect(html.indexOf('<p class="when">'), lang).toBeLessThan(html.indexOf('class="poster-thumb"'));
@@ -1711,5 +1751,148 @@ describe('navigation, tickets and sponsors', () => {
   it('lists every page in the sitemap', async () => {
     const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
     for (const path of ALL) expect(sitemap, path).toContain(`<loc>https://renaissance.rodeo${path}</loc>`);
+  });
+});
+
+// README, "The location page" (Cameron, 2026-11-08): where the rodeo is and every way to get there. Its
+// facts come from the organisers' Apulo note, the BitDriver and Bitcoin Life announcements and the November
+// newsletters; the map is inline SVG drawn by scripts/build-map.py from OpenStreetMap.
+describe('location page', () => {
+  const PAGES = { en: '/location', es: '/es/location' };
+  const VENUE = [
+    ['Google Maps', 'https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381'],
+    ['Apple Maps', 'https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo'],
+    ['Waze', 'https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes'],
+  ];
+
+  async function page(path) {
+    const res = await call(new Request(`${ORIGIN}${path}`));
+    return { res, html: await res.text() };
+  }
+  const section = (html, id) => {
+    const start = html.indexOf(`<section id="${id}"`);
+    return start < 0 ? '' : html.slice(start, html.indexOf('</section>', start));
+  };
+  const map = (html) => html.slice(html.indexOf('<!-- map:begin -->'), html.indexOf('<!-- map:end -->'));
+
+  it('serves /location in English and /es/location in Spanish, script-free, with the site headers', async () => {
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const { res, html } = await page(path);
+
+      expect(res.status, path).toBe(200);
+      expect(html, path).toContain(`<html lang="${lang}">`);
+      expect(html, path).toContain(`<link rel="canonical" href="https://renaissance.rodeo${path}">`);
+      expect(html, path).toContain('<link rel="alternate" hreflang="en" href="https://renaissance.rodeo/location">');
+      expect(html, path).toContain('<link rel="alternate" hreflang="es" href="https://renaissance.rodeo/es/location">');
+      expect(html, path).toContain(`<h1>${lang === 'en' ? 'Location' : 'Ubicación'}</h1>`);
+      expect(res.headers.get('content-security-policy'), path).toBe(env.TEST_HEADERS_CSP);
+      expect(html, path).not.toContain('<script');
+      // Nothing loaded from elsewhere: no iframe, no remote image, the map is inline.
+      expect(html, path).not.toContain('<iframe');
+      expect(html, path).not.toMatch(/<img [^>]*src="https?:/);
+    }
+  });
+
+  it('draws the map inline, the same in both languages apart from its words, and credits OpenStreetMap', async () => {
+    const words = {
+      en: ['Lake Ilopango', 'Boat &amp; ferry', 'Map data © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap contributors</a>'],
+      es: ['Lago de Ilopango', 'Bote y ferry', 'Datos del mapa © <a href="https://www.openstreetmap.org/copyright" rel="noopener">colaboradores de OpenStreetMap</a>'],
+    };
+    const shape = {};
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const svg = map(html);
+
+      expect(svg, lang).toMatch(/<svg class="map" viewBox="0 0 1000 \d+" role="img" aria-labelledby="map-title">/);
+      expect(svg, lang).toMatch(/<title id="map-title">[^<]+<\/title>/);
+      for (const cls of ['map-water', 'map-road', 'map-crossing', 'map-pin']) expect(svg, `${lang} ${cls}`).toContain(`class="${cls}`);
+      for (const word of ['Apulo', 'San Salvador', 'Renaissance', 'Rodeo', words[lang][0], words[lang][1]]) expect(svg, `${lang} ${word}`).toContain(word);
+      expect(html, lang).toContain(words[lang][2]);
+      // No script, handler or outside reference inside the drawing.
+      expect(svg, lang).not.toMatch(/<script|\son[a-z]+=|href=|<image|<foreignObject/i);
+      expect(svg.length, lang).toBeLessThan(8000);
+      shape[lang] = svg.replace(/<title[^>]*>[^<]*<\/title>/, '').replace(/>[^<]*</g, '><');
+    }
+    // The geometry is one drawing: only the text between the tags differs between the two pages.
+    expect(shape.es).toBe(shape.en);
+  });
+
+  it('opens the venue in the three maps apps, by its coordinates', async () => {
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const apps = html.slice(html.indexOf('<ul class="apps">'), html.indexOf('</ul>', html.indexOf('<ul class="apps">')));
+
+      expect([...apps.matchAll(/<li><a href="([^"]*)" rel="noopener">([^<]*)<\/a><\/li>/g)].map(([, href, name]) => [name, href]), lang).toEqual(VENUE);
+      expect(html.indexOf('<ul class="apps">'), lang).toBeGreaterThan(html.indexOf('<!-- map:end -->'));
+    }
+  });
+
+  it('gives every way in: the Apulo boat and ferry first, the helicopter, the BitDriver runs, driving, and from Bitcoin Histórico', async () => {
+    const copy = {
+      en: {
+        ways: ['Park in Apulo, cross by boat or ferry', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Driving to the venue', 'Coming from Bitcoin Histórico'],
+        runs: [['10:00', '10:00 AM'], ['21:00', '9:00 PM']],
+        lines: ['take the 5-minute boat ride straight to the rodeo', "Bitcoin Life's ferry leaves from Apulo too", 'about 30 minutes from San Salvador'],
+      },
+      es: {
+        ways: ['Estacione en Apulo y cruce en bote o ferry', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'En carro hasta la sede', 'Si viene de Bitcoin Histórico'],
+        runs: [['10:00', '10:00 a.&nbsp;m.'], ['21:00', '9:00 p.&nbsp;m.']],
+        lines: ['tome un bote de 5 minutos directo al rodeo', 'El ferry de Bitcoin Life también sale de Apulo', 'a unos 30 minutos de San Salvador'],
+      },
+    };
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const { ways, runs, lines } = copy[lang];
+      const travel = section(html, 'getting-there');
+
+      expect([...travel.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1]), lang).toEqual(ways);
+      for (const line of lines) expect(travel, `${lang} ${line}`).toContain(line);
+      for (const [hhmm, label] of runs) expect(travel, `${lang} ${hhmm}`).toContain(`<strong><time datetime="2026-11-13T${hhmm}-06:00">${label}</time></strong>`);
+      for (const href of [
+        'https://wa.me/50360574825',
+        'https://bitdriver.taxi/',
+        'https://x.com/bitdriver_sv',
+        'https://www.bitcoinlife.sv/',
+        'https://x.com/TheBitcoinLife_',
+        ...VENUE.map(([, url]) => url),
+      ]) {
+        expect(travel, `${lang} ${href}`).toContain(`<a href="${href}" rel="noopener">`);
+      }
+      expect(travel, lang).toContain('+503 6057 4825');
+      // Apulo is found by name: the dock is not pinned until the organisers give one.
+      expect(travel, lang).toContain('query=Apulo%2C%20Ilopango%2C%20El%20Salvador');
+    }
+  });
+
+  it('ends with what to bring and how to buy, and is linked from every page and the sitemap', async () => {
+    for (const [lang, path] of Object.entries(PAGES)) {
+      const html = (await page(path)).html;
+      const before = section(html, 'before');
+
+      expect(before, lang).toContain('QR');
+      expect(before, lang).toContain('DUI');
+      expect(before, lang).toContain('Bitcoin Histórico');
+      expect(before, lang).toContain('<a href="https://tickets.renaissance.rodeo/rodeo/2026/" class="buy" rel="noopener">');
+      expect(before, lang).toContain('<a href="mailto:hello@renaissance.rodeo">hello@renaissance.rodeo</a>');
+    }
+    const sitemap = await (await call(new Request(`${ORIGIN}/sitemap.xml`))).text();
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/location</loc>');
+    expect(sitemap).toContain('<loc>https://renaissance.rodeo/es/location</loc>');
+  });
+
+  it('sends the other names for it, every spelling, to the page in the right language', async () => {
+    const aliases = [
+      ['/getting-there', '/location'], ['/directions', '/location'], ['/venue', '/location'],
+      ['/ubicacion', '/es/location'], ['/como-llegar', '/es/location'],
+      ['/es/getting-there', '/es/location'], ['/es/directions', '/es/location'], ['/es/venue', '/es/location'],
+      ['/es/ubicacion', '/es/location'], ['/es/como-llegar', '/es/location'],
+    ];
+    for (const [old, target] of aliases) {
+      for (const variant of [old, `${old}/`]) {
+        const res = await call(new Request(`${ORIGIN}${variant}`, { redirect: 'manual' }));
+        expect(res.status, variant).toBe(301);
+        expect(new URL(res.headers.get('location') ?? '', ORIGIN).pathname, variant).toBe(target);
+      }
+    }
   });
 });

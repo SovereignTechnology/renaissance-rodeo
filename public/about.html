@@ -41,6 +41,7 @@
       <ul class="site-links">
         <li><a href="/about" aria-current="page">About</a></li>
         <li><a href="/tickets">Tickets</a></li>
+        <li><a href="/location">Location</a></li>
         <li><a href="/sponsors">Sponsors</a></li>
       </ul>
       <ul class="social">
@@ -68,6 +69,7 @@
     <nav class="jump" aria-label="On this page">
       <ul>
         <li><a href="#event">The event</a></li>
+        <li><a href="#schedule">The day</a></li>
         <li><a href="#team">Team</a></li>
         <li><a href="#sponsors">Sponsors</a></li>
       </ul>
@@ -96,9 +98,26 @@
       </ul>
     </section>
 
+    <!-- README, "The about page": the day's schedule (2026-11-06), in the words of the organisers'
+         schedule poster (2026-11-08); how to get there is on the Location page. -->
+    <section id="schedule" class="page-section" aria-labelledby="schedule-h">
+      <h2 id="schedule-h">The day</h2>
+      <p>Friday, <time datetime="2026-11-13">13 November 2026</time>, by the lake in <a class="place" href="/location">Ilopango</a>.</p>
+      <table class="schedule" aria-label="The day, hour by hour">
+        <tbody>
+            <tr><th scope="row"><time datetime="2026-11-13T12:00-06:00">12 PM</time></th><td>Gates open</td></tr>
+            <tr><th scope="row"><time datetime="2026-11-13T14:00-06:00">2 PM</time></th><td>Music, food and drinks</td></tr>
+            <tr><th scope="row"><time datetime="2026-11-13T15:00-06:00">3 PM</time></th><td>Rodeo show begins</td></tr>
+            <tr><th scope="row"><time datetime="2026-11-13T17:00-06:00">5 PM</time></th><td>Main event: bull riding</td></tr>
+            <tr><th scope="row"><time datetime="2026-11-13T22:00-06:00">10 PM</time></th><td>Prizes and grand finale</td></tr>
+        </tbody>
+      </table>
+      <p class="more"><a href="/location">Location and how to get there<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="m13 6 6 6-6 6"/></svg></a></p>
+    </section>
+
     <section id="team" class="page-section" aria-labelledby="team-h">
       <h2 id="team-h">The organizing team</h2>
-      <p class="team-lede">The people bringing Renaissance Rodeo to <button type="button" class="place" popovertarget="venue-map">Ilopango</button> on <time datetime="2026-11-13">13 November 2026</time>.</p>
+      <p class="team-lede">The people bringing Renaissance Rodeo to <a class="place" href="/location">Ilopango</a> on <time datetime="2026-11-13">13 November 2026</time>.</p>
       <ul class="team-grid">
         <li class="member">
           <span class="avatar" aria-hidden="true"><img src="/img/team-james.jpg?v=2" width="256" height="256" alt=""></span>
@@ -223,24 +242,13 @@
         <ul>
           <li><a href="/about" aria-current="page">About</a></li>
           <li><a href="/tickets">Tickets</a></li>
+          <li><a href="/location">Location</a></li>
           <li><a href="/sponsors">Sponsors</a></li>
         </ul>
       </nav>
-      <p>© 2026 Renaissance Rodeo · <button type="button" class="place" popovertarget="venue-map">Ilopango, El Salvador</button> · <a href="/es/about" lang="es" hreflang="es">Español</a></p>
+      <p>© 2026 Renaissance Rodeo · <a class="place" href="/location">Ilopango, El Salvador</a> · <a href="/es/about" lang="es" hreflang="es">Español</a></p>
     </div>
   </footer>
 
-  <!-- README, "The venue map". Every place name on the page opens this
-       (popovertarget, no script): the venue, 13.676983, -89.095381, in the visitor's own maps app. -->
-  <div class="venue-map" id="venue-map" popover role="dialog" aria-labelledby="venue-map-h">
-    <p class="venue-map-h" id="venue-map-h">Ilopango, El Salvador</p>
-    <p class="venue-map-sub">Open in</p>
-    <ul>
-      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381" rel="noopener">Google Maps</a></li>
-      <li><a href="https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo" rel="noopener">Apple Maps</a></li>
-      <li><a href="https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes" rel="noopener">Waze</a></li>
-    </ul>
-    <button type="button" class="venue-map-close" popovertarget="venue-map" popovertargetaction="hide">Close</button>
-  </div>
 </body>
 </html>
