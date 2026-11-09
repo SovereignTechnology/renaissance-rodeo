@@ -350,11 +350,11 @@ schedule line. Each is an `<a class="place">` styled as an underlined word of it
 and the footer's link carries `aria-current="page"`.
 
 From 2026-10-28 to 2026-11-08 each place name was a button that opened a popover of maps apps
-(`#venue-map`). Those three links now sit on the Location page, under the map (`ul.apps`), and no
-popover is left:
+(`#venue-map`). The links now sit on the Location page, under the map (`ul.apps`), and no popover is
+left. **Apple Maps was dropped on 2026-11-08** (Cameron: it works poorly in El Salvador); Google Maps and Waze
+stay:
 
 - `https://www.google.com/maps/search/?api=1&query=13.676983%2C-89.095381`
-- `https://maps.apple.com/?ll=13.676983,-89.095381&q=Renaissance%20Rodeo`
 - `https://waze.com/ul?ll=13.676983,-89.095381&navigate=yes`
 
 The venue is at **13.676983, -89.095381**. Cameron's share link (`maps.app.goo.gl/adckMoVBJtxjHzDbA`)
@@ -550,7 +550,7 @@ h1             Location / Ubicación, and a lede: by the lake in Ilopango (plain
 figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->), and a small
                "© OpenStreetMap" link (openstreetmap.org/copyright) inside its bottom right corner: the
                credit the data's licence asks for, with no caption line (Cameron, 2026-11-08)
-ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (README, "Place names"), as outline buttons
+ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place names"; no Apple Maps), as outline buttons
 #getting-there five ways in (div.way, h3 each), in this order:
                Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
                                                        from San Salvador, plenty of parking there
@@ -567,7 +567,7 @@ ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (REA
                                                        Apulo ferry (Cameron 2026-11-08)
                Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
                                                        via Club Cocal; 9:00 PM back), WhatsApp, site, X
-               Driving to the venue                    the three apps
+               Driving to the venue                    Google Maps or Waze
                Coming from Bitcoin Histórico           the day before; its ticket includes the rodeo
 #before        Before you go: the QR in your email, free with a DUI, Bitcoin Histórico tickets, Bitcoin
                only and the Bitcoin Center, Buy tickets, the tickets page and hello@
@@ -821,7 +821,7 @@ mistake fails *open* or fails *silently*:
   opening sequence (no `intro.js`, overlay or replay button, and `/intro.js` is a 404);
 - **location**: `/location` and `/es/location` are served in their language with the site CSP and no
   script, iframe or remote image; the map is inline SVG under 8 KB with no script, handler or link, the
-  same drawing in both languages apart from its words, credited to OpenStreetMap; the three maps-app links
+  same drawing in both languages apart from its words, credited to OpenStreetMap; the two maps-app links (Google Maps, Waze)
   go to the venue's coordinates; Getting there lists the five ways in order with the BitDriver runs, the WhatsApp,
   BitDriver, Bitcoin Life and Apulo links; Before you go has the QR, DUI and Bitcoin Histórico notes, the
   Buy link and hello@; every alias (`/getting-there`, `/directions`, `/venue`, `/ubicacion`,

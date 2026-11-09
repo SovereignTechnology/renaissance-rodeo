@@ -1375,7 +1375,7 @@ describe('navigation, tickets and sponsors', () => {
 
   // README, "Place names" (Cameron, 2026-11-08): every "Ilopango" and "Ilopango, El Salvador" links to the
   // Location page in the page's language. Until then each opened a popover of maps apps (2026-10-28); those
-  // three links now sit on the Location page, and no popover is left anywhere.
+  // links (Google Maps and Waze since Apple Maps was dropped) now sit on the Location page; no popover is left.
   it('links every place name to the Location page in the page\'s language, with no venue popover left', async () => {
     const copy = {
       en: {
@@ -1761,7 +1761,6 @@ describe('location page', () => {
   const PAGES = { en: '/location', es: '/es/location' };
   const VENUE = [
     ['Google Maps', 'https://www.google.com/maps/search/?api=1&amp;query=13.676983%2C-89.095381'],
-    ['Apple Maps', 'https://maps.apple.com/?ll=13.676983,-89.095381&amp;q=Renaissance%20Rodeo'],
     ['Waze', 'https://waze.com/ul?ll=13.676983,-89.095381&amp;navigate=yes'],
   ];
 
@@ -1823,13 +1822,16 @@ describe('location page', () => {
     expect(shape.es).toBe(shape.en);
   });
 
-  it('opens the venue in the three maps apps, by its coordinates', async () => {
+  it('opens the venue in Google Maps or Waze, by its coordinates (no Apple Maps)', async () => {
     for (const [lang, path] of Object.entries(PAGES)) {
       const html = (await page(path)).html;
       const apps = html.slice(html.indexOf('<ul class="apps">'), html.indexOf('</ul>', html.indexOf('<ul class="apps">')));
 
       expect([...apps.matchAll(/<li><a href="([^"]*)" rel="noopener">([^<]*)<\/a><\/li>/g)].map(([, href, name]) => [name, href]), lang).toEqual(VENUE);
       expect(html.indexOf('<ul class="apps">'), lang).toBeGreaterThan(html.indexOf('<!-- map:end -->'));
+      // No Apple Maps anywhere (Cameron, 2026-11-08: it works poorly in El Salvador).
+      expect(html, lang).not.toContain('maps.apple.com');
+      expect(html, lang).not.toContain('Apple Maps');
     }
   });
 
