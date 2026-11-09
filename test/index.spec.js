@@ -1453,8 +1453,8 @@ describe('navigation, tickets and sponsors', () => {
 
   it('tells Bitcoin Histórico ticket holders their entry is free with the code in their inbox, then offers the signup form for news', async () => {
     const copy = {
-      en: ['Have a Bitcoin Histórico ticket?', 'Watch your inbox for an email from Bitcoin Histórico with your personal code', 'Stay in the loop'],
-      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Esté atento a su correo: Bitcoin Histórico le enviará un código personal', 'Novedades'],
+      en: ['Have a Bitcoin Histórico ticket?', 'Watch your inbox for an email from Renaissance Rodeo (tickets@renaissance.rodeo) with your personal code', 'Stay in the loop'],
+      es: ['¿Tiene boleto para Bitcoin Histórico?', 'Esté atento a su correo: Renaissance Rodeo le enviará un código personal desde tickets@renaissance.rodeo', 'Novedades'],
     };
     for (const [lang, pages] of Object.entries(PAGES)) {
       const html = (await page(pages.tickets)).html;
@@ -1474,13 +1474,16 @@ describe('navigation, tickets and sponsors', () => {
   });
 
   it('tells Bitcoin Histórico ticket holders on the home, tickets and location pages to watch their inbox for the code, never that their ticket already includes the rodeo', async () => {
-    // Cameron, 2026-11-09: the National Bitcoin Office emails each Histórico ticket holder a personal code.
+    // Cameron, 2026-11-09: each Histórico ticket holder gets a personal code. The Office first meant to mail them;
+    // later that day it sent us the holders' addresses instead, so the code comes from tickets@renaissance.rodeo.
     const inbox = { en: 'watch your inbox', es: 'esté atento a su correo' };
     for (const [lang, pages] of Object.entries(PAGES)) {
       for (const key of ['home', 'tickets', 'location']) {
         const html = (await page(pages[key])).html;
         expect(html.toLowerCase(), `${lang} ${key}`).toContain(inbox[lang]);
         expect(html, `${lang} ${key}`).not.toMatch(/already includes Renaissance Rodeo|ya incluye Renaissance Rodeo|Histórico ticket includes entry|Histórico incluye la entrada/);
+        expect(html, `${lang} ${key}`).not.toMatch(/email from Bitcoin Histórico|code from Bitcoin Histórico|Bitcoin Histórico le enviará/);
+        if (key !== 'home') expect(html, `${lang} ${key}`).toContain('tickets@renaissance.rodeo');
       }
       const home = (await page(pages.home)).html;
       expect(block(home, '<p class="after">', '</p>'), lang).toContain(`<a href="${lang === 'en' ? '' : '/es'}/tickets#included-h">`);

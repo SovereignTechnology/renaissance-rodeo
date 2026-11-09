@@ -512,8 +512,9 @@ without a photo yet keeps the ink square with their initials in Bevan.
 ## The tickets page
 
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket?** Entry is free, and
-(Cameron, 2026-11-09) the National Bitcoin Office emails every Histórico ticket holder a personal single-use code:
-*watch your inbox … redeem it in the ticket shop for your free entry ticket before you get in line* (Spanish: *Esté
+(Cameron, 2026-11-09) every Histórico ticket holder gets a personal single-use code by email from
+tickets@renaissance.rodeo (the Office sends us the holders' addresses and the shop mails the codes; it first meant to
+mail them itself): *watch your inbox … redeem it in the ticket shop for your free entry ticket before you get in line* (Spanish: *Esté
 atento a su correo …*), with a link to the shop, the Bitcoin Histórico emblem from the partner row and a link to its
 site. The same line is on the home page (under "The day after Bitcoin Histórico", linking to this box) and on the
 Location page (Coming from Bitcoin Histórico, Before you go). The codes: sovtech/alpha `kata/pretix/historico-codes.sh`. Then
