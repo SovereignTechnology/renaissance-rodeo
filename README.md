@@ -552,8 +552,11 @@ figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end 
 ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (README, "Place names"), as outline buttons
 #getting-there five ways in (div.way, h3 each), in this order:
                Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
-                                                       from San Salvador, 5-minute boat; easier than
-                                                       parking at the venue), Bitcoin Life's ferry and
+                                                       from San Salvador, plenty of parking there
+                                                       (Cameron 2026-11-08), 5-minute boat; easier than
+                                                       parking at the venue), the many independent
+                                                       boatmen at Apulo (show them the rodeo's location,
+                                                       bargain a price; Cameron 2026-11-08), Bitcoin Life's ferry and
                                                        bus + ferry (the ferry leaves from Apulo too,
                                                        Cameron 2026-11-08), Apulo found by name in the
                                                        three apps (no dock pinned yet)
@@ -569,9 +572,10 @@ ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (REA
 
 Sources, nothing invented: the organisers' Apulo note (home page, 2026-11-08), the BitDriver and Bitcoin
 Life announcements and the November newsletters (mails 2 and 3 carry the same runs, options and
-schedule). **Open, for the organisers:** whether the 5-minute boat and Bitcoin Life's ferry are one
-service, the dock in Apulo (a pin would replace the search links), the price, whether a boat runs back
-after the 10 PM close, and BitDriver's 9:00 PM return, which leaves before the prizes.
+schedule). The 5-minute boats are free-market boatmen at Apulo, priced by bargaining (Cameron,
+2026-11-08). **Open, for the organisers:** the dock in Apulo (a pin would replace the search links),
+whether boats run back after the 10 PM close, and BitDriver's 9:00 PM return, which leaves before the
+prizes.
 
 **The map** is drawn by `scripts/build-map.py` (standard library only) from OpenStreetMap data, so no
 tiles, images or scripts load from anywhere else and the labels use the site's fonts in the page's
@@ -581,7 +585,8 @@ that file, offline, into both pages between the markers, and is byte-reproducibl
 when the venue pin is not on the shore (within 400 m of the OSM shoreline, on land: it is 53 m) or the
 crossing is not a short boat ride (2–5 km: Apulo's park to the venue is 3.44 km), so a wrong pin never
 ships as a map. Its look lives in `style.css` ("location"): a pale blue lake under an ink shoreline,
-quiet roads, Calle a Apulo darker, and the crossing and the venue diamond in the site's red. To change a
+quiet roads, Calle a Apulo darker, the crossing and the venue diamond in the site's red, and a compass
+top right (north up, its north point red; Cameron, 2026-11-08). To change a
 label, edit `LABELS` in the script and `render`; to move the frame, edit `WEST`/`EAST`/`SOUTH`/`NORTH`.
 
 ## The sponsors page

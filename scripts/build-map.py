@@ -35,6 +35,7 @@ APULO_PARK = 1127406483                  # Parque Recreativo Apulo, the lakeside
 # The frame: the lake's west half, with the land toward San Salvador on the left.
 WEST, EAST, SOUTH, NORTH = -89.160, -89.000, 13.625, 13.730
 WIDTH = 1000                             # viewBox width; the height follows the frame's true aspect
+CX, CY = WIDTH - 80, 112                 # the compass, top right: clear of the shore, the roads and every label
 FETCH_BOX = (13.60, -89.22, 13.75, -88.95)
 
 
@@ -240,10 +241,10 @@ def path(pts, close=False):
 # ---------------------------------------------------------------- render
 LABELS = {
     "en": {"title": "Map: Renaissance Rodeo at the west end of Lake Ilopango, across the water from Apulo, "
-                    "which the boat and the ferry leave from. San Salvador is to the west.",
+                    "which the boat and the ferry leave from. San Salvador is to the west; north is up.",
            "lake": "Lake Ilopango", "boat": "Boat &amp; ferry"},
     "es": {"title": "Mapa: Renaissance Rodeo en el extremo oeste del Lago de Ilopango, al otro lado del agua "
-                    "desde Apulo, de donde salen el bote y el ferry. San Salvador queda al oeste.",
+                    "desde Apulo, de donde salen el bote y el ferry. San Salvador queda al oeste; el norte est\u00e1 arriba.",
            "lake": "Lago de Ilopango", "boat": "Bote y ferry"},
 }
 
@@ -314,6 +315,16 @@ def render():
             f'<tspan x="{r1(v[0] - 34)}" dy="42">Rodeo</tspan></text>',
             f'  <path class="map-arrow" d="M70 {r1(ss_y - 14)}l-28 14 28 14"/>',
             f'  <text class="map-place" x="84" y="{r1(ss_y + 12)}">San Salvador</text>',
+            # The compass (Cameron, 2026-11-08), top right on a paper disc so it reads over land or lake: the
+            # frame is north-up (equirectangular), so north is straight up; the north point is the site's red.
+            f'  <g class="map-compass">',
+            f'    <circle cx="{CX}" cy="{CY}" r="40"/>',
+            f'    <path class="map-compass-n" d="M{CX} {CY - 50}l11 50h-22z"/>',
+            f'    <path class="map-compass-s" d="M{CX} {CY + 50}l11-50h-22z"/>',
+            f'    <path class="map-compass-s" d="M{CX - 50} {CY}l50-9v18z"/>',
+            f'    <path class="map-compass-s" d="M{CX + 50} {CY}l-50-9v18z"/>',
+            f'    <text class="map-compass-label" x="{CX}" y="{CY - 58}" text-anchor="middle">N</text>',
+            "  </g>",
             "</svg>",
         ])
         html = page.read_text()

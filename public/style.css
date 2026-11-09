@@ -822,6 +822,10 @@ body:has(dialog[open]) { overflow: hidden; }
 .map-pin { fill: var(--red); stroke: var(--paper); stroke-width: 4; }
 .map-dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; }
 .map-arrow { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.map-compass circle { fill: var(--paper); stroke: var(--ink); stroke-width: 2; }
+.map-compass-n { fill: var(--red); }
+.map-compass-s { fill: var(--ink); }
+.map .map-compass-label { font: 400 34px var(--font-display); }
 .map text { fill: var(--ink); stroke: var(--paper); stroke-width: 9px; stroke-linejoin: round; paint-order: stroke; }
 .map .map-place { font: 600 40px var(--font-body); letter-spacing: .06em; text-transform: uppercase; }
 .map .map-venue { font: 400 40px var(--font-display); fill: var(--red); }

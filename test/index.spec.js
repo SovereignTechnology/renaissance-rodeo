@@ -1805,7 +1805,9 @@ describe('location page', () => {
 
       expect(svg, lang).toMatch(/<svg class="map" viewBox="0 0 1000 \d+" role="img" aria-labelledby="map-title">/);
       expect(svg, lang).toMatch(/<title id="map-title">[^<]+<\/title>/);
-      for (const cls of ['map-water', 'map-road', 'map-crossing', 'map-pin']) expect(svg, `${lang} ${cls}`).toContain(`class="${cls}`);
+      for (const cls of ['map-water', 'map-road', 'map-crossing', 'map-pin', 'map-compass']) expect(svg, `${lang} ${cls}`).toContain(`class="${cls}`);
+      // The compass: north up, labelled N (Cameron, 2026-11-08).
+      expect(svg, lang).toContain('<text class="map-compass-label"');
       for (const word of ['Apulo', 'San Salvador', 'Renaissance', 'Rodeo', words[lang][0], words[lang][1]]) expect(svg, `${lang} ${word}`).toContain(word);
       expect(html, lang).toContain(words[lang][2]);
       // No script, handler or outside reference inside the drawing.
@@ -1832,12 +1834,12 @@ describe('location page', () => {
       en: {
         ways: ['Park in Apulo, cross by boat or ferry', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Driving to the venue', 'Coming from Bitcoin Histórico'],
         runs: [['10:00', '10:00 AM'], ['21:00', '9:00 PM']],
-        lines: ['take the 5-minute boat ride straight to the rodeo', "Bitcoin Life's ferry leaves from Apulo too", 'about 30 minutes from San Salvador'],
+        lines: ['take the 5-minute boat ride straight to the rodeo', 'Many independent boat owners offer rides at Apulo', 'bargain for a price', 'where there is plenty of parking', "Bitcoin Life's ferry leaves from Apulo too", 'about 30 minutes from San Salvador'],
       },
       es: {
         ways: ['Estacione en Apulo y cruce en bote o ferry', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'En carro hasta la sede', 'Si viene de Bitcoin Histórico'],
         runs: [['10:00', '10:00 a.&nbsp;m.'], ['21:00', '9:00 p.&nbsp;m.']],
-        lines: ['tome un bote de 5 minutos directo al rodeo', 'El ferry de Bitcoin Life también sale de Apulo', 'a unos 30 minutos de San Salvador'],
+        lines: ['tome un bote de 5 minutos directo al rodeo', 'En Apulo hay muchos lancheros independientes', 'negocie el precio', 'donde hay amplio parqueo', 'El ferry de Bitcoin Life también sale de Apulo', 'a unos 30 minutos de San Salvador'],
       },
     };
     for (const [lang, path] of Object.entries(PAGES)) {
