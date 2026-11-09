@@ -1795,8 +1795,9 @@ describe('location page', () => {
 
   it('draws the map inline, the same in both languages apart from its words, and credits OpenStreetMap', async () => {
     const words = {
-      en: ['Lake Ilopango', 'Boat &amp; ferry', 'Map data © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap contributors</a>'],
-      es: ['Lago de Ilopango', 'Bote y ferry', 'Datos del mapa © <a href="https://www.openstreetmap.org/copyright" rel="noopener">colaboradores de OpenStreetMap</a>'],
+      // The credit the data's licence asks for: small, inside the map's corner, no caption line (2026-11-08).
+      en: ['Lake Ilopango', 'Boat &amp; ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>'],
+      es: ['Lago de Ilopango', 'Bote y ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>'],
     };
     const shape = {};
     for (const [lang, path] of Object.entries(PAGES)) {
@@ -1810,6 +1811,9 @@ describe('location page', () => {
       expect(svg, lang).toContain('<text class="map-compass-label"');
       for (const word of ['Apulo', 'San Salvador', 'Renaissance', 'Rodeo', words[lang][0], words[lang][1]]) expect(svg, `${lang} ${word}`).toContain(word);
       expect(html, lang).toContain(words[lang][2]);
+      expect(html, lang).not.toContain('<figcaption');
+      expect(html.indexOf('class="map-credit"'), lang).toBeGreaterThan(html.indexOf('<!-- map:end -->'));
+      expect(html.indexOf('class="map-credit"'), lang).toBeLessThan(html.indexOf('</figure>'));
       // No script, handler or outside reference inside the drawing.
       expect(svg, lang).not.toMatch(/<script|\son[a-z]+=|href=|<image|<foreignObject/i);
       expect(svg.length, lang).toBeLessThan(8000);
@@ -1852,6 +1856,7 @@ describe('location page', () => {
       for (const [hhmm, label] of runs) expect(travel, `${lang} ${hhmm}`).toContain(`<strong><time datetime="2026-11-13T${hhmm}-06:00">${label}</time></strong>`);
       for (const href of [
         'https://wa.me/50360574825',
+        'https://wa.me/50368656540',
         'https://bitdriver.taxi/',
         'https://x.com/bitdriver_sv',
         'https://www.bitcoinlife.sv/',
@@ -1861,6 +1866,8 @@ describe('location page', () => {
         expect(travel, `${lang} ${href}`).toContain(`<a href="${href}" rel="noopener">`);
       }
       expect(travel, lang).toContain('+503 6057 4825');
+      // Bitcoin Life's WhatsApp (Cameron, 2026-11-08), in both of its ways in: Apulo's ferry and the helicopter.
+      expect(travel.match(/<a href="https:\/\/wa\.me\/50368656540" rel="noopener">\+503 6865 6540<\/a>/g), lang).toHaveLength(2);
       // Apulo is found by name: the dock is not pinned until the organisers give one.
       expect(travel, lang).toContain('query=Apulo%2C%20Ilopango%2C%20El%20Salvador');
     }

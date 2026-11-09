@@ -831,8 +831,21 @@ body:has(dialog[open]) { overflow: hidden; }
 .map .map-venue { font: 400 40px var(--font-display); fill: var(--red); }
 .map .map-note { font: italic 600 34px var(--font-body); fill: var(--red); }
 .map .map-lake { font: italic 400 40px var(--font-body); fill: var(--muted); stroke: #cbd8df; }
-.venue figcaption { margin-top: .375rem; font-size: 1rem; color: var(--muted); }
-.venue figcaption a { color: inherit; }
+/* The OpenStreetMap credit the data's licence (ODbL) asks for, small inside the map's bottom right corner
+   (Cameron, 2026-11-08: no caption line under the map). */
+.venue { position: relative; }
+.map-credit {
+  position: absolute;
+  right: var(--border);
+  bottom: var(--border);
+  padding: .05rem .4rem;
+  background: rgb(255 253 248 / .85);
+  color: var(--muted);
+  font-size: .8125rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.map-credit:hover { color: var(--red); text-decoration: underline; }
 .apps-h {
   margin-top: 1.25rem;
   font: 600 var(--text-small) / 1.3 var(--font-body);

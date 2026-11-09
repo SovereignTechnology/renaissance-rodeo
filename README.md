@@ -547,8 +547,9 @@ language (`public/_redirects`). No script, nothing from elsewhere, nothing new i
 h1             Location / Ubicación, and a lede: by the lake in Ilopango (plain text here), at its
                west end, a short boat ride from Apulo; gates 12 PM, prizes and grand finale 10 PM; a link
                to /about#schedule
-figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->), credited
-               "© OpenStreetMap contributors" with a link to openstreetmap.org/copyright
+figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->), and a small
+               "© OpenStreetMap" link (openstreetmap.org/copyright) inside its bottom right corner: the
+               credit the data's licence asks for, with no caption line (Cameron, 2026-11-08)
 ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (README, "Place names"), as outline buttons
 #getting-there five ways in (div.way, h3 each), in this order:
                Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
@@ -561,7 +562,9 @@ ul.apps        Google Maps · Apple Maps · Waze at the venue's coordinates (REA
                                                        Cameron 2026-11-08), Apulo found by name in the
                                                        three apps (no dock pinned yet)
                Helicopter from San Salvador            Bitcoin Life's shuttle; at the rodeo its lake
-                                                       tours, ferry tours and jet skis
+                                                       tours, ferry tours and jet skis; Bitcoin Life's
+                                                       WhatsApp +503 6865 6540 here and under the
+                                                       Apulo ferry (Cameron 2026-11-08)
                Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
                                                        via Club Cocal; 9:00 PM back), WhatsApp, site, X
                Driving to the venue                    the three apps
