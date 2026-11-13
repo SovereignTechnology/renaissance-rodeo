@@ -562,7 +562,7 @@ ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place na
 #getting-there five ways in (div.way, h3 each), in this order:
                Driving to the venue                    Google Maps or Waze, first, with no "the boat is
                                                        easier" line (organiser, 2026-11-13)
-               Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
+               Boat or ferry from Apulo                the organisers' note (park in Apulo, about 30 min
                                                        from San Salvador, plenty of parking there
                                                        (Cameron 2026-11-08), 5-minute boat; no "easier
                                                        than parking" pitch since 2026-11-13), the many independent

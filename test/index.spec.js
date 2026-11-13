@@ -1878,12 +1878,12 @@ describe('location page', () => {
   it('gives every way in: driving first, then the Apulo boat and ferry, the helicopter, the BitDriver runs, and from Bitcoin Histórico', async () => {
     const copy = {
       en: {
-        ways: ['Driving to the venue', 'Park in Apulo, cross by boat or ferry', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Coming from Bitcoin Histórico'],
+        ways: ['Driving to the venue', 'Boat or ferry from Apulo', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Coming from Bitcoin Histórico'],
         runs: [['10:00', '10:00 AM'], ['21:00', '9:00 PM']],
         lines: ['take the 5-minute boat ride straight to the rodeo', 'Many independent boat owners offer rides at Apulo', 'bargain for a price', 'where there is plenty of parking', "Bitcoin Life's ferry leaves from Apulo too", 'about 30 minutes from San Salvador'],
       },
       es: {
-        ways: ['En carro hasta la sede', 'Estacione en Apulo y cruce en bote o ferry', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'Si viene de Bitcoin Histórico'],
+        ways: ['En carro hasta la sede', 'En bote o ferry desde Apulo', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'Si viene de Bitcoin Histórico'],
         runs: [['10:00', '10:00 a.&nbsp;m.'], ['21:00', '9:00 p.&nbsp;m.']],
         lines: ['tome un bote de 5 minutos directo al rodeo', 'En Apulo hay muchos lancheros independientes', 'negocie el precio', 'donde hay amplio parqueo', 'El ferry de Bitcoin Life también sale de Apulo', 'a unos 30 minutos de San Salvador'],
       },
