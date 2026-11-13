@@ -556,6 +556,8 @@ figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end 
                credit the data's licence asks for, with no caption line (Cameron, 2026-11-08)
 ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place names"; no Apple Maps), as outline buttons
 #getting-there five ways in (div.way, h3 each), in this order:
+               Driving to the venue                    Google Maps or Waze, first, with no "the boat is
+                                                       easier" line (organiser, 2026-11-13)
                Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
                                                        from San Salvador, plenty of parking there
                                                        (Cameron 2026-11-08), 5-minute boat; easier than
@@ -571,7 +573,6 @@ ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place na
                                                        Apulo ferry (Cameron 2026-11-08)
                Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
                                                        via Club Cocal; 9:00 PM back), WhatsApp, site, X
-               Driving to the venue                    Google Maps or Waze
                Coming from Bitcoin Histórico           the day before; its ticket holders redeem the emailed code
 #before        Before you go: the QR in your email, free with a DUI, the Histórico code to redeem, Bitcoin
                only and the Bitcoin Center, Buy tickets, the tickets page and hello@

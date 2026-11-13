@@ -1856,15 +1856,15 @@ describe('location page', () => {
     }
   });
 
-  it('gives every way in: the Apulo boat and ferry first, the helicopter, the BitDriver runs, driving, and from Bitcoin Histórico', async () => {
+  it('gives every way in: driving first, then the Apulo boat and ferry, the helicopter, the BitDriver runs, and from Bitcoin Histórico', async () => {
     const copy = {
       en: {
-        ways: ['Park in Apulo, cross by boat or ferry', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Driving to the venue', 'Coming from Bitcoin Histórico'],
+        ways: ['Driving to the venue', 'Park in Apulo, cross by boat or ferry', 'Helicopter from San Salvador', 'Shuttle from the coast', 'Coming from Bitcoin Histórico'],
         runs: [['10:00', '10:00 AM'], ['21:00', '9:00 PM']],
         lines: ['take the 5-minute boat ride straight to the rodeo', 'Many independent boat owners offer rides at Apulo', 'bargain for a price', 'where there is plenty of parking', "Bitcoin Life's ferry leaves from Apulo too", 'about 30 minutes from San Salvador'],
       },
       es: {
-        ways: ['Estacione en Apulo y cruce en bote o ferry', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'En carro hasta la sede', 'Si viene de Bitcoin Histórico'],
+        ways: ['En carro hasta la sede', 'Estacione en Apulo y cruce en bote o ferry', 'En helicóptero desde San Salvador', 'Shuttle desde la costa', 'Si viene de Bitcoin Histórico'],
         runs: [['10:00', '10:00 a.&nbsp;m.'], ['21:00', '9:00 p.&nbsp;m.']],
         lines: ['tome un bote de 5 minutos directo al rodeo', 'En Apulo hay muchos lancheros independientes', 'negocie el precio', 'donde hay amplio parqueo', 'El ferry de Bitcoin Life también sale de Apulo', 'a unos 30 minutos de San Salvador'],
       },
@@ -1875,6 +1875,11 @@ describe('location page', () => {
       const travel = section(html, 'getting-there');
 
       expect([...travel.matchAll(/<h3>([^<]*)<\/h3>/g)].map((m) => m[1]), lang).toEqual(ways);
+      // Driving comes first and only points at the apps: no "the boat is easier" line (organiser, 2026-11-13).
+      const driving = travel.slice(travel.indexOf('<div class="way">'), travel.indexOf('</div>'));
+      expect(driving, lang).toContain(`<h3>${ways[0]}</h3>`);
+      expect(driving, `${lang} driving apps`).toContain('query=13.676983%2C-89.095381');
+      expect(driving, lang).not.toMatch(/Apulo|\bboat\b|\bbote\b|easier|fácil/);
       for (const line of lines) expect(travel, `${lang} ${line}`).toContain(line);
       for (const [hhmm, label] of runs) expect(travel, `${lang} ${hhmm}`).toContain(`<strong><time datetime="2026-11-13T${hhmm}-06:00">${label}</time></strong>`);
       for (const href of [
