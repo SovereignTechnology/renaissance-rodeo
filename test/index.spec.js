@@ -1476,22 +1476,27 @@ describe('navigation, tickets and sponsors', () => {
     }
   });
 
-  it('tells Bitcoin Histórico ticket holders on the home and location pages to watch their inbox for the code, never that their ticket already includes the rodeo', async () => {
+  it('tells Bitcoin Histórico ticket holders on the location page to watch their inbox for the code, never that their ticket already includes the rodeo', async () => {
     // Cameron, 2026-11-09: each Histórico ticket holder gets a personal code. The Office first meant to mail them;
     // later that day it sent us the holders' addresses instead, so the code comes from tickets@renaissance.rodeo.
-    // 2026-11-13 (organiser): the tickets page box and Location's "Before you go" bullet no longer say it; the home
-    // line and Location's "Coming from Bitcoin Histórico" still do.
+    // 2026-11-13 (organiser): the tickets page box, Location's "Before you go" bullet and the home page line
+    // ("Ticket holders: watch your inbox for your free entry code") no longer say it; only Location's
+    // "Coming from Bitcoin Histórico" still does.
     const inbox = { en: 'watch your inbox', es: 'esté atento a su correo' };
     for (const [lang, pages] of Object.entries(PAGES)) {
       for (const key of ['home', 'tickets', 'location']) {
         const html = (await page(pages[key])).html;
-        if (key !== 'tickets') expect(html.toLowerCase(), `${lang} ${key}`).toContain(inbox[lang]);
+        if (key === 'location') expect(html.toLowerCase(), `${lang} ${key}`).toContain(inbox[lang]);
+        else expect(html.toLowerCase(), `${lang} ${key}`).not.toContain(inbox[lang]);
         expect(html, `${lang} ${key}`).not.toMatch(/already includes Renaissance Rodeo|ya incluye Renaissance Rodeo|Histórico ticket includes entry|Histórico incluye la entrada/);
         expect(html, `${lang} ${key}`).not.toMatch(/email from Bitcoin Histórico|code from Bitcoin Histórico|Bitcoin Histórico le enviará/);
         if (key === 'location') expect(html, `${lang} ${key}`).toContain('tickets@renaissance.rodeo');
       }
       const home = (await page(pages.home)).html;
-      expect(block(home, '<p class="after">', '</p>'), lang).toContain(`<a href="${lang === 'en' ? '' : '/es'}/tickets#included-h">`);
+      // The home line is only the pointer to Bitcoin Histórico now: no inbox sentence, no link to the tickets box.
+      const after = block(home, '<p class="after">', '</p>');
+      expect(after, lang).toContain('<a href="https://bitcoinhistorico.com/" rel="noopener">Bitcoin Histórico</a>.</p>');
+      expect(after, lang).not.toMatch(/inbox|correo|included-h|código|code/i);
       const location = (await page(pages.location)).html;
       // Coming from Bitcoin Histórico, and Buy tickets under Before you go.
       expect(location.split('https://tickets.renaissance.rodeo/rodeo/2026/').length - 1, lang).toBeGreaterThanOrEqual(2);

@@ -516,9 +516,10 @@ without a photo yet keeps the ink square with their initials in Bevan.
 tickets@renaissance.rodeo (the Office sends us the holders' addresses and the shop mails the codes; it first meant to
 mail them itself). **Since 2026-11-13 (organiser) the box no longer carries the "watch your inbox … redeem it in
 the ticket shop … before you get in line" paragraph** (Spanish: *Esté atento a su correo …*): it says only that
-entry is free, with the Bitcoin Histórico emblem from the partner row and a link to its site. A watch-your-inbox
-line is still on the home page (under "The day after Bitcoin Histórico", linking to this box) and on the Location
-page (Coming from Bitcoin Histórico); Location's Before-you-go bullet for it is gone too. The codes: sovtech/alpha
+entry is free, with the Bitcoin Histórico emblem from the partner row and a link to its site. The home page's
+"Ticket holders: watch your inbox for your free entry code" went too (organiser, 2026-11-13: "The day after Bitcoin
+Histórico." is all that is left), and so did Location's Before-you-go bullet. The one watch-your-inbox line left is on
+the Location page (Coming from Bitcoin Histórico). The codes: sovtech/alpha
 `kata/pretix/historico-codes.sh`. Then
 **Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $210 (the shop sells 50), regular entry $21. In the VIP
 row, right under its name and price, what the ticket includes (Cameron, 2026-10-28): "Limited to 50 tickets. Each
