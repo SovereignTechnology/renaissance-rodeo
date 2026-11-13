@@ -564,8 +564,8 @@ ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place na
                                                        easier" line (organiser, 2026-11-13)
                Park in Apulo, cross by boat or ferry   the organisers' note (park in Apulo, about 30 min
                                                        from San Salvador, plenty of parking there
-                                                       (Cameron 2026-11-08), 5-minute boat; easier than
-                                                       parking at the venue), the many independent
+                                                       (Cameron 2026-11-08), 5-minute boat; no "easier
+                                                       than parking" pitch since 2026-11-13), the many independent
                                                        boatmen at Apulo (show them the rodeo's location,
                                                        bargain a price; Cameron 2026-11-08), Bitcoin Life's ferry and
                                                        bus + ferry (the ferry leaves from Apulo too,

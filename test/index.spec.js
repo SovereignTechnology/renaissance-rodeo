@@ -1899,6 +1899,10 @@ describe('location page', () => {
       expect(driving, lang).toContain(`<h3>${ways[0]}</h3>`);
       expect(driving, `${lang} driving apps`).toContain('query=13.676983%2C-89.095381');
       expect(driving, lang).not.toMatch(/Apulo|\bboat\b|\bbote\b|easier|fácil/);
+      // And no "the boat is easier than parking at the venue" pitch anywhere on the page, Apulo block included
+      // (organiser, 2026-11-13: first the Driving sentence, then "faster and easier … keeps the lakeside roads clear").
+      expect(travel, lang).not.toMatch(/faster and easier|easier than parking|lakeside roads|más rápido y fácil|fácil que estacionar|carreteras junto al lago/);
+      expect(html, lang).not.toMatch(/faster and easier|easier than parking|lakeside roads|más rápido y fácil|fácil que estacionar|carreteras junto al lago/);
       for (const line of lines) expect(travel, `${lang} ${line}`).toContain(line);
       for (const [hhmm, label] of runs) expect(travel, `${lang} ${hhmm}`).toContain(`<strong><time datetime="2026-11-13T${hhmm}-06:00">${label}</time></strong>`);
       for (const href of [
