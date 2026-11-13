@@ -553,7 +553,8 @@ language (`public/_redirects`). No script, nothing from elsewhere, nothing new i
 h1             Location / Ubicación, and a lede: by the lake in Ilopango (plain text here), at its
                west end, a short boat ride from Apulo; gates 12 PM, prizes and grand finale 10 PM; a link
                to /about#schedule
-figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->), and a small
+figure.venue   the map (inline SVG, between <!-- map:begin --> and <!-- map:end -->; with the drive in
+               from San Salvador as a solid red line, "By car" / "En carro", Cameron 2026-11-13), and a small
                "© OpenStreetMap" link (openstreetmap.org/copyright) inside its bottom right corner: the
                credit the data's licence asks for, with no caption line (Cameron, 2026-11-08)
 ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place names"; no Apple Maps), as outline buttons
@@ -598,6 +599,17 @@ ships as a map. Its look lives in `style.css` ("location"): a pale blue lake und
 quiet roads, Calle a Apulo darker, the crossing and the venue diamond in the site's red, and a compass
 top right (north up, its north point red; Cameron, 2026-11-08). To change a
 label, edit `LABELS` in the script and `render`; to move the frame, edit `WEST`/`EAST`/`SOUTH`/`NORTH`.
+
+**The driving route** (Cameron, 2026-11-13) is one request to OSRM's public car router, which runs on OpenStreetMap
+data: `python3 scripts/build-map.py route` asks for the drive from Plaza Gerardo Barrios (Centro Histórico, where
+Bitcoin Histórico is) to the venue pin and stores it in `brand/map/osm-extract.json` as `route` (a re-`fetch` keeps
+it); `render` stays offline. The answer on 2026-11-13: 16.5 km, about 22 minutes (the page states no time), Boulevard
+del Ejército and the Santo Tomás road. **OSM's road ends 303 m short of the pin**, on an unnamed road, and the line is
+drawn straight from there to the pin; the pin itself is the organisers' coordinates. `render` refuses unless the drive
+starts within 100 m of central San Salvador, is 8-40 km, ends within 500 m of the pin, and stays out of the lake. A
+solid red line under the dotted boat crossing; "By car" sits under it at `CAR_LABEL_X`. Because the drive arrives from
+the land side, the venue's name now runs to the right of the pin over the water, the San Salvador arrow sits on the
+line where it enters the frame (its name above), and the lake label moved clear of the venue's name.
 
 ## The sponsors page
 

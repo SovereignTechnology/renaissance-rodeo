@@ -2,17 +2,23 @@
 """scripts/build-map.py: the Location page's map (README, "The location page").
 
     python3 scripts/build-map.py fetch    query OpenStreetMap (Overpass) once; write brand/map/osm-extract.json
+                                          (keeps the driving route already stored in it)
+    python3 scripts/build-map.py route    ask OSRM (OpenStreetMap data, car profile) for the drive from central
+                                          San Salvador to the venue; store it in the extract as "route"
     python3 scripts/build-map.py render   draw the map from that extract into public/location.html and
                                           public/es/location.html, between <!-- map:begin --> and <!-- map:end -->
 
 Standard library only, no network in `render`. The map is inline SVG (no <img>, no third-party tiles: the
 CSP is img-src 'self' and the site loads nothing from elsewhere), so its labels use the site's fonts and
 read in the page's language. What it shows: the west half of Lake Ilopango, the main roads, Apulo, the boat
-and ferry crossing from Apulo, and the venue pin (13.676983, -89.095381, Cameron's coordinates, the same as
-the venue-map popover). The data is OpenStreetMap's (ODbL); the pages credit it under the map.
+and ferry crossing from Apulo, the driving route in from San Salvador, and the venue pin (13.676983,
+-89.095381, Cameron's coordinates, the same as the venue-map popover). The data is OpenStreetMap's (ODbL);
+the pages credit it under the map.
 
 `render` refuses to draw when the venue pin is not on the lakeshore (within 400 m of the OSM shoreline, on
-land) or the crossing is not a 5-minute boat ride (2-5 km): a wrong pin must never ship as a map.
+land), the crossing is not a 5-minute boat ride (2-5 km), or the driving route does not start in central San
+Salvador, is not a 8-40 km drive, or ends more than 500 m from the pin: a wrong pin or route must never ship
+as a map.
 """
 import json
 import math
@@ -37,6 +43,8 @@ WEST, EAST, SOUTH, NORTH = -89.160, -89.000, 13.625, 13.730
 WIDTH = 1000                             # viewBox width; the height follows the frame's true aspect
 CX, CY = WIDTH - 80, 112                 # the compass, top right: clear of the shore, the roads and every label
 FETCH_BOX = (13.60, -89.22, 13.75, -88.95)
+DRIVE_FROM = (13.6989, -89.1914)         # Plaza Gerardo Barrios, Centro Histórico, San Salvador: where Bitcoin Histórico is
+OSRM = "https://router.project-osrm.org/route/v1/driving/{lon0},{lat0};{lon1},{lat1}?overview=full&geometries=geojson&steps=false"
 
 
 ENDPOINTS = ("https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter")
@@ -100,9 +108,36 @@ out tags center;
     roads.sort(key=lambda r: r["id"])
     out = {"source": "OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright)",
            "query": q, "lake": lake, "roads": roads, "places": places}
+    if EXTRACT.exists() and "route" in json.loads(EXTRACT.read_text()):
+        out["route"] = json.loads(EXTRACT.read_text())["route"]   # `route` owns it; a re-fetch must not drop it
     EXTRACT.parent.mkdir(parents=True, exist_ok=True)
     EXTRACT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"wrote {EXTRACT.relative_to(ROOT)}: {len(lake)} lake ways, {len(roads)} roads, {len(places)} places")
+
+
+def route():
+    """One request to OSRM's public car router (OpenStreetMap data); store the drive in the extract."""
+    d = json.loads(EXTRACT.read_text())
+    url = OSRM.format(lat0=DRIVE_FROM[0], lon0=DRIVE_FROM[1], lat1=VENUE[0], lon1=VENUE[1])
+    req = urllib.request.Request(url, headers={"User-Agent": "renaissance-rodeo-map-build/1.0"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        j = json.load(r)
+    if j.get("code") != "Ok" or not j.get("routes"):
+        sys.exit(f"OSRM: {j.get('code')}: {j.get('message')}")
+    best, wp = j["routes"][0], j["waypoints"]
+    d["route"] = {
+        "from": list(DRIVE_FROM),
+        "service": "OSRM (router.project-osrm.org), car profile, on OpenStreetMap data",
+        "km": round(best["distance"] / 1000, 1),
+        "minutes": round(best["duration"] / 60),
+        "start_snap_m": round(wp[0]["distance"]),
+        "end_snap_m": round(wp[1]["distance"]),
+        "coords": [[round(lat, 5), round(lon, 5)] for lon, lat in best["geometry"]["coordinates"]],
+    }
+    EXTRACT.write_text(json.dumps(d, ensure_ascii=False, separators=(",", ":")) + "\n")
+    rt = d["route"]
+    print(f"route: {rt['km']} km, {rt['minutes']} min, {len(rt['coords'])} points; "
+          f"snapped {rt['start_snap_m']} m at the start and {rt['end_snap_m']} m at the venue")
 
 
 # ---------------------------------------------------------------- geometry
@@ -157,6 +192,12 @@ def inside(p, ring):
         if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
             c = not c
     return c
+
+
+def y_at(runs, x):
+    """The y where the first run crosses x going east (None if it never does)."""
+    return next((y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+                 for run in runs for (x0, y0), (x1, y1) in zip(run, run[1:]) if x0 < x <= x1), None)
 
 
 def simplify(pts, tol):
@@ -241,12 +282,15 @@ def path(pts, close=False):
 # ---------------------------------------------------------------- render
 LABELS = {
     "en": {"title": "Map: Renaissance Rodeo at the west end of Lake Ilopango, across the water from Apulo, "
-                    "which the boat and the ferry leave from. San Salvador is to the west; north is up.",
-           "lake": "Lake Ilopango", "boat": "Boat &amp; ferry"},
+                    "which the boat and the ferry leave from (dotted line). The solid line is the drive in from "
+                    "San Salvador, to the west; north is up.",
+           "lake": "Lake Ilopango", "boat": "Boat &amp; ferry", "car": "By car"},
     "es": {"title": "Mapa: Renaissance Rodeo en el extremo oeste del Lago de Ilopango, al otro lado del agua "
-                    "desde Apulo, de donde salen el bote y el ferry. San Salvador queda al oeste; el norte est\u00e1 arriba.",
-           "lake": "Lago de Ilopango", "boat": "Bote y ferry"},
+                    "desde Apulo, de donde salen el bote y el ferry (l\u00ednea punteada). La l\u00ednea continua es el "
+                    "camino en carro desde San Salvador, al oeste; el norte est\u00e1 arriba.",
+           "lake": "Lago de Ilopango", "boat": "Bote y ferry", "car": "En carro"},
 }
+CAR_LABEL_X = 240                        # where along the drive the "By car" label sits (viewBox x), just above the line
 
 
 def render():
@@ -267,6 +311,16 @@ def render():
         sys.exit(f"Apulo to the venue is {crossing / 1000:.2f} km: not a 5-minute boat ride, check before drawing")
     print(f"gate: venue {gap:.0f} m from the shore, on land; Apulo park to the venue {crossing / 1000:.2f} km")
 
+    # The drive: from central San Salvador, 8-40 km, and it must end within 500 m of the pin (the last stretch
+    # to the pin is drawn straight; OSM's road ends a few hundred metres short of Cameron's coordinates).
+    rt = d.get("route") or sys.exit("no driving route in the extract: run `python3 scripts/build-map.py route`")
+    if rt["start_snap_m"] > 100 or not 8 <= rt["km"] <= 40:
+        sys.exit(f"driving route: {rt['km']} km, started {rt['start_snap_m']} m from central San Salvador: check before drawing")
+    approach = metres(rt["coords"][-1], VENUE)
+    if approach > 500:
+        sys.exit(f"driving route ends {approach:.0f} m from the venue pin: check before drawing")
+    print(f"gate: drive {rt['km']} km from central San Salvador, its road ends {approach:.0f} m from the pin")
+
     m = 60  # margin in viewBox units, so clipped edges sit outside the frame
     box = (-m, -m, WIDTH + m, HEIGHT + m)
     tol = 1.1  # ~17 m at this scale: well under a pixel of the drawn map
@@ -280,6 +334,18 @@ def render():
         for run in clip_line([project(*p) for p in r["coords"]], *box):
             roads["trunk" if r["kind"] != "apulo" else "apulo"].append(path(simplify(run, tol)))
 
+    # The drive, in from the west, ending at the pin (drawn under it). It stays on land: checked below.
+    run_pts = [project(*p) for p in rt["coords"]] + [v]
+    drive_runs = [simplify(run, tol) for run in clip_line(run_pts, *box)]
+    if any(inside(p, r) for run in drive_runs for p in run for r in shore if p != v):
+        sys.exit("the driving route runs through the lake: check the route before drawing")
+    drive = "".join(path(run) for run in drive_runs)
+    # Labels follow the line: "By car" under it at CAR_LABEL_X, and the San Salvador arrow sits ON it where it
+    # enters the frame, its name above (the drive and that arrow both come in from the west at the same height).
+    car_y, ss_y = y_at(drive_runs, CAR_LABEL_X), y_at(drive_runs, 56)
+    if car_y is None or ss_y is None:
+        sys.exit(f"the driving route does not cross x={CAR_LABEL_X} and x=56: move CAR_LABEL_X or check the route")
+
     a = project(*park)
     # The crossing: a gentle arc out over the water, from the Apulo shore to the venue's.
     mx, my = (a[0] + v[0]) / 2, (a[1] + v[1]) / 2
@@ -292,8 +358,7 @@ def render():
         if not any(inside(p, r) for r in shore):
             sys.exit(f"the crossing arc leaves the water at t={t:.2f}: adjust its bend")
     ap = project(*village)
-    lake_at = project(13.664, -89.045)
-    ss_y = project(13.699, WEST)[1]
+    lake_at = project(13.6595, -89.040)    # clear of the venue's name, which now runs right of the pin over the water
 
     for lang, page in PAGES.items():
         L = LABELS[lang]
@@ -304,17 +369,20 @@ def render():
             f'  <path class="map-water" fill-rule="evenodd" d="{"".join(water)}"/>',
             f'  <path class="map-road" d="{"".join(roads["trunk"])}"/>',
             f'  <path class="map-road map-road-apulo" d="{"".join(roads["apulo"])}"/>',
+            f'  <path class="map-drive" d="{drive}"/>',
             f'  <path class="map-crossing" d="M{r1(a[0])} {r1(a[1])}Q{r1(c[0])} {r1(c[1])} {r1(v[0])} {r1(v[1])}"/>',
             f'  <text class="map-lake" x="{r1(lake_at[0])}" y="{r1(lake_at[1])}" text-anchor="middle">{L["lake"]}</text>',
             f'  <text class="map-note" x="{r1(c[0] + 18)}" y="{r1(c[1] + 22)}">{L["boat"]}</text>',
+            f'  <text class="map-note map-drive-note" x="{CAR_LABEL_X}" y="{r1(car_y + 52)}" text-anchor="middle">{L["car"]}</text>',
             f'  <circle class="map-dot" cx="{r1(a[0])}" cy="{r1(a[1])}" r="9"/>',
             f'  <text class="map-place" x="{r1(a[0] + 4)}" y="{r1(min(a[1], ap[1]) - 26)}" text-anchor="middle">Apulo</text>',
             f'  <path class="map-pin" d="M{r1(v[0])} {r1(v[1] - 22)}l22 22-22 22-22-22z"/>',
-            # Two lines to the left of the pin, on the land side: one line would run off the frame.
-            f'  <text class="map-venue" x="{r1(v[0] - 34)}" y="{r1(v[1] - 6)}" text-anchor="end">Renaissance'
-            f'<tspan x="{r1(v[0] - 34)}" dy="42">Rodeo</tspan></text>',
+            # Two lines right of the pin, over the water: the drive arrives from the land side (the west), so the
+            # land side is no place for the name any more.
+            f'  <text class="map-venue" x="{r1(v[0] + 36)}" y="{r1(v[1] + 32)}">Renaissance'
+            f'<tspan x="{r1(v[0] + 36)}" dy="42">Rodeo</tspan></text>',
             f'  <path class="map-arrow" d="M70 {r1(ss_y - 14)}l-28 14 28 14"/>',
-            f'  <text class="map-place" x="84" y="{r1(ss_y + 12)}">San Salvador</text>',
+            f'  <text class="map-place" x="24" y="{r1(ss_y - 36)}">San Salvador</text>',
             # The compass (Cameron, 2026-11-08), top right on a paper disc so it reads over land or lake: the
             # frame is north-up (equirectangular), so north is straight up; the north point is the site's red.
             f'  <g class="map-compass">',
@@ -345,6 +413,8 @@ if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
     if mode == "fetch":
         fetch()
+    elif mode == "route":
+        route()
     elif mode == "render":
         render()
     else:

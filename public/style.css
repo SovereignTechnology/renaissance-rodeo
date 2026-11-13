@@ -818,6 +818,7 @@ body:has(dialog[open]) { overflow: hidden; }
 .map-water { fill: #cbd8df; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
 .map-road { fill: none; stroke: var(--muted); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
 .map-road-apulo { stroke: var(--ink); stroke-width: 4.5; opacity: .85; }
+.map-drive { fill: none; stroke: var(--red); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
 .map-crossing { fill: none; stroke: var(--red); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 2 12; }
 .map-pin { fill: var(--red); stroke: var(--paper); stroke-width: 4; }
 .map-dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; }

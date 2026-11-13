@@ -1822,8 +1822,8 @@ describe('location page', () => {
   it('draws the map inline, the same in both languages apart from its words, and credits OpenStreetMap', async () => {
     const words = {
       // The credit the data's licence asks for: small, inside the map's corner, no caption line (2026-11-08).
-      en: ['Lake Ilopango', 'Boat &amp; ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>'],
-      es: ['Lago de Ilopango', 'Bote y ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>'],
+      en: ['Lake Ilopango', 'Boat &amp; ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>', 'By car'],
+      es: ['Lago de Ilopango', 'Bote y ferry', '<a class="map-credit" href="https://www.openstreetmap.org/copyright" rel="noopener">© OpenStreetMap</a>', 'En carro'],
     };
     const shape = {};
     for (const [lang, path] of Object.entries(PAGES)) {
@@ -1832,7 +1832,15 @@ describe('location page', () => {
 
       expect(svg, lang).toMatch(/<svg class="map" viewBox="0 0 1000 \d+" role="img" aria-labelledby="map-title">/);
       expect(svg, lang).toMatch(/<title id="map-title">[^<]+<\/title>/);
-      for (const cls of ['map-water', 'map-road', 'map-crossing', 'map-pin', 'map-compass']) expect(svg, `${lang} ${cls}`).toContain(`class="${cls}`);
+      for (const cls of ['map-water', 'map-road', 'map-drive', 'map-crossing', 'map-pin', 'map-compass']) expect(svg, `${lang} ${cls}`).toContain(`class="${cls}`);
+      // The driving route in from San Salvador (Cameron, 2026-11-13): a solid line from the west edge to the pin,
+      // drawn under the pin from OSRM's OpenStreetMap route stored in the extract, labelled By car / En carro.
+      const drive = svg.match(/<path class="map-drive" d="(M[^"]+)"\/>/);
+      expect(drive, `${lang} drive path`).not.toBeNull();
+      expect(drive[1].length, `${lang} drive path`).toBeGreaterThan(200);
+      expect(svg.indexOf('class="map-drive"'), lang).toBeLessThan(svg.indexOf('class="map-pin"'));
+      expect(svg, lang).toContain(`>${words[lang][3]}</text>`);
+      expect(svg.match(/<title id="map-title">([^<]+)<\/title>/)[1], lang).toMatch(lang === 'en' ? /drive in from San Salvador/ : /camino en carro desde San Salvador/);
       // The compass: north up, labelled N (Cameron, 2026-11-08).
       expect(svg, lang).toContain('<text class="map-compass-label"');
       for (const word of ['Apulo', 'San Salvador', 'Renaissance', 'Rodeo', words[lang][0], words[lang][1]]) expect(svg, `${lang} ${word}`).toContain(word);
