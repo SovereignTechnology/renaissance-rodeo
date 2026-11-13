@@ -514,10 +514,12 @@ without a photo yet keeps the ink square with their initials in Bevan.
 `/tickets` and `/es/tickets` open with a ruled box: **Have a Bitcoin Histórico ticket?** Entry is free, and
 (Cameron, 2026-11-09) every Histórico ticket holder gets a personal single-use code by email from
 tickets@renaissance.rodeo (the Office sends us the holders' addresses and the shop mails the codes; it first meant to
-mail them itself): *watch your inbox … redeem it in the ticket shop for your free entry ticket before you get in line* (Spanish: *Esté
-atento a su correo …*), with a link to the shop, the Bitcoin Histórico emblem from the partner row and a link to its
-site. The same line is on the home page (under "The day after Bitcoin Histórico", linking to this box) and on the
-Location page (Coming from Bitcoin Histórico, Before you go). The codes: sovtech/alpha `kata/pretix/historico-codes.sh`. Then
+mail them itself). **Since 2026-11-13 (organiser) the box no longer carries the "watch your inbox … redeem it in
+the ticket shop … before you get in line" paragraph** (Spanish: *Esté atento a su correo …*): it says only that
+entry is free, with the Bitcoin Histórico emblem from the partner row and a link to its site. A watch-your-inbox
+line is still on the home page (under "The day after Bitcoin Histórico", linking to this box) and on the Location
+page (Coming from Bitcoin Histórico); Location's Before-you-go bullet for it is gone too. The codes: sovtech/alpha
+`kata/pretix/historico-codes.sh`. Then
 **Buy tickets** / **Comprar boletos**: VIP Cowboy Deluxe $210 (the shop sells 50), regular entry $21. In the VIP
 row, right under its name and price, what the ticket includes (Cameron, 2026-10-28): "Limited to 50 tickets. Each
 one includes:" then an exclusive lakeside BBQ in the VIP area, a branded cowboy hat and a pick of 1 of 3 tees; the
@@ -574,7 +576,7 @@ ul.apps        Google Maps · Waze at the venue's coordinates (README, "Place na
                Shuttle from the coast                  BitDriver's two runs as posted (10:00 AM El Zonte
                                                        via Club Cocal; 9:00 PM back), WhatsApp, site, X
                Coming from Bitcoin Histórico           the day before; its ticket holders redeem the emailed code
-#before        Before you go: the QR in your email, free with a DUI, the Histórico code to redeem, Bitcoin
+#before        Before you go: the QR in your email, free with a DUI, Bitcoin
                only and the Bitcoin Center, Buy tickets, the tickets page and hello@
 ```
 
